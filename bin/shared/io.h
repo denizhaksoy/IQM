@@ -16,6 +16,17 @@
 #include <algorithm>
 #include <fstream>
 #include <filesystem>
+#include <optional>
+#include <cstdint>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace IQM::Bin {
     struct Match {
@@ -86,24 +97,66 @@ namespace IQM::Bin {
     }
 
     inline std::vector<float> load_model(const std::string &filename) {
-        std::string path = std::filesystem::canonical("/proc/self/exe");
-        path = path.substr(0, path.rfind('/') + 1);
+    namespace fs = std::filesystem;
 
-        std::ifstream input(path + filename, std::ios::binary);
+    fs::path executablePath;
 
-        if (input.bad()) {
-            throw std::runtime_error("Failed to open file '" + filename + "'");
-        }
+#ifdef _WIN32
+    std::vector<wchar_t> pathBuffer(32768);
+    DWORD length = GetModuleFileNameW(
+        nullptr,
+        pathBuffer.data(),
+        static_cast<DWORD>(pathBuffer.size())
+    );
 
-        input.seekg(0, std::ios::end);
-        const auto params = input.tellg() / sizeof(float);
-        input.seekg(0, std::ios::beg);
-
-        std::vector<float> buffer(params);
-        input.read(reinterpret_cast<char*>(&buffer[0]), params*sizeof(float));
-
-        return buffer;
+    if (length == 0 || length >= pathBuffer.size()) {
+        throw std::runtime_error("Failed to determine executable path");
     }
+
+    executablePath = fs::path(std::wstring(pathBuffer.data(), length));
+#else
+    executablePath = fs::canonical("/proc/self/exe");
+#endif
+
+    fs::path modelPath = executablePath.parent_path() / filename;
+
+    std::ifstream input(modelPath, std::ios::binary);
+
+    if (!input.is_open()) {
+        throw std::runtime_error(
+            "Failed to open model file: " + modelPath.string()
+        );
+    }
+
+    input.seekg(0, std::ios::end);
+    const auto fileSize = input.tellg();
+
+    if (fileSize < 0 ||
+        fileSize % static_cast<std::streamoff>(sizeof(float)) != 0) {
+        throw std::runtime_error("Invalid model file size");
+    }
+
+    const auto count = static_cast<std::size_t>(
+        fileSize / static_cast<std::streamoff>(sizeof(float))
+    );
+
+    input.seekg(0, std::ios::beg);
+
+    std::vector<float> buffer(count);
+
+    if (!buffer.empty()) {
+        input.read(
+            reinterpret_cast<char*>(buffer.data()),
+            static_cast<std::streamsize>(fileSize)
+        );
+
+        if (!input) {
+            throw std::runtime_error("Failed to read model file");
+        }
+    }
+
+    return buffer;
+}
 }
 
 #endif //IQM_IO_H

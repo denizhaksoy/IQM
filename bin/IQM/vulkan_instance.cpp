@@ -4,6 +4,8 @@
  */
 
 #include "vulkan_instance.h"
+#include <optional>
+#include <string>
 
 IQM::Bin::VulkanInstance::VulkanInstance() {
     this->context = vk::raii::Context{};
@@ -69,7 +71,7 @@ void IQM::Bin::VulkanInstance::initQueues() {
             i++;
         }
 
-        this->selectedDevice = std::string(properties.deviceName);
+        this->selectedDevice = std::string(properties.deviceName.data());
         break;
     }
 

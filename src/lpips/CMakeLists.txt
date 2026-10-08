@@ -8,5 +8,9 @@ target_include_directories(IQM-LPIPS
         PRIVATE "../../shaders_out"
 )
 
-target_compile_options(IQM-LPIPS PRIVATE "-Wall;-Wextra")
+if(MSVC)
+    target_compile_options(IQM-LPIPS PRIVATE /W4)
+else()
+    target_compile_options(IQM-LPIPS PRIVATE -Wall -Wextra)
+endif()
 target_link_libraries(IQM-LPIPS PUBLIC Vulkan::Vulkan IQM::LibBase)

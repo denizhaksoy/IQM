@@ -11,5 +11,10 @@ target_include_directories(IQM-LibBase
         PRIVATE "../../shaders_out"
 )
 
-target_compile_options(IQM-LibBase PRIVATE "-Wall;-Wextra")
+# target_compile_options(IQM-LibBase PRIVATE "-Wall;-Wextra")
+if(MSVC)
+    target_compile_options(IQM-LibBase PRIVATE /W4)
+else()
+    target_compile_options(IQM-LibBase PRIVATE -Wall -Wextra)
+endif()
 target_link_libraries(IQM-LibBase PUBLIC Vulkan::Vulkan)

@@ -27,7 +27,7 @@ namespace IQM::Bin {
 
             int longestName = 0;
             for (const auto& [name, _time] : inner) {
-                longestName = std::max(longestName, static_cast<int>(name.length()));
+                longestName = (std::max)(longestName, static_cast<int>(name.length()));
             }
 
             auto diffs = std::vector{

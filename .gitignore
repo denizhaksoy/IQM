@@ -6,3 +6,4 @@ shaders_out/***.*
 shaders_out/***/*.inc
 *.spv
 .directory
+/build/

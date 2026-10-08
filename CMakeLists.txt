@@ -20,3 +20,8 @@ set(PROFILE_NAME ${PROJECT_NAME}-profile)
 
 add_subdirectory(src)
 add_subdirectory(bin)
+if(WIN32)
+    target_link_directories(IQM PRIVATE
+        "$ENV{VULKAN_SDK}/Lib"
+    )
+endif()

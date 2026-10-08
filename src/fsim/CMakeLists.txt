@@ -23,5 +23,10 @@ target_include_directories(IQM-FSIM SYSTEM
 
 add_library(VkFFT INTERFACE)
 target_compile_definitions(VkFFT INTERFACE -DVKFFT_BACKEND=0)
-target_compile_options(IQM-FSIM PRIVATE "-Wall;-Wextra")
+# target_compile_options(IQM-FSIM PRIVATE "-Wall;-Wextra")
+if(MSVC)
+    target_compile_options(IQM-FSIM PRIVATE /W4)
+else()
+    target_compile_options(IQM-FSIM PRIVATE -Wall -Wextra)
+endif()
 target_link_libraries(IQM-FSIM PUBLIC Vulkan::Vulkan IQM::LibBase SPIRV glslang)

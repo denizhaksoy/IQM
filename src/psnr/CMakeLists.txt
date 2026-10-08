@@ -8,5 +8,10 @@ target_include_directories(IQM-PSNR
         PRIVATE "../../shaders_out"
 )
 
-target_compile_options(IQM-PSNR PRIVATE "-Wall;-Wextra")
+# target_compile_options(IQM-PSNR PRIVATE "-Wall;-Wextra")
+if(MSVC)
+    target_compile_options(IQM-PSNR PRIVATE /W4)
+else()
+    target_compile_options(IQM-PSNR PRIVATE -Wall -Wextra)
+endif()
 target_link_libraries(IQM-PSNR PUBLIC Vulkan::Vulkan IQM::LibBase)

@@ -10,6 +10,7 @@
 #include "IQM/base/colorize.h"
 #include "IQM/base/viridis.h"
 
+
 void IQM::Bin::lpips_run(const IQM::Bin::Args &args, const IQM::VulkanInstance &instance, const std::vector<Match> &imageMatches) {
     IQM::LPIPS lpips(*instance.device());
     IQM::Colorize colorizer(*instance.device());
@@ -527,7 +528,13 @@ IQM::Bin::LPIPSResult IQM::Bin::lpips_copy_back(const VulkanInstance &instance, 
 
     timestamps.mark("end GPU work");
 
-    void * outBufData = res.stgInputMemory.mapMemory(0, sizeof(float) + res.imageInput->width * res.imageInput->height * 4, {});
+    auto* outBufData = static_cast<std::byte*>(
+        res.stgInputMemory.mapMemory(
+            0,
+            sizeof(float) + res.imageInput->width * res.imageInput->height * 4,
+            {}
+        )
+    );
     memcpy(&result.distance, outBufData, sizeof(float));
 
     if (hasOutput) {

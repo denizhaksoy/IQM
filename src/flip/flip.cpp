@@ -4,6 +4,7 @@
  */
 
 #include <cmath>
+#include <numbers>
 #include <IQM/flip.h>
 
 static std::vector<uint32_t> srcInputConvert =
