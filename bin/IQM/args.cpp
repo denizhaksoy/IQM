@@ -32,6 +32,8 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
                 this->method = Method::PSNR;
             } else if (strcmp(argv[i + 1], "LPIPS") == 0) {
                 this->method = Method::LPIPS;
+            } else if (strcmp(argv[i + 1], "HDRVDP3") == 0) {
+                this->method = Method::HDRVDP3;
             } else {
                 throw std::runtime_error("Unknown method");
             }

@@ -17,6 +17,7 @@ namespace IQM {
         FSIM = 4,
         FLIP = 5,
         LPIPS = 6,
+        HDRVDP3 = 7,
     };
 
     std::string method_name(const Method &method);

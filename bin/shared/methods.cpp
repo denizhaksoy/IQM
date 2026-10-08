@@ -23,6 +23,8 @@ namespace IQM {
                 return "FLIP";
             case Method::LPIPS:
                 return "LPIPS";
+            case Method::HDRVDP3:
+                return "HDRVDP3";
             default:
                 throw std::runtime_error("unknown method");
         }
