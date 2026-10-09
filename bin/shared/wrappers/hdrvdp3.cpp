@@ -124,6 +124,103 @@ static std::vector<float> load_reference(const std::string& filename, int& out_r
     return data;
 }
 
+// CPU reference implementation of corrDn matching Octave's rconv2 + corrDn with reflect1 boundary
+// Filter is in MATLAB .m file format (row-by-row, row-major linear), NOT transposed.
+// Octave's corrDn flips the filter, then conv2 flips again -> net: correlation with original filter.
+static std::vector<float> cpu_corrdn_ref(
+    const std::vector<float>& input,
+    unsigned width, unsigned height,
+    const float* matlab_mfile_filter,  // .m file format (row-by-row, row-major)
+    int filter_size,
+    int step_x, int step_y,
+    int start_x, int start_y)
+{
+    // Octave's corrDn: filt = filt(end:-1:1, end:-1:1); then conv2 (which flips again)
+    // Net effect: correlation with ORIGINAL filter (no flip needed here)
+    // Use the .m file filter directly (row-major linear: row * N + col)
+
+    // Step 1: Reflect1 padding (matching Octave's rconv2.m exactly)
+    // pad = floor((filter_size + ctr - 1)/2), ctr=0 default
+    int pad_y = (filter_size - 1) / 2;
+    int pad_x = (filter_size - 1) / 2;
+    
+    unsigned padded_h = height + 2 * pad_y;
+    unsigned padded_w = width + 2 * pad_x;
+    std::vector<float> padded(padded_h * padded_w);
+
+    // Fill padded image with reflect1 boundary handling (matching rconv2.m indexing)
+    for (unsigned py = 0; py < padded_h; ++py) {
+        for (unsigned px = 0; px < padded_w; ++px) {
+            int iy = static_cast<int>(py) - pad_y;
+            int ix = static_cast<int>(px) - pad_x;
+            
+            // Reflect1: reflect about edge pixels (index 0 and height-1)
+            if (iy < 0) iy = -iy;
+            if (ix < 0) ix = -ix;
+            if (iy >= static_cast<int>(height)) iy = 2 * (height - 1) - iy;
+            if (ix >= static_cast<int>(width)) ix = 2 * (width - 1) - ix;
+            
+            // Handle multiple reflections for large filters
+            while (iy < 0 || iy >= static_cast<int>(height) || ix < 0 || ix >= static_cast<int>(width)) {
+                if (iy < 0) iy = -iy;
+                if (iy >= static_cast<int>(height)) iy = 2 * (height - 1) - iy;
+                if (ix < 0) ix = -ix;
+                if (ix >= static_cast<int>(width)) ix = 2 * (width - 1) - ix;
+            }
+            
+            padded[py * padded_w + px] = input[iy * width + ix];
+        }
+    }
+
+    // Step 2: Correlation with ORIGINAL filter (no flip - Octave flips then conv2 flips)
+    // Filter is in .m file format: row-major linear [row * N + col]
+    std::vector<float> corr_result(height * width);
+    for (unsigned y = 0; y < height; ++y) {
+        for (unsigned x = 0; x < width; ++x) {
+            float acc = 0.0f;
+            for (int fy = 0; fy < filter_size; ++fy) {
+                for (int fx = 0; fx < filter_size; ++fx) {
+                    unsigned py = y + fy;
+                    unsigned px = x + fx;
+                    // Filter index: row-major .m file format
+                    float coeff = matlab_mfile_filter[fy * filter_size + fx];
+                    acc += padded[py * padded_w + px] * coeff;
+                }
+            }
+            corr_result[y * width + x] = acc;
+        }
+    }
+
+    // Step 3: Downsample with step (matching corrDn.m: start(1):step(1):stop(1))
+    unsigned out_h = (height - start_y + step_y - 1) / step_y;
+    unsigned out_w = (width - start_x + step_x - 1) / step_x;
+    std::vector<float> output(out_h * out_w);
+    
+    for (unsigned oy = 0; oy < out_h; ++oy) {
+        for (unsigned ox = 0; ox < out_w; ++ox) {
+            unsigned iy = start_y + oy * step_y;
+            unsigned ix = start_x + ox * step_x;
+            if (iy < height && ix < width) {
+                output[oy * out_w + ox] = corr_result[iy * width + ix];
+            }
+        }
+    }
+    
+    return output;
+}
+
+// Save reference output to file (for generating Octave references)
+static void save_reference(const std::string& filename, const std::vector<float>& data, unsigned rows, unsigned cols) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open reference file for writing: " + filename);
+    }
+    file << rows << " " << cols << "\n";
+    for (unsigned i = 0; i < data.size(); ++i) {
+        file << data[i] << "\n";
+    }
+}
+
 static std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> create_filter_buffer(
     const VulkanInstance& instance,
     const float* filter_coeffs,
@@ -409,6 +506,175 @@ static void run_corrdn_test(
     }
 }
 
+// Helper to run corrDn on GPU and return output data
+static std::vector<float> run_corrdn_gpu(
+    const VulkanInstance& instance,
+    IQM::HDRVDP3::CorrDn& corrdn,
+    const std::vector<float>& filter_shader,
+    int filter_size,
+    const std::vector<float>& input_data,
+    unsigned width, unsigned height,
+    int step)
+{
+    const unsigned outWidth = (width + step - 1) / step;
+    const unsigned outHeight = (height + step - 1) / step;
+    
+    // Create filter buffer
+    auto [filterBuffer, filterMemory] = create_filter_buffer(instance, filter_shader.data(), filter_size);
+    
+    // Initialize resources
+    auto res = hdrvdp3_test_init_res(width, height, instance);
+    hdrvdp3_test_upload(instance, res, input_data);
+    
+    auto corrdnArgs = IQM::HDRVDP3::CorrDnInput {
+        .device = instance.device(),
+        .cmdBuf = &*instance.cmdBuf(),
+        .ivInput = &res.imageInput->imageView,
+        .ivOutput = &res.imageOutput->imageView,
+        .filterBuffer = &filterBuffer,
+        .width = outWidth,
+        .height = outHeight,
+        .filter_size = filter_size,
+        .step_x = step,
+        .step_y = step,
+        .start_x = 0,
+        .start_y = 0,
+    };
+    
+    const vk::CommandBufferBeginInfo beginInfo = {
+        .flags = vk::CommandBufferUsageFlags{vk::CommandBufferUsageFlagBits::eOneTimeSubmit},
+    };
+    
+    vk::raii::Fence computeFence(*instance.device(), vk::FenceCreateInfo{});
+    
+    instance.cmdBuf()->reset();
+    instance.cmdBuf()->begin(beginInfo);
+    corrdn.compute(corrdnArgs);
+    instance.cmdBuf()->end();
+    
+    vk::CommandBuffer cmdBuf = *instance.cmdBuf();
+    auto mask = vk::PipelineStageFlags{vk::PipelineStageFlagBits::eComputeShader};
+    const vk::SubmitInfo submitInfo{
+        .sType = vk::StructureType::eSubmitInfo,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*res.uploadDone,
+        .pWaitDstStageMask = &mask,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmdBuf,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &*res.computeDone
+    };
+    
+    instance.queue()->submit(submitInfo, computeFence);
+    instance.waitForFence(computeFence);
+    
+    auto result = hdrvdp3_test_copy_back(instance, res, outWidth, outHeight);
+    return result.outputData;
+}
+
+// Helper to compare GPU and CPU results
+static void compare_results(
+    const std::string& name,
+    const std::vector<float>& gpu_data,
+    const std::vector<float>& cpu_data,
+    unsigned out_w, unsigned out_h)
+{
+    if (gpu_data.size() != cpu_data.size()) {
+        std::cout << "  WARNING: Size mismatch! GPU: " << gpu_data.size() 
+                  << " CPU: " << cpu_data.size() << std::endl;
+    }
+    
+    int compare_count = std::min(static_cast<int>(gpu_data.size()), static_cast<int>(cpu_data.size()));
+    float max_abs_error = 0.0f;
+    float rmse_sum = 0.0f;
+    
+    for (int i = 0; i < compare_count; ++i) {
+        float error = std::abs(gpu_data[i] - cpu_data[i]);
+        max_abs_error = std::max(max_abs_error, error);
+        float diff = gpu_data[i] - cpu_data[i];
+        rmse_sum += diff * diff;
+    }
+    float rmse = std::sqrt(rmse_sum / compare_count);
+    
+    std::cout << "  " << name << ": " << out_w << "x" << out_h
+              << "  MaxAbsErr=" << max_abs_error << "  RMSE=" << rmse << std::endl;
+    
+    // Print corners
+    if (out_w > 0 && out_h > 0 && compare_count > 0) {
+        std::cout << "  Corners: TL GPU=" << gpu_data[0] << " CPU=" << cpu_data[0]
+                  << " TR GPU=" << gpu_data[out_w-1] << " CPU=" << cpu_data[out_w-1]
+                  << " BL GPU=" << gpu_data[(out_h-1)*out_w] << " CPU=" << cpu_data[(out_h-1)*out_w]
+                  << " BR GPU=" << gpu_data[(out_h-1)*out_w + out_w-1] 
+                  << " CPU=" << cpu_data[(out_h-1)*out_w + out_w-1] << std::endl;
+    }
+}
+
+// Run steerable pyramid first level test - compare GPU results directly against Octave references
+static void run_spyr_level1_test(
+    const VulkanInstance& instance,
+    IQM::HDRVDP3::CorrDn& corrdn,
+    const std::vector<float>& input_data,
+    unsigned width, unsigned height)
+{
+    std::cout << "\n==================================================" << std::endl;
+    std::cout << "HDR-VDP-3 Steerable Pyramid Level 1 Validation" << std::endl;
+    std::cout << "Input: " << width << "x" << height << " (MATLAB-compatible)" << std::endl;
+    std::cout << "Reference: Official Octave implementation (C:/HDR-VDP-3_Ref)" << std::endl;
+    std::cout << "==================================================" << std::endl;
+
+    // Helper to load Octave reference and transpose (Octave is column-major, GPU is row-major)
+    auto load_octave_ref_transposed = [&](const std::string& filename, unsigned& out_w, unsigned& out_h) {
+        int ref_rows, ref_cols;
+        auto data = load_reference(filename, ref_rows, ref_cols);
+        // Octave stores column-major, GPU expects row-major -> transpose
+        // Octave ref_rows x ref_cols -> GPU ref_cols x ref_rows
+        std::vector<float> transposed(ref_cols * ref_rows);
+        for (int r = 0; r < ref_rows; ++r) {
+            for (int c = 0; c < ref_cols; ++c) {
+                transposed[c * ref_rows + r] = data[r * ref_cols + c];
+            }
+        }
+        out_w = ref_rows;
+        out_h = ref_cols;
+        return transposed;
+    };
+
+    std::cout << "\n==================================================" << std::endl;
+    std::cout << "HDR-VDP-3 Steerable Pyramid Level 1 Validation" << std::endl;
+    std::cout << "Input: " << width << "x" << height << " (MATLAB-compatible)" << std::endl;
+    std::cout << "Reference: Official Octave implementation (C:/HDR-VDP-3_Ref)" << std::endl;
+    std::cout << "==================================================" << std::endl;
+
+    // Step 1: Compute initial lowpass (lo0filt) and highpass (hi0filt)
+    std::cout << "\n--- Computing initial lowpass (lo0filt) ---" << std::endl;
+    auto lo0_gpu = run_corrdn_gpu(instance, corrdn, lo0filt_shader, 7, input_data, width, height, 1);
+    unsigned ref_w, ref_h;
+    auto oct_lowpass = load_octave_ref_transposed("C:/temp/oct_lowpass.txt", ref_w, ref_h);
+    compare_results("lo0filt (initial lowpass) vs Octave", lo0_gpu, oct_lowpass, ref_w, ref_h);
+
+    std::cout << "\n--- Computing initial highpass (hi0filt) ---" << std::endl;
+    auto hi0_gpu = run_corrdn_gpu(instance, corrdn, hi0filt_shader, 9, input_data, width, height, 1);
+    auto oct_highpass = load_octave_ref_transposed("C:/temp/oct_highpass.txt", ref_w, ref_h);
+    compare_results("hi0filt (initial highpass) vs Octave", hi0_gpu, oct_highpass, ref_w, ref_h);
+
+    // Step 2: Compute first orientation band (bfilt orient1 on lowpass)
+    std::cout << "\n--- Computing first orientation band (bfilt orient1 on lowpass) ---" << std::endl;
+    auto bfilt1_gpu = run_corrdn_gpu(instance, corrdn, bfilt1_shader, 9, lo0_gpu, 32, 32, 1);
+    auto oct_orient1 = load_octave_ref_transposed("C:/temp/oct_orient1.txt", ref_w, ref_h);
+    compare_results("bfilt orient1 (on lowpass) vs Octave", bfilt1_gpu, oct_orient1, ref_w, ref_h);
+
+    // Step 3: Compute downsampled lowpass (lofilt with step=2 on lowpass)
+    std::cout << "\n--- Computing downsampled lowpass (lofilt step=2 on lowpass) ---" << std::endl;
+    auto lo1_gpu = run_corrdn_gpu(instance, corrdn, lofilt_shader, 13, lo0_gpu, 32, 32, 2);
+    auto oct_ds_lowpass = load_octave_ref_transposed("C:/temp/oct_ds_lowpass.txt", ref_w, ref_h);
+    compare_results("lofilt step=2 (downsampled lowpass) vs Octave", lo1_gpu, oct_ds_lowpass, ref_w, ref_h);
+
+    std::cout << "\n==================================================" << std::endl;
+    std::cout << "Steerable Pyramid Level 1 Validation Complete" << std::endl;
+    std::cout << "==================================================" << std::endl;
+}
+
 void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
     IQM::HDRVDP3::CorrDn corrdn(*instance.device());
     
@@ -421,6 +687,57 @@ void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
     std::cout << "Input: " << width << "x" << height << " (MATLAB-compatible)" << std::endl;
     std::cout << "Reference: C:/temp/ref_*.txt (from Octave)" << std::endl;
     std::cout << "==================================================" << std::endl;
+    
+    // First, verify CPU reference matches Octave reference files
+    std::cout << "\n--- Verifying CPU reference against Octave references ---" << std::endl;
+    {
+        struct OctaveRefTest {
+            const char* name;
+            const float* matlab_filter;
+            int filter_size;
+            const char* ref_file;
+            int step;
+        };
+        
+        OctaveRefTest octave_tests[] = {
+            {"lo0filt (7x7) step=1", lo0filt_matlab, 7, "C:/temp/ref_lo0filt_7x7_step1.txt", 1},
+            {"hi0filt (9x9) step=1", hi0filt_matlab, 9, "C:/temp/ref_hi0filt_9x9_step1.txt", 1},
+            {"lofilt (13x13) step=1", lofilt_matlab, 13, "C:/temp/ref_lofilt_13x13_step1.txt", 1},
+            {"bfilt orient1 (9x9) step=1", bfilt1_matlab, 9, "C:/temp/ref_bfilt_9x9_orient1_step1.txt", 1},
+        };
+        
+        bool all_cpu_verified = true;
+        for (const auto& t : octave_tests) {
+            int ref_rows, ref_cols;
+            auto octave_ref = load_reference(t.ref_file, ref_rows, ref_cols);
+            auto cpu_ref = cpu_corrdn_ref(input_data, width, height, t.matlab_filter, t.filter_size, t.step, t.step, 0, 0);
+            
+            int compare_count = std::min(static_cast<int>(cpu_ref.size()), static_cast<int>(octave_ref.size()));
+            float max_abs_error = 0.0f;
+            float rmse_sum = 0.0f;
+            for (int i = 0; i < compare_count; ++i) {
+                float error = std::abs(cpu_ref[i] - octave_ref[i]);
+                max_abs_error = std::max(max_abs_error, error);
+                float diff = cpu_ref[i] - octave_ref[i];
+                rmse_sum += diff * diff;
+            }
+            float rmse = std::sqrt(rmse_sum / compare_count);
+            
+            std::cout << "  CPU vs Octave " << t.name << ": " << ref_cols << "x" << ref_rows
+                      << "  MaxAbsErr=" << max_abs_error << "  RMSE=" << rmse;
+            if (max_abs_error > 1e-6f) {
+                std::cout << "  *** MISMATCH ***";
+                all_cpu_verified = false;
+            }
+            std::cout << std::endl;
+        }
+        
+        if (all_cpu_verified) {
+            std::cout << "  CPU reference VERIFIED against Octave references." << std::endl;
+        } else {
+            std::cout << "  WARNING: CPU reference does not match Octave!" << std::endl;
+        }
+    }
     
     struct FilterTest {
         const char* name;
@@ -449,6 +766,13 @@ void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
                 std::cout << "  ERROR: " << e.what() << std::endl;
             }
         }
+    }
+    
+    // Run steerable pyramid first level validation
+    try {
+        run_spyr_level1_test(instance, corrdn, input_data, width, height);
+    } catch (const std::exception& e) {
+        std::cout << "  ERROR in steerable pyramid test: " << e.what() << std::endl;
     }
     
     std::cout << "\n==================================================" << std::endl;
