@@ -17,7 +17,7 @@ namespace IQM::Bin {
 
     class VulkanInstance : public IQM::VulkanInstance {
     public:
-        VulkanInstance();
+        VulkanInstance(bool enableValidation = false);
 
         std::string selectedDevice;
 
@@ -33,6 +33,7 @@ namespace IQM::Bin {
         std::shared_ptr<vk::raii::CommandPool> commandPoolTransfer = VK_NULL_HANDLE;
         std::shared_ptr<vk::raii::CommandBuffer> cmd_buffer = VK_NULL_HANDLE;
         std::shared_ptr<vk::raii::CommandBuffer> cmd_bufferTransfer = VK_NULL_HANDLE;
+        vk::raii::DebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
         const vk::raii::Device* device() const override {return &_device;}
         const vk::raii::PhysicalDevice* physicalDevice() const override {return &_physicalDevice;}
@@ -46,6 +47,7 @@ namespace IQM::Bin {
     private:
         void initQueues();
         static std::vector<const char *> getLayers();
+        void initDebugMessenger(bool enableValidation);
     };
 }
 

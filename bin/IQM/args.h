@@ -22,6 +22,7 @@ namespace IQM::Bin {
         bool colorize = false;
         bool verbose = false;
         bool printHelp = false;
+        bool enableValidation = false;
     };
 }
 

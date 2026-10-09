@@ -6,8 +6,9 @@
 #include "vulkan_instance.h"
 #include <optional>
 #include <string>
+#include <iostream>
 
-IQM::Bin::VulkanInstance::VulkanInstance() {
+IQM::Bin::VulkanInstance::VulkanInstance(bool enableValidation) {
     this->context = vk::raii::Context{};
 
     vk::ApplicationInfo appInfo{
@@ -34,6 +35,7 @@ IQM::Bin::VulkanInstance::VulkanInstance() {
 
     this->instance = vk::raii::Instance{this->context, instanceCreateInfo};
 
+    this->initDebugMessenger(enableValidation);
     this->initQueues();
 }
 
@@ -175,4 +177,57 @@ std::vector<const char *> IQM::Bin::VulkanInstance::getLayers() {
     }
 
     return {};
+}
+
+void IQM::Bin::VulkanInstance::initDebugMessenger(bool enableValidation) {
+    if (!enableValidation) {
+        return;
+    }
+
+    // Verify validation layer is actually enabled
+    bool layerEnabled = false;
+    for (const char* layerName : getLayers()) {
+        if (strcmp(layerName, LAYER_VALIDATION.c_str()) == 0) {
+            layerEnabled = true;
+            break;
+        }
+    }
+
+    if (!layerEnabled) {
+        std::cerr << "WARNING: Validation layer requested but VK_LAYER_KHRONOS_validation not available!" << std::endl;
+        return;
+    }
+
+    // Create debug messenger callback
+    auto debugCallback = [](vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                            vk::DebugUtilsMessageTypeFlagsEXT messageType,
+                            const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                            void* /*pUserData*/) -> vk::Bool32 {
+        std::string severityStr;
+        if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose) severityStr = "VERBOSE";
+        else if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo) severityStr = "INFO";
+        else if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning) severityStr = "WARNING";
+        else if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eError) severityStr = "ERROR";
+        else severityStr = "UNKNOWN";
+
+        std::string typeStr;
+        if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral) typeStr = "GENERAL";
+        else if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation) typeStr = "VALIDATION";
+        else if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance) typeStr = "PERFORMANCE";
+        else if (messageType & vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding) typeStr = "DEVICE_ADDRESS_BINDING";
+        else typeStr = "UNKNOWN";
+
+        std::cerr << "[" << severityStr << "][" << typeStr << "] " << pCallbackData->pMessage << std::endl;
+        return VK_FALSE;
+    };
+
+    vk::DebugUtilsMessengerCreateInfoEXT createInfo{
+        .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+        .messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance | vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding,
+        .pfnUserCallback = debugCallback,
+        .pUserData = nullptr,
+    };
+
+    this->debugMessenger = this->instance.createDebugUtilsMessengerEXT(createInfo);
+    std::cout << "Vulkan validation layers enabled with debug messenger." << std::endl;
 }

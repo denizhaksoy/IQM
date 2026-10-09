@@ -52,6 +52,7 @@ void printHelp() {
     << "    --output <OUTPUT> : path to output image, optional\n\n"
     << "    -v, --verbose     : enables more detailed output\n"
     << "    -c, --colorize    : colorize final output\n"
+    << "    --enable-validation : enable Vulkan validation layers\n"
     << "    -h, --help        : prints help\n\n"
     << "Method specific arguments:\n"
     << "PSNR:\n"
@@ -86,7 +87,7 @@ int main(const int argc, const char **argv) {
     IQM::Bin::FileMatcher matcher;
     const auto matches = matcher.match(args.value());
 
-    const IQM::Bin::VulkanInstance vulkan;
+    const IQM::Bin::VulkanInstance vulkan(args->enableValidation);
 
     if (args->verbose) {
         std::cout << "Selected device: "<< vulkan.selectedDevice << std::endl;

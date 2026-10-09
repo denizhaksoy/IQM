@@ -88,6 +88,11 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
             i += 1;
             continue;
         }
+        if (strcmp(argv[i], "--enable-validation") == 0) {
+            this->enableValidation = true;
+            i += 1;
+            continue;
+        }
 
         if (i + 1 >= argc) {
             throw std::runtime_error("Missing value argument");
