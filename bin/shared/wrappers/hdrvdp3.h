@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Image Quality Metrics - HDR-VDP-3 Test Wrapper
  * Petr Volf - 2026
  */

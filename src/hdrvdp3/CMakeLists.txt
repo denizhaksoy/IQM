@@ -1,4 +1,4 @@
-add_library(IQM-HDRVDP3 STATIC corrdn.cpp)
+add_library(IQM-HDRVDP3 STATIC corrdn.cpp spyr.cpp)
 add_library(IQM::HDRVDP3 ALIAS IQM-HDRVDP3)
 
 find_package(Vulkan REQUIRED)
@@ -6,6 +6,7 @@ find_package(Vulkan REQUIRED)
 target_include_directories(IQM-HDRVDP3
         PRIVATE "../../include"
         PRIVATE "../../shaders_out"
+        PRIVATE "../../bin/shared"
 )
 
 if(MSVC)

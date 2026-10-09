@@ -12,10 +12,12 @@
 #include "hdrvdp3.h"
 #include "../../shared/debug_utils.h"
 #include "../../shared/vulkan_res.h"
+#include <IQM/hdrvdp3/spyr.h>
 
 namespace IQM::Bin {
 
 using VulkanInstance = IQM::VulkanInstance;
+using Spyr = IQM::HDRVDP3::Spyr;
 
 // Reference filter coefficients from sp0Filters.m
 // MATLAB stores matrices in column-major, but the .m file writes them row-by-row
@@ -269,7 +271,7 @@ HDRVDP3TestResources hdrvdp3_test_init_res(unsigned width, unsigned height, cons
     res.imageOutput->width = width;
     res.imageOutput->height = height;
 
-    constexpr vk::DeviceSize bufferSize = 32 * 32 * sizeof(float);
+    constexpr vk::DeviceSize bufferSize = 64 * 64 * sizeof(float);  // Support up to 64x64
     auto [stgInBuf, stgInMem] = VulkanResource::createBuffer(
         *instance.device(), *instance.physicalDevice(),
         static_cast<unsigned>(bufferSize),
@@ -510,7 +512,7 @@ static void run_corrdn_test(
 static std::vector<float> run_corrdn_gpu(
     const VulkanInstance& instance,
     IQM::HDRVDP3::CorrDn& corrdn,
-    const std::vector<float>& filter_shader,
+    const float* filter_coeffs,
     int filter_size,
     const std::vector<float>& input_data,
     unsigned width, unsigned height,
@@ -520,7 +522,7 @@ static std::vector<float> run_corrdn_gpu(
     const unsigned outHeight = (height + step - 1) / step;
     
     // Create filter buffer
-    auto [filterBuffer, filterMemory] = create_filter_buffer(instance, filter_shader.data(), filter_size);
+    auto [filterBuffer, filterMemory] = create_filter_buffer(instance, filter_coeffs, filter_size);
     
     // Initialize resources
     auto res = hdrvdp3_test_init_res(width, height, instance);
@@ -648,25 +650,25 @@ static void run_spyr_level1_test(
 
     // Step 1: Compute initial lowpass (lo0filt) and highpass (hi0filt)
     std::cout << "\n--- Computing initial lowpass (lo0filt) ---" << std::endl;
-    auto lo0_gpu = run_corrdn_gpu(instance, corrdn, lo0filt_shader, 7, input_data, width, height, 1);
+    auto lo0_gpu = run_corrdn_gpu(instance, corrdn, lo0filt_shader.data(), 7, input_data, width, height, 1);
     unsigned ref_w, ref_h;
     auto oct_lowpass = load_octave_ref_transposed("C:/temp/oct_lowpass.txt", ref_w, ref_h);
     compare_results("lo0filt (initial lowpass) vs Octave", lo0_gpu, oct_lowpass, ref_w, ref_h);
 
     std::cout << "\n--- Computing initial highpass (hi0filt) ---" << std::endl;
-    auto hi0_gpu = run_corrdn_gpu(instance, corrdn, hi0filt_shader, 9, input_data, width, height, 1);
+    auto hi0_gpu = run_corrdn_gpu(instance, corrdn, hi0filt_shader.data(), 9, input_data, width, height, 1);
     auto oct_highpass = load_octave_ref_transposed("C:/temp/oct_highpass.txt", ref_w, ref_h);
     compare_results("hi0filt (initial highpass) vs Octave", hi0_gpu, oct_highpass, ref_w, ref_h);
 
     // Step 2: Compute first orientation band (bfilt orient1 on lowpass)
     std::cout << "\n--- Computing first orientation band (bfilt orient1 on lowpass) ---" << std::endl;
-    auto bfilt1_gpu = run_corrdn_gpu(instance, corrdn, bfilt1_shader, 9, lo0_gpu, 32, 32, 1);
+    auto bfilt1_gpu = run_corrdn_gpu(instance, corrdn, bfilt1_shader.data(), 9, lo0_gpu, 32, 32, 1);
     auto oct_orient1 = load_octave_ref_transposed("C:/temp/oct_orient1.txt", ref_w, ref_h);
     compare_results("bfilt orient1 (on lowpass) vs Octave", bfilt1_gpu, oct_orient1, ref_w, ref_h);
 
     // Step 3: Compute downsampled lowpass (lofilt with step=2 on lowpass)
     std::cout << "\n--- Computing downsampled lowpass (lofilt step=2 on lowpass) ---" << std::endl;
-    auto lo1_gpu = run_corrdn_gpu(instance, corrdn, lofilt_shader, 13, lo0_gpu, 32, 32, 2);
+    auto lo1_gpu = run_corrdn_gpu(instance, corrdn, lofilt_shader.data(), 13, lo0_gpu, 32, 32, 2);
     auto oct_ds_lowpass = load_octave_ref_transposed("C:/temp/oct_ds_lowpass.txt", ref_w, ref_h);
     compare_results("lofilt step=2 (downsampled lowpass) vs Octave", lo1_gpu, oct_ds_lowpass, ref_w, ref_h);
 
@@ -773,6 +775,95 @@ void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
         run_spyr_level1_test(instance, corrdn, input_data, width, height);
     } catch (const std::exception& e) {
         std::cout << "  ERROR in steerable pyramid test: " << e.what() << std::endl;
+    }
+// Run full steerable pyramid test using Spyr class (64x64)
+    std::cout << "\n==================================================" << std::endl;
+    std::cout << "HDR-VDP-3 Full Steerable Pyramid Validation (64x64)" << std::endl;
+    std::cout << "==================================================" << std::endl;
+    
+    try {
+        // Generate 64x64 test input
+        const unsigned width64 = 64;
+        const unsigned height64 = 64;
+        auto input_data_64 = generate_test_input(width64, height64);
+        
+        // Create Spyr instance with sp0Filters
+        IQM::HDRVDP3::Spyr::Filters filters = {
+            .lo0filt = lo0filt_matlab,
+            .hi0filt = hi0filt_matlab,
+            .lofilt = lofilt_matlab,
+            .bfilts = bfilt1_matlab,  // Only first orientation (81 values)
+            .num_orientations = 1
+        };
+        
+        Spyr spyr(*instance.device(), filters);
+        
+        // Compute pyramid using Spyr class with run_corrdn_gpu as the callback
+        std::cout << "\n--- Computing full steerable pyramid (64x64) ---" << std::endl;
+        auto result = spyr.compute(input_data_64, width64, height64, instance,
+                                   [&](const IQM::VulkanInstance& inst, IQM::HDRVDP3::CorrDn& cdn,
+                                       const float* filter_coeffs, int filter_size,
+                                       const std::vector<float>& input_data,
+                                       unsigned w, unsigned h, int step) {
+            return run_corrdn_gpu(inst, cdn, filter_coeffs, filter_size, input_data, w, h, step);
+        });
+        
+        // Load Octave references for each band
+        std::cout << "\n--- Comparing against Octave references ---" << std::endl;
+        
+        // Helper to load Octave reference (transposed)
+        auto load_octave_ref = [&](const std::string& filename, unsigned& out_w, unsigned& out_h) {
+            int ref_rows, ref_cols;
+            auto data = load_reference(filename, ref_rows, ref_cols);
+            std::vector<float> transposed(ref_cols * ref_rows);
+            for (int r = 0; r < ref_rows; ++r) {
+                for (int c = 0; c < ref_cols; ++c) {
+                    transposed[c * ref_rows + r] = data[r * ref_cols + c];
+                }
+            }
+            out_w = ref_rows;
+            out_h = ref_cols;
+            return transposed;
+        };
+        
+        // Compare each band
+        for (size_t b = 0; b < result.bands.size() && b < result.pind.size(); ++b) {
+            unsigned ref_w, ref_h;
+            std::string ref_file = "C:/temp/oct_spyr64_band" + std::to_string(b) + ".txt";
+            auto octave_ref = load_octave_ref(ref_file, ref_w, ref_h);
+            
+            auto& band = result.bands[b];
+            if (band.width != (unsigned)ref_w || band.height != (unsigned)ref_h) {
+                std::cout << "  Band " << b << ": Size mismatch! GPU: " << band.width << "x" << band.height
+                          << " Octave: " << ref_w << "x" << ref_h << std::endl;
+            }
+            
+            int compare_count = std::min(static_cast<int>(band.data.size()), static_cast<int>(octave_ref.size()));
+            float max_abs_error = 0.0f;
+            float rmse_sum = 0.0f;
+            for (int i = 0; i < compare_count; ++i) {
+                float error = std::abs(band.data[i] - octave_ref[i]);
+                max_abs_error = std::max(max_abs_error, error);
+                float diff = band.data[i] - octave_ref[i];
+                rmse_sum += diff * diff;
+            }
+            float rmse = std::sqrt(rmse_sum / compare_count);
+            
+            std::cout << "  Band " << b << " (" << band.width << "x" << band.height << ")"
+                      << "  MaxAbsErr=" << max_abs_error << "  RMSE=" << rmse << std::endl;
+            
+            // Print corners
+            if (band.width > 0 && band.height > 0 && compare_count > 0) {
+                std::cout << "    Corners: TL GPU=" << band.data[0] << " Oct=" << octave_ref[0]
+                          << " TR GPU=" << band.data[band.width-1] << " Oct=" << octave_ref[band.width-1]
+                          << " BL GPU=" << band.data[(band.height-1)*band.width] << " Oct=" << octave_ref[(band.height-1)*band.width]
+                          << " BR GPU=" << band.data[(band.height-1)*band.width + band.width-1] 
+                          << " Oct=" << octave_ref[(band.height-1)*band.width + band.width-1] << std::endl;
+            }
+        }
+        
+    } catch (const std::exception& e) {
+        std::cout << "  ERROR in full pyramid test: " << e.what() << std::endl;
     }
     
     std::cout << "\n==================================================" << std::endl;

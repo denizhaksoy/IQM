@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Image Quality Metrics
  * Petr Volf - 2025
  */
