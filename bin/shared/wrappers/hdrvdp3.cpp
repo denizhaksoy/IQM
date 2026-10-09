@@ -13,10 +13,9 @@
 #include "../../shared/debug_utils.h"
 #include "../../shared/vulkan_res.h"
 
-using IQM::Bin::InputImage;
-using IQM::Bin::VulkanImage;
-using IQM::VulkanInstance;
-using IQM::Bin::VulkanResource;
+namespace IQM::Bin {
+
+using VulkanInstance = IQM::VulkanInstance;
 
 // Reference filter coefficients from sp0Filters.m
 // MATLAB stores matrices in column-major, but the .m file writes them row-by-row
@@ -131,7 +130,7 @@ static std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> create_filter_buffer(
     int filter_size)
 {
     constexpr int MAX_FILTER_SIZE = 169;
-    vk::DeviceSize bufferSize = MAX_FILTER_SIZE * sizeof(float);
+    constexpr unsigned bufferSize = MAX_FILTER_SIZE * sizeof(float);
     
     auto [buffer, memory] = VulkanResource::createBuffer(
         *instance.device(),
@@ -149,6 +148,149 @@ static std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> create_filter_buffer(
     memory.unmapMemory();
     
     return {std::move(buffer), std::move(memory)};
+}
+
+HDRVDP3TestResources hdrvdp3_test_init_res(unsigned width, unsigned height, const VulkanInstance& instance) {
+    HDRVDP3TestResources res;
+
+    vk::ImageCreateInfo imageInfo = {
+        .imageType = vk::ImageType::e2D,
+        .format = vk::Format::eR32Sfloat,
+        .extent = {width, height, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = vk::SampleCountFlagBits::e1,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst,
+        .initialLayout = vk::ImageLayout::eUndefined
+    };
+
+    res.imageInput = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imageInfo));
+    res.imageOutput = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imageInfo));
+    res.imageInput->width = width;
+    res.imageInput->height = height;
+    res.imageOutput->width = width;
+    res.imageOutput->height = height;
+
+    constexpr vk::DeviceSize bufferSize = 32 * 32 * sizeof(float);
+    auto [stgInBuf, stgInMem] = VulkanResource::createBuffer(
+        *instance.device(), *instance.physicalDevice(),
+        static_cast<unsigned>(bufferSize),
+        vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+    stgInBuf.bindMemory(stgInMem, 0);
+    res.stgInput = std::move(stgInBuf);
+    res.stgInputMemory = std::move(stgInMem);
+
+    auto [stgOutBuf, stgOutMem] = VulkanResource::createBuffer(
+        *instance.device(), *instance.physicalDevice(),
+        static_cast<unsigned>(bufferSize),
+        vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+    stgOutBuf.bindMemory(stgOutMem, 0);
+    res.stgOutput = std::move(stgOutBuf);
+    res.stgOutputMemory = std::move(stgOutMem);
+
+    res.uploadDone = instance.device()->createSemaphore(vk::SemaphoreCreateInfo{});
+    res.computeDone = instance.device()->createSemaphore(vk::SemaphoreCreateInfo{});
+    res.transferFence = vk::raii::Fence(*instance.device(), vk::FenceCreateInfo{});
+
+    return res;
+}
+
+void hdrvdp3_test_upload(const VulkanInstance& instance, const HDRVDP3TestResources& res, const std::vector<float>& inputData) {
+    vk::DeviceSize dataSize = inputData.size() * sizeof(float);
+
+    void* mapped = res.stgInputMemory.mapMemory(0, dataSize, {});
+    std::memcpy(mapped, inputData.data(), static_cast<size_t>(dataSize));
+    res.stgInputMemory.unmapMemory();
+
+    const vk::CommandBufferBeginInfo beginInfo{
+        .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit
+    };
+    instance.cmdBufTransfer()->reset();
+    instance.cmdBufTransfer()->begin(beginInfo);
+
+    // Initialize images: transition from UNDEFINED to GENERAL
+    VulkanResource::initImages(*instance.cmdBufTransfer(), {res.imageInput, res.imageOutput});
+
+    vk::BufferImageCopy region = {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1},
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {res.imageInput->width, res.imageInput->height, 1}
+    };
+    // Copy directly to GENERAL layout (compute shader will read from GENERAL)
+    instance.cmdBufTransfer()->copyBufferToImage(res.stgInput, *res.imageInput->image, vk::ImageLayout::eGeneral, region);
+
+    instance.cmdBufTransfer()->end();
+
+    vk::CommandBuffer cmdBufTransfer = *instance.cmdBufTransfer();
+    vk::SubmitInfo submitInfo = {
+        .sType = vk::StructureType::eSubmitInfo,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmdBufTransfer,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &*res.uploadDone
+    };
+    vk::raii::Fence uploadFence(*instance.device(), vk::FenceCreateInfo{});
+    instance.queueTransfer()->submit(submitInfo, uploadFence);
+    instance.waitForFence(uploadFence);
+}
+
+HDRVDP3TestResult hdrvdp3_test_copy_back(const VulkanInstance& instance, const HDRVDP3TestResources& res, unsigned outWidth, unsigned outHeight) {
+    HDRVDP3TestResult result;
+    result.outputData.resize(outWidth * outHeight);
+
+    const vk::CommandBufferBeginInfo beginInfo{
+        .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit
+    };
+    instance.cmdBufTransfer()->reset();
+    instance.cmdBufTransfer()->begin(beginInfo);
+
+    vk::BufferImageCopy region = {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1},
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {outWidth, outHeight, 1}
+    };
+    // Copy directly from GENERAL layout (compute shader wrote to GENERAL)
+    instance.cmdBufTransfer()->copyImageToBuffer(*res.imageOutput->image, vk::ImageLayout::eGeneral, res.stgOutput, region);
+
+    instance.cmdBufTransfer()->end();
+
+    vk::CommandBuffer cmdBufTransfer = *instance.cmdBufTransfer();
+    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eTransfer;
+    vk::SubmitInfo submitInfo = {
+        .sType = vk::StructureType::eSubmitInfo,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*res.computeDone,
+        .pWaitDstStageMask = &waitStage,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmdBufTransfer,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = nullptr
+    };
+    vk::raii::Fence copyBackFence(*instance.device(), vk::FenceCreateInfo{});
+    instance.queueTransfer()->submit(submitInfo, copyBackFence);
+    instance.waitForFence(copyBackFence);
+
+    void* mapped = res.stgOutputMemory.mapMemory(0, outWidth * outHeight * sizeof(float), {});
+    std::memcpy(result.outputData.data(), mapped, outWidth * outHeight * sizeof(float));
+    res.stgOutputMemory.unmapMemory();
+
+    return result;
 }
 
 // Run single corrDn test and compare with reference
@@ -193,27 +335,30 @@ static void run_corrdn_test(
     };
     
     // Create separate fences for each submission to avoid validation warnings
-    auto computeFence = instance.device()->createFence(vk::FenceCreateInfo{});
-    auto transferFence = instance.device()->createFence(vk::FenceCreateInfo{});
+    vk::raii::Fence computeFence(*instance.device(), vk::FenceCreateInfo{});
+    vk::raii::Fence transferFence(*instance.device(), vk::FenceCreateInfo{});
     
+    instance.cmdBuf()->reset();
     instance.cmdBuf()->begin(beginInfo);
     corrdn.compute(corrdnArgs);
     instance.cmdBuf()->end();
     
-    const std::vector cmdBufs = {&**instance.cmdBuf()};
+    vk::CommandBuffer cmdBuf = *instance.cmdBuf();
     auto mask = vk::PipelineStageFlags{vk::PipelineStageFlagBits::eComputeShader};
     const vk::SubmitInfo submitInfo{
+        .sType = vk::StructureType::eSubmitInfo,
+        .pNext = nullptr,
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &*res.uploadDone,
         .pWaitDstStageMask = &mask,
         .commandBufferCount = 1,
-        .pCommandBuffers = *cmdBufs.data(),
+        .pCommandBuffers = &cmdBuf,
         .signalSemaphoreCount = 1,
         .pSignalSemaphores = &*res.computeDone
     };
     
-    instance.queue()->submit(submitInfo, *computeFence);
-    instance.waitForFence(*computeFence);
+    instance.queue()->submit(submitInfo, computeFence);
+    instance.waitForFence(computeFence);
     
     auto result = hdrvdp3_test_copy_back(instance, res, outWidth, outHeight);
     
@@ -221,14 +366,14 @@ static void run_corrdn_test(
     int ref_rows, ref_cols;
     auto ref_data = load_reference(ref_filename, ref_rows, ref_cols);
     
-    if (ref_rows != int(outHeight) || ref_cols != int(outWidth)) {
+    if (ref_rows != static_cast<int>(outHeight) || ref_cols != static_cast<int>(outWidth)) {
         std::cout << "  WARNING: Size mismatch! GPU: " << outWidth << "x" << outHeight 
                   << " Ref: " << ref_cols << "x" << ref_rows << std::endl;
     }
     
     float max_abs_error = 0.0f;
     float rmse_sum = 0.0f;
-    int compare_count = std::min<int>(result.outputData.size(), ref_data.size());
+    int compare_count = std::min(static_cast<int>(result.outputData.size()), static_cast<int>(ref_data.size()));
     
     for (int i = 0; i < compare_count; ++i) {
         float error = std::abs(result.outputData[i] - ref_data[i]);
@@ -244,10 +389,10 @@ static void run_corrdn_test(
     // Print first few values for debugging
     if (filter_name.find("lo0filt") != std::string::npos && step == 1) {
         std::cout << "  First 4x4:" << std::endl;
-        for (int y = 0; y < 4 && y < outHeight; ++y) {
+        for (int y = 0; y < 4 && y < static_cast<int>(outHeight); ++y) {
             std::cout << "    ";
-            for (int x = 0; x < 4 && x < outWidth; ++x) {
-                int idx = y * outWidth + x;
+            for (int x = 0; x < 4 && x < static_cast<int>(outWidth); ++x) {
+                int idx = y * static_cast<int>(outWidth) + x;
                 std::cout << " GPU=" << result.outputData[idx] << " Ref=" << ref_data[idx] 
                           << " Err=" << std::abs(result.outputData[idx] - ref_data[idx]) << "  ";
             }
@@ -264,7 +409,7 @@ static void run_corrdn_test(
     }
 }
 
-void IQM::Bin::hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
+void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
     IQM::HDRVDP3::CorrDn corrdn(*instance.device());
     
     const unsigned width = 32;
@@ -310,3 +455,5 @@ void IQM::Bin::hdrvdp3_test_run(const Args& args, const VulkanInstance& instance
     std::cout << "Validation complete." << std::endl;
     std::cout << "==================================================" << std::endl;
 }
+
+} // namespace IQM::Bin
