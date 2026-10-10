@@ -19,6 +19,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(LIBRARY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(PROFILE_NAME ${PROJECT_NAME}-profile)
 
+add_subdirectory(lib/VkFFT)
 add_subdirectory(src)
 add_subdirectory(bin)
 if(WIN32)

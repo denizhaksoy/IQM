@@ -1,0 +1,39 @@
+#version 450
+
+// HDR-VDP-3 Optical MTF Frequency Domain Multiplication
+// Multiplies complex FFT spectrum by real-valued MTF filter
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(set = 0, binding = 0, std430) readonly buffer SpectrumIn {
+    vec2 data[];
+} inSpectrum;
+
+layout(set = 0, binding = 1, std430) readonly buffer MtfFilter {
+    float data[];
+} inMtf;
+
+layout(set = 0, binding = 2, std430) writeonly buffer SpectrumOut {
+    vec2 data[];
+} outSpectrum;
+
+layout(push_constant) uniform PushConstants {
+    uint width;
+    uint height;
+} params;
+
+void main() {
+    uint x = gl_GlobalInvocationID.x;
+    uint y = gl_GlobalInvocationID.y;
+    
+    if (x >= params.width || y >= params.height) {
+        return;
+    }
+    
+    uint idx = y * params.width + x;
+    
+    vec2 complex_val = inSpectrum.data[idx];
+    float mtf_val = inMtf.data[idx];
+    
+    outSpectrum.data[idx] = vec2(complex_val.x * mtf_val, complex_val.y * mtf_val);
+}

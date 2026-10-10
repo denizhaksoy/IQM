@@ -27,6 +27,14 @@ target_link_libraries(IQM
         SPIRV-Tools
         SPIRV-Tools-opt
 )
+if(MSVC)
+    target_link_libraries(IQM
+        "C:/VulkanSDK/1.4.363.0/Lib/glslang.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools-opt.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV.lib"
+    )
+endif()
 
 target_link_libraries(IQM-profile
         SPIRV-Tools
@@ -100,3 +108,45 @@ if (HDRVDP3)
     target_link_libraries(IQM IQM::HDRVDP3)
     target_link_libraries(IQM-profile IQM::HDRVDP3)
 endif ()
+
+add_executable(IQM-vkfft-test IQM-test/vkfft_test.cpp shared/vulkan_res.cpp IQM/vulkan_instance.cpp)
+target_include_directories(IQM-vkfft-test PUBLIC ../include)
+target_include_directories(IQM-vkfft-test PUBLIC ../bin/shared)
+target_include_directories(IQM-vkfft-test PUBLIC ../bin/IQM)
+target_include_directories(IQM-vkfft-test SYSTEM PUBLIC ../lib/stb)
+target_include_directories(IQM-vkfft-test PUBLIC ../lib/VkFFT/vkFFT)
+find_package(Vulkan REQUIRED)
+if(MSVC)
+    target_compile_options(IQM-vkfft-test PRIVATE /W4)
+    target_link_libraries(IQM-vkfft-test 
+        IQM::LibBase VkFFT Vulkan::Vulkan
+        "C:/VulkanSDK/1.4.363.0/Lib/glslang.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools-opt.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV.lib"
+    )
+else()
+    target_compile_options(IQM-vkfft-test PRIVATE -Wall -Wextra)
+    target_link_libraries(IQM-vkfft-test IQM::LibBase VkFFT Vulkan::Vulkan)
+endif()
+
+add_executable(IQM-mtf-gpu-test IQM-test/mtf_gpu_test.cpp shared/vulkan_res.cpp IQM/vulkan_instance.cpp)
+target_include_directories(IQM-mtf-gpu-test PUBLIC ../include)
+target_include_directories(IQM-mtf-gpu-test PUBLIC ../bin/shared)
+target_include_directories(IQM-mtf-gpu-test PUBLIC ../bin/IQM)
+target_include_directories(IQM-mtf-gpu-test SYSTEM PUBLIC ../lib/stb)
+target_include_directories(IQM-mtf-gpu-test PUBLIC ../lib/VkFFT/vkFFT)
+find_package(Vulkan REQUIRED)
+if(MSVC)
+    target_compile_options(IQM-mtf-gpu-test PRIVATE /W4)
+    target_link_libraries(IQM-mtf-gpu-test 
+        IQM::LibBase IQM::HDRVDP3 VkFFT Vulkan::Vulkan
+        "C:/VulkanSDK/1.4.363.0/Lib/glslang.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools-opt.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV.lib"
+    )
+else()
+    target_compile_options(IQM-mtf-gpu-test PRIVATE -Wall -Wextra)
+    target_link_libraries(IQM-mtf-gpu-test IQM::LibBase IQM::HDRVDP3 VkFFT Vulkan::Vulkan)
+endif()
