@@ -34,6 +34,8 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
                 this->method = Method::LPIPS;
             } else if (strcmp(argv[i + 1], "HDRVDP3") == 0) {
                 this->method = Method::HDRVDP3;
+            } else if (strcmp(argv[i + 1], "LOCAL_ADAPT") == 0) {
+                this->method = Method::LOCAL_ADAPT;
             } else {
                 throw std::runtime_error("Unknown method");
             }
@@ -104,11 +106,14 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
     if (!parsedMethod) {
         throw std::runtime_error("missing method");
     }
-    if (!parsedInput) {
-        throw std::runtime_error("missing input");
-    }
-    if (!parsedReference) {
-        throw std::runtime_error("missing reference");
+    // LOCAL_ADAPT and HDRVDP3 use built-in test input and reference, so input/ref are optional
+    if (this->method != Method::LOCAL_ADAPT && this->method != Method::HDRVDP3) {
+        if (!parsedInput) {
+            throw std::runtime_error("missing input");
+        }
+        if (!parsedReference) {
+            throw std::runtime_error("missing reference");
+        }
     }
 }
 

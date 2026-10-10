@@ -18,6 +18,7 @@ namespace IQM {
         FLIP = 5,
         LPIPS = 6,
         HDRVDP3 = 7,
+        LOCAL_ADAPT = 8,
     };
 
     std::string method_name(const Method &method);

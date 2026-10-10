@@ -25,6 +25,8 @@ namespace IQM {
                 return "LPIPS";
             case Method::HDRVDP3:
                 return "HDRVDP3";
+            case Method::LOCAL_ADAPT:
+                return "LOCAL_ADAPT";
             default:
                 throw std::runtime_error("unknown method");
         }

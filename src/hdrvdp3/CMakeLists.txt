@@ -1,4 +1,4 @@
-add_library(IQM-HDRVDP3 STATIC corrdn.cpp spyr.cpp)
+add_library(IQM-HDRVDP3 STATIC corrdn.cpp spyr.cpp local_adapt.cpp)
 add_library(IQM::HDRVDP3 ALIAS IQM-HDRVDP3)
 
 find_package(Vulkan REQUIRED)

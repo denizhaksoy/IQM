@@ -46,7 +46,7 @@ void printHelp() {
     std::cout << "IQM - Application for computing image quality metrics.\n"
     << "Usage: IQM --method METHOD --input INPUT --ref REF [--output OUTPUT]\n\n"
     << "Arguments:\n"
-    << "    --method <METHOD> : selects method to compute, one of SSIM, FSIM, FLIP, PSNR, LPIPS, HDRVDP3\n"
+    << "    --method <METHOD> : selects method to compute, one of SSIM, FSIM, FLIP, PSNR, LPIPS, HDRVDP3, LOCAL_ADAPT\n"
     << "    --input <INPUT>   : path to tested image\n"
     << "    --ref <REF>       : path to reference image\n"
     << "    --output <OUTPUT> : path to output image, optional\n\n"
@@ -83,6 +83,7 @@ int main(const int argc, const char **argv) {
     if (args->verbose) {
         std::cout << "Selected method: " << IQM::method_name(args->method) << std::endl;
     }
+    std::cout << "[DEBUG] Method parsed: " << static_cast<int>(args->method) << std::endl;
 
     IQM::Bin::FileMatcher matcher;
     const auto matches = matcher.match(args.value());
@@ -142,6 +143,13 @@ int main(const int argc, const char **argv) {
             case IQM::Method::HDRVDP3:
 #ifdef COMPILE_HDRVDP3
                 hdrvdp3_test_run(args.value(), vulkan);
+#else
+                throw std::runtime_error("HDRVDP3 support is not compiled");
+#endif
+            break;
+            case IQM::Method::LOCAL_ADAPT:
+#ifdef COMPILE_HDRVDP3
+                local_adapt_test_run(args.value(), vulkan);
 #else
                 throw std::runtime_error("HDRVDP3 support is not compiled");
 #endif

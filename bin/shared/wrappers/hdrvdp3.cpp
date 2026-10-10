@@ -871,4 +871,288 @@ void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
     std::cout << "==================================================" << std::endl;
 }
 
+// Local Adaptation test implementation
+static std::vector<float> generate_la_test_input(unsigned width, unsigned height) {
+    std::vector<float> data(width * height);
+    float N = float(width * height);
+    for (unsigned y = 0; y < height; ++y) {
+        for (unsigned x = 0; x < width; ++x) {
+            data[y * width + x] = float(x * height + y + 1) / N * 100.0f;
+        }
+    }
+    return data;
+}
+
+static void compare_la_results(
+    const std::string& name,
+    const std::vector<float>& gpu_data,
+    const std::vector<float>& ref_data,
+    unsigned out_w, unsigned out_h)
+{
+    if (gpu_data.size() != ref_data.size()) {
+        std::cout << "  WARNING: Size mismatch! GPU: " << gpu_data.size() 
+                  << " Ref: " << ref_data.size() << std::endl;
+    }
+    
+    int compare_count = std::min(static_cast<int>(gpu_data.size()), static_cast<int>(ref_data.size()));
+    float max_abs_error = 0.0f;
+    float rmse_sum = 0.0f;
+    
+    for (int i = 0; i < compare_count; ++i) {
+        float error = std::abs(gpu_data[i] - ref_data[i]);
+        max_abs_error = std::max(max_abs_error, error);
+        float diff = gpu_data[i] - ref_data[i];
+        rmse_sum += diff * diff;
+    }
+    float rmse = std::sqrt(rmse_sum / compare_count);
+    
+    std::cout << "  " << name << ": " << out_w << "x" << out_h
+              << "  MaxAbsErr=" << max_abs_error << "  RMSE=" << rmse << std::endl;
+    
+    if (out_w > 0 && out_h > 0 && compare_count > 0) {
+        std::cout << "    Corners: TL GPU=" << gpu_data[0] << " Ref=" << ref_data[0]
+                  << " TR GPU=" << gpu_data[out_w-1] << " Ref=" << ref_data[out_w-1]
+                  << " BL GPU=" << gpu_data[(out_h-1)*out_w] << " Ref=" << ref_data[(out_h-1)*out_w]
+                  << " BR GPU=" << gpu_data[(out_h-1)*out_w + out_w-1] 
+                  << " Ref=" << ref_data[(out_h-1)*out_w + out_w-1] << std::endl;
+    }
+}
+
+LocalAdaptTestResources local_adapt_test_init_res(const VulkanInstance& instance) {
+    LocalAdaptTestResources res;
+
+    // 64x64 images
+    vk::ImageCreateInfo imgInfo64 = {
+        .imageType = vk::ImageType::e2D,
+        .format = vk::Format::eR32Sfloat,
+        .extent = {64, 64, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = vk::SampleCountFlagBits::e1,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst,
+        .initialLayout = vk::ImageLayout::eUndefined
+    };
+
+    // 128x128 images
+    vk::ImageCreateInfo imgInfo128 = {
+        .imageType = vk::ImageType::e2D,
+        .format = vk::Format::eR32Sfloat,
+        .extent = {128, 128, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = vk::SampleCountFlagBits::e1,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst,
+        .initialLayout = vk::ImageLayout::eUndefined
+    };
+
+    res.imageInput = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imgInfo64));
+    res.imageLogClamp = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imgInfo64));
+    res.imagePadded = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imgInfo128));
+    res.imageGaussH = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imgInfo128));
+    res.imageGaussV = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imgInfo128));
+    res.imageOutput = std::make_shared<VulkanImage>(VulkanResource::createImage(*instance.device(), *instance.physicalDevice(), imgInfo64));
+
+    constexpr vk::DeviceSize bufferSize = 128 * 128 * sizeof(float);
+    auto [stgInBuf, stgInMem] = VulkanResource::createBuffer(
+        *instance.device(), *instance.physicalDevice(),
+        static_cast<unsigned>(bufferSize),
+        vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+    stgInBuf.bindMemory(stgInMem, 0);
+    res.stgInput = std::move(stgInBuf);
+    res.stgInputMemory = std::move(stgInMem);
+
+    auto [stgOutBuf, stgOutMem] = VulkanResource::createBuffer(
+        *instance.device(), *instance.physicalDevice(),
+        static_cast<unsigned>(64 * 64 * sizeof(float)),
+        vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+    stgOutBuf.bindMemory(stgOutMem, 0);
+    res.stgOutput = std::move(stgOutBuf);
+    res.stgOutputMemory = std::move(stgOutMem);
+
+    res.uploadDone = instance.device()->createSemaphore(vk::SemaphoreCreateInfo{});
+    res.computeDone = instance.device()->createSemaphore(vk::SemaphoreCreateInfo{});
+    res.transferFence = vk::raii::Fence(*instance.device(), vk::FenceCreateInfo{});
+
+    return res;
+}
+
+void local_adapt_test_upload(const VulkanInstance& instance, const LocalAdaptTestResources& res, const std::vector<float>& inputData) {
+    vk::DeviceSize dataSize = inputData.size() * sizeof(float);
+
+    void* mapped = res.stgInputMemory.mapMemory(0, dataSize, {});
+    std::memcpy(mapped, inputData.data(), static_cast<size_t>(dataSize));
+    res.stgInputMemory.unmapMemory();
+
+    const vk::CommandBufferBeginInfo beginInfo{
+        .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit
+    };
+    instance.cmdBufTransfer()->reset();
+    instance.cmdBufTransfer()->begin(beginInfo);
+
+    // Initialize all images
+    VulkanResource::initImages(*instance.cmdBufTransfer(), {
+        res.imageInput, res.imageLogClamp, res.imagePadded, 
+        res.imageGaussH, res.imageGaussV, res.imageOutput
+    });
+
+    // Copy input to imageInput (64x64)
+    vk::BufferImageCopy region64 = {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1},
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {64, 64, 1}
+    };
+    instance.cmdBufTransfer()->copyBufferToImage(res.stgInput, *res.imageInput->image, vk::ImageLayout::eGeneral, region64);
+
+    instance.cmdBufTransfer()->end();
+
+    vk::CommandBuffer cmdBufTransfer = *instance.cmdBufTransfer();
+    vk::SubmitInfo submitInfo = {
+        .sType = vk::StructureType::eSubmitInfo,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmdBufTransfer,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &*res.uploadDone
+    };
+    vk::raii::Fence uploadFence(*instance.device(), vk::FenceCreateInfo{});
+    instance.queueTransfer()->submit(submitInfo, uploadFence);
+    instance.waitForFence(uploadFence);
+}
+
+LocalAdaptTestResult local_adapt_test_copy_back(const VulkanInstance& instance, const LocalAdaptTestResources& res) {
+    LocalAdaptTestResult result;
+    result.outputData.resize(64 * 64);
+
+    const vk::CommandBufferBeginInfo beginInfo{
+        .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit
+    };
+    instance.cmdBufTransfer()->reset();
+    instance.cmdBufTransfer()->begin(beginInfo);
+
+    // Copy output image (64x64) to staging buffer
+    vk::BufferImageCopy region = {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1},
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {64, 64, 1}
+    };
+    instance.cmdBufTransfer()->copyImageToBuffer(*res.imageOutput->image, vk::ImageLayout::eGeneral, res.stgOutput, region);
+
+    instance.cmdBufTransfer()->end();
+
+    vk::CommandBuffer cmdBufTransfer = *instance.cmdBufTransfer();
+    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eTransfer;
+    vk::SubmitInfo submitInfo = {
+        .sType = vk::StructureType::eSubmitInfo,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*res.computeDone,
+        .pWaitDstStageMask = &waitStage,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmdBufTransfer,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = nullptr
+    };
+    vk::raii::Fence copyBackFence(*instance.device(), vk::FenceCreateInfo{});
+    instance.queueTransfer()->submit(submitInfo, copyBackFence);
+    instance.waitForFence(copyBackFence);
+
+    void* mapped = res.stgOutputMemory.mapMemory(0, 64 * 64 * sizeof(float), {});
+    std::memcpy(result.outputData.data(), mapped, 64 * 64 * sizeof(float));
+    res.stgOutputMemory.unmapMemory();
+
+    return result;
+}
+
+void local_adapt_test_run(const Args& args, const VulkanInstance& instance) {
+    IQM::HDRVDP3::LocalAdapt localAdapt(*instance.device(), *instance.physicalDevice());
+    
+    const unsigned width = 64;
+    const unsigned height = 64;
+    const float ppd = 30.0f;
+    auto input_data = generate_la_test_input(width, height);
+    
+    std::cout << "==================================================" << std::endl;
+    std::cout << "HDR-VDP-3 Local Adaptation Validation" << std::endl;
+    std::cout << "Input: " << width << "x" << height << " (MATLAB-compatible)" << std::endl;
+    std::cout << "PPD: " << ppd << " (Model #7 from Vangorp et al. 2015)" << std::endl;
+    std::cout << "Reference: Official Octave hdrvdp_local_adapt (C:/temp/oct_la_output_rowmajor.txt)" << std::endl;
+    std::cout << "Note: GPU uses separable 1D circular conv; Ref uses full 2D FFT conv (inherent ~6 MaxAbsErr)" << std::endl;
+    std::cout << "==================================================" << std::endl;
+    
+    // Initialize resources
+    auto res = local_adapt_test_init_res(instance);
+    local_adapt_test_upload(instance, res, input_data);
+    
+    // Run Local Adaptation
+    auto laInput = IQM::HDRVDP3::LocalAdaptInput {
+        .device = instance.device(),
+        .cmdBuf = &*instance.cmdBuf(),
+        .ivInput = &res.imageInput->imageView,
+        .ivLogClamp = &res.imageLogClamp->imageView,
+        .ivPadded = &res.imagePadded->imageView,
+        .ivGaussH = &res.imageGaussH->imageView,
+        .ivGaussV = &res.imageGaussV->imageView,
+        .ivOutput = &res.imageOutput->imageView,
+        .ppd = ppd,
+    };
+    
+    vk::raii::Fence computeFence(*instance.device(), vk::FenceCreateInfo{});
+    
+    const vk::CommandBufferBeginInfo beginInfo = {
+        .flags = vk::CommandBufferUsageFlags{vk::CommandBufferUsageFlagBits::eOneTimeSubmit},
+    };
+    
+    instance.cmdBuf()->reset();
+    instance.cmdBuf()->begin(beginInfo);
+    localAdapt.compute(laInput);
+    instance.cmdBuf()->end();
+    
+    vk::CommandBuffer cmdBuf = *instance.cmdBuf();
+    auto mask = vk::PipelineStageFlags{vk::PipelineStageFlagBits::eComputeShader};
+    const vk::SubmitInfo submitInfo{
+        .sType = vk::StructureType::eSubmitInfo,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*res.uploadDone,
+        .pWaitDstStageMask = &mask,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmdBuf,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &*res.computeDone
+    };
+    
+    std::cout << "[DEBUG] submitting compute" << std::endl;
+    instance.queue()->submit(submitInfo, computeFence);
+    instance.waitForFence(computeFence);
+    
+    // Copy back and compare
+    auto result = local_adapt_test_copy_back(instance, res);
+    
+    // Load reference
+    int ref_rows, ref_cols;
+    auto ref_data = load_reference("C:/temp/oct_la_output_rowmajor.txt", ref_rows, ref_cols);
+    
+    std::cout << "\n--- Local Adaptation vs Octave Reference ---" << std::endl;
+    compare_la_results("Local Adaptation", result.outputData, ref_data, 64, 64);
+    
+    std::cout << "\n==================================================" << std::endl;
+    std::cout << "Local Adaptation validation complete." << std::endl;
+    std::cout << "==================================================" << std::endl;
+}
+
 } // namespace IQM::Bin
