@@ -7,6 +7,7 @@ target_include_directories(IQM-HDRVDP3
         PRIVATE "../../include"
         PRIVATE "../../shaders_out"
         PRIVATE "../../bin/shared"
+        PRIVATE "../../lib/VkFFT/vkFFT"
 )
 
 if(MSVC)

@@ -16,6 +16,10 @@ namespace IQM {
 class VulkanInstance;
 namespace HDRVDP3 {
 
+// ============================================================================
+// Original separable Local Adaptation (preserved for comparison)
+// ============================================================================
+
 struct LocalAdaptInput {
     const vk::raii::Device* device;
     const vk::raii::CommandBuffer* cmdBuf;
@@ -48,6 +52,21 @@ private:
     vk::raii::Buffer kernelBuffer = VK_NULL_HANDLE;
     vk::raii::DeviceMemory kernelMemory = VK_NULL_HANDLE;
     int kernelSize = 31;
+};
+
+// ============================================================================
+// FFT-based Local Adaptation (matching fast_gauss.m for sigma >= 4.3)
+// ============================================================================
+
+struct LocalAdaptFFTInput {
+    const vk::raii::Device* device;
+    const vk::raii::PhysicalDevice* physicalDevice;
+    const vk::raii::CommandBuffer* cmdBuf;
+    const vk::raii::CommandPool* cmdPool;
+    const vk::raii::Queue* queue;
+    const vk::raii::ImageView* ivInput;       // 64x64 R32_SFLOAT
+    const vk::raii::ImageView* ivOutput;      // 64x64 R32_SFLOAT
+    float ppd;
 };
 
 } // namespace HDRVDP3

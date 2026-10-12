@@ -30,6 +30,38 @@ static int computeKernelSize(float sigma) {
     return ksize;
 }
 
+static std::vector<float> generateGaussianKernel2D(float sigma, unsigned width, unsigned height) {
+    // Generate 2D frequency-domain Gaussian kernel matching fast_gauss.m exactly
+    // KX0 = mod(0.5 + (0:(M-1))/M, 1) - 0.5
+    // KX1 = KX0 * (2*pi)
+    // KY0 = mod(0.5 + (0:(N-1))/N, 1) - 0.5
+    // KY1 = KY0 * (2*pi)
+    // K = exp(-0.5 * (XX.^2 + YY.^2) * sigma^2)
+    //
+    // This creates a 2D filter in the frequency domain (NOT fftshifted)
+    // DC component is at index (0, 0)
+    
+    const float two_pi = 2.0f * 3.14159265358979323846f;
+    const float sigma2 = sigma * sigma;
+    
+    std::vector<float> kernel(width * height);
+    
+    for (unsigned y = 0; y < height; ++y) {
+        float ky0 = std::fmod(0.5f + static_cast<float>(y) / static_cast<float>(height), 1.0f) - 0.5f;
+        float ky1 = ky0 * two_pi;
+        
+        for (unsigned x = 0; x < width; ++x) {
+            float kx0 = std::fmod(0.5f + static_cast<float>(x) / static_cast<float>(width), 1.0f) - 0.5f;
+            float kx1 = kx0 * two_pi;
+            
+            float val = std::exp(-0.5f * (kx1 * kx1 + ky1 * ky1) * sigma2);
+            kernel[y * width + x] = val;
+        }
+    }
+    
+    return kernel;
+}
+
 static uint32_t findMemoryType(
     const vk::raii::PhysicalDevice& physicalDevice,
     uint32_t typeBits,
