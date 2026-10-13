@@ -1,6 +1,6 @@
 /*
  * Image Quality Metrics - HDR-VDP-3 Local Adaptation
- * Petr Volf - 2026
+ * Deniz Aksoy - 2026
  */
 
 #ifndef HDRVDP3_LOCAL_ADAPT_H
@@ -67,6 +67,25 @@ struct LocalAdaptFFTInput {
     const vk::raii::ImageView* ivInput;       // 64x64 R32_SFLOAT
     const vk::raii::ImageView* ivOutput;      // 64x64 R32_SFLOAT
     float ppd;
+};
+
+class LocalAdaptFFT {
+public:
+    LocalAdaptFFT(
+        const vk::raii::Device& device,
+        const vk::raii::PhysicalDevice& physicalDevice
+    );
+
+    ~LocalAdaptFFT();
+
+    LocalAdaptFFT(const LocalAdaptFFT&) = delete;
+    LocalAdaptFFT& operator=(const LocalAdaptFFT&) = delete;
+
+    void compute(const LocalAdaptFFTInput& input);
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace HDRVDP3

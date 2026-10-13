@@ -157,6 +157,7 @@ target_include_directories(IQM-la-fft-test PUBLIC ../bin/shared)
 target_include_directories(IQM-la-fft-test PUBLIC ../bin/IQM)
 target_include_directories(IQM-la-fft-test SYSTEM PUBLIC ../lib/stb)
 target_include_directories(IQM-la-fft-test PUBLIC ../lib/VkFFT/vkFFT)
+target_include_directories(IQM-la-fft-test PRIVATE "${CMAKE_SOURCE_DIR}/shaders_out")
 find_package(Vulkan REQUIRED)
 if(MSVC)
     target_compile_options(IQM-la-fft-test PRIVATE /W4)
@@ -171,3 +172,52 @@ else()
     target_compile_options(IQM-la-fft-test PRIVATE -Wall -Wextra)
     target_link_libraries(IQM-la-fft-test IQM::LibBase IQM::HDRVDP3 VkFFT Vulkan::Vulkan)
 endif()
+
+# HDR-VDP-3 FFT Local Adaptation integration test
+# Tests LocalAdaptFFT::compute() with Vulkan images.
+
+add_executable(IQM-la-fft-integration-test
+    IQM-test/local_adapt_fft_integration_test.cpp
+    shared/vulkan_res.cpp
+    IQM/vulkan_instance.cpp
+)
+
+target_include_directories(IQM-la-fft-integration-test PUBLIC
+    ../include
+    ../bin/shared
+    ../bin/IQM
+    ../lib/VkFFT/vkFFT
+)
+
+target_include_directories(IQM-la-fft-integration-test SYSTEM PUBLIC
+    ../lib/stb
+)
+
+target_include_directories(IQM-la-fft-integration-test PRIVATE
+    "${CMAKE_SOURCE_DIR}/shaders_out"
+)
+
+if(MSVC)
+    target_compile_options(IQM-la-fft-integration-test PRIVATE /W4)
+
+    target_link_libraries(IQM-la-fft-integration-test
+        IQM::LibBase
+        IQM::HDRVDP3
+        VkFFT
+        Vulkan::Vulkan
+        "C:/VulkanSDK/1.4.363.0/Lib/glslang.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools-opt.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV-Tools.lib"
+        "C:/VulkanSDK/1.4.363.0/Lib/SPIRV.lib"
+    )
+else()
+    target_compile_options(IQM-la-fft-integration-test PRIVATE -Wall -Wextra)
+
+    target_link_libraries(IQM-la-fft-integration-test
+        IQM::LibBase
+        IQM::HDRVDP3
+        VkFFT
+        Vulkan::Vulkan
+    )
+endif()
+
