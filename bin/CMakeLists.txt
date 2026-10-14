@@ -220,4 +220,21 @@ else()
         Vulkan::Vulkan
     )
 endif()
+add_executable(IQM-jnd-lut-test
+    IQM-test/jnd_lut_test.cpp
+)
+
+target_include_directories(IQM-jnd-lut-test PRIVATE
+    "${PROJECT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(IQM-jnd-lut-test PRIVATE
+    IQM::HDRVDP3
+)
+add_executable(IQM-csf-test IQM-test/csf_test.cpp)
+
+target_link_libraries(IQM-csf-test
+    PRIVATE
+    IQM::HDRVDP3
+)
 

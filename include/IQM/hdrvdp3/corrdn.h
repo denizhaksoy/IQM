@@ -1,6 +1,6 @@
 /*
  * Image Quality Metrics - HDR-VDP-3 Spatial Correlation
- * Petr Volf - 2026
+ * Deniz Aksoy - 2026
  */
 
 #ifndef HDRVDP3_CORRDN_H

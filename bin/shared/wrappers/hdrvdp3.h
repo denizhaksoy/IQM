@@ -62,6 +62,11 @@ namespace IQM::Bin {
 
     // Local Adaptation functions
     void local_adapt_test_run(const IQM::Bin::Args& args, const IQM::VulkanInstance& instance);
+    std::vector<float> compute_local_adaptation_gpu(
+    const IQM::VulkanInstance& instance,
+    const std::vector<float>& luminance,
+    float ppd
+);
     LocalAdaptTestResources local_adapt_test_init_res(const IQM::VulkanInstance& instance);
     void local_adapt_test_upload(const IQM::VulkanInstance& instance, const LocalAdaptTestResources& res, const std::vector<float>& inputData);
     LocalAdaptTestResult local_adapt_test_copy_back(const IQM::VulkanInstance& instance, const LocalAdaptTestResources& res);

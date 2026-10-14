@@ -1,6 +1,6 @@
 /*
  * Image Quality Metrics - HDR-VDP-3 Spatial Correlation
- * Petr Volf - 2026
+ * Deniz Aksoy - 2026
  */
 
 #include <IQM/hdrvdp3/corrdn.h>

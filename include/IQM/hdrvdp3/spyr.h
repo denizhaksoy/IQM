@@ -1,11 +1,12 @@
 /*
  * Image Quality Metrics - HDR-VDP-3 Steerable Pyramid
- * Petr Volf - 2026
+ * Deniz Aksoy - 2026
  */
 
 #ifndef HDRVDP3_SPYR_H
 #define HDRVDP3_SPYR_H
 
+#include <iostream>
 #include <IQM/hdrvdp3/corrdn.h>
 #include <vector>
 #include <memory>
@@ -122,8 +123,9 @@ SpyrResult Spyr::compute(const std::vector<float>& input, unsigned width, unsign
     residual.width = current_w;
     residual.height = current_h;
     residual.data = std::move(current_lowpass);
-    result.bands.push_back(std::move(residual));
+
     result.pind.emplace_back(residual.height, residual.width);
+    result.bands.push_back(std::move(residual));
 
     return result;
 }
