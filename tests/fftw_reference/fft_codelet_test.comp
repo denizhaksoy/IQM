@@ -1,0 +1,5054 @@
+#version 450
+// Test-only translation of FFTW 3.3.10 scalar n1_8/n1_16/t2_8 graphs.
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (c) 2003, 2007-14 Matteo Frigo
+// Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
+// Modified 2026 for IQM numerical testing. See COPYING and original .c files.
+layout(local_size_x=32) in;
+layout(set=0,binding=0,std430) readonly buffer Input { vec2 value[]; } src;
+layout(set=0,binding=1,std430) writeonly buffer Output { vec2 value[]; } dst;
+layout(push_constant) uniform Parameters { uint n; uint batches; uint graph; uint fused; } p;
+float FMA(float a,float b,float c) { if(p.fused!=0) return fma(a,b,c); precise float product=a*b; return product+c; }
+float FNMS(float a,float b,float c) { if(p.fused!=0) return fma(-a,b,c); precise float product=a*b; return c-product; }
+float FMS(float a,float b,float c) { if(p.fused!=0) return fma(a,b,-c); precise float product=a*b; return product-c; }
+float FNMA(float a,float b,float c) { if(p.fused!=0) return -fma(a,b,c); precise float product=a*b; return -(product+c); }
+float sum_products(float a,float b,float c,float d,bool subtract_first) {
+    precise float left=a*b; precise float right=c*d;
+    if(p.fused==1) return fma(subtract_first?-a:a,b,right);
+    if(p.fused==2) return fma(c,d,subtract_first?-left:left);
+    return subtract_first?right-left:left+right;
+}
+void graph8_0(in float ri[8],in float ii[8],out float ro[8],out float io[8]) {
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise float T3, Tn, Ti, TC, T6, TB, Tl, To, Td, TN, Tz, TH, Ta, TM, Tu;
+	       precise float TG;
+	       {
+		    precise float T1, T2, Tj, Tk;
+		    T1 = ri[0];
+		    T2 = ri[4];
+		    T3 = T1 + T2;
+		    Tn = T1 - T2;
+		    {
+			 precise float Tg, Th, T4, T5;
+			 Tg = ii[0];
+			 Th = ii[4];
+			 Ti = Tg + Th;
+			 TC = Tg - Th;
+			 T4 = ri[2];
+			 T5 = ri[6];
+			 T6 = T4 + T5;
+			 TB = T4 - T5;
+		    }
+		    Tj = ii[2];
+		    Tk = ii[6];
+		    Tl = Tj + Tk;
+		    To = Tj - Tk;
+		    {
+			 precise float Tb, Tc, Tv, Tw, Tx, Ty;
+			 Tb = ri[7];
+			 Tc = ri[3];
+			 Tv = Tb - Tc;
+			 Tw = ii[7];
+			 Tx = ii[3];
+			 Ty = Tw - Tx;
+			 Td = Tb + Tc;
+			 TN = Tw + Tx;
+			 Tz = Tv - Ty;
+			 TH = Tv + Ty;
+		    }
+		    {
+			 precise float T8, T9, Tq, Tr, Ts, Tt;
+			 T8 = ri[1];
+			 T9 = ri[5];
+			 Tq = T8 - T9;
+			 Tr = ii[1];
+			 Ts = ii[5];
+			 Tt = Tr - Ts;
+			 Ta = T8 + T9;
+			 TM = Tr + Ts;
+			 Tu = Tq + Tt;
+			 TG = Tt - Tq;
+		    }
+	       }
+	       {
+		    precise float T7, Te, TP, TQ;
+		    T7 = T3 + T6;
+		    Te = Ta + Td;
+		    ro[4] = T7 - Te;
+		    ro[0] = T7 + Te;
+		    TP = Ti + Tl;
+		    TQ = TM + TN;
+		    io[4] = TP - TQ;
+		    io[0] = TP + TQ;
+	       }
+	       {
+		    precise float Tf, Tm, TL, TO;
+		    Tf = Td - Ta;
+		    Tm = Ti - Tl;
+		    io[2] = Tf + Tm;
+		    io[6] = Tm - Tf;
+		    TL = T3 - T6;
+		    TO = TM - TN;
+		    ro[6] = TL - TO;
+		    ro[2] = TL + TO;
+	       }
+	       {
+		    precise float Tp, TA, TJ, TK;
+		    Tp = Tn + To;
+		    TA = Tu + Tz;
+		    ro[5] = FNMS(KP707106781, TA, Tp);
+		    ro[1] = FMA(KP707106781, TA, Tp);
+		    TJ = TC - TB;
+		    TK = TG + TH;
+		    io[5] = FNMS(KP707106781, TK, TJ);
+		    io[1] = FMA(KP707106781, TK, TJ);
+	       }
+	       {
+		    precise float TD, TE, TF, TI;
+		    TD = TB + TC;
+		    TE = Tz - Tu;
+		    io[7] = FNMS(KP707106781, TE, TD);
+		    io[3] = FMA(KP707106781, TE, TD);
+		    TF = Tn - To;
+		    TI = TG - TH;
+		    ro[7] = FNMS(KP707106781, TI, TF);
+		    ro[3] = FMA(KP707106781, TI, TF);
+	       }
+	  
+}
+
+void graph8_1(in float ri[8],in float ii[8],out float ro[8],out float io[8]) {
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise float T3, Tn, Ti, TC, T6, TB, Tl, To, Td, TN, Tz, TH, Ta, TM, Tu;
+	       precise float TG;
+	       {
+		    precise float T1, T2, Tj, Tk;
+		    T1 = ri[0];
+		    T2 = ri[4];
+		    T3 = T1 + T2;
+		    Tn = T1 - T2;
+		    {
+			 precise float Tg, Th, T4, T5;
+			 Tg = ii[0];
+			 Th = ii[4];
+			 Ti = Tg + Th;
+			 TC = Tg - Th;
+			 T4 = ri[2];
+			 T5 = ri[6];
+			 T6 = T4 + T5;
+			 TB = T4 - T5;
+		    }
+		    Tj = ii[2];
+		    Tk = ii[6];
+		    Tl = Tj + Tk;
+		    To = Tj - Tk;
+		    {
+			 precise float Tb, Tc, Tv, Tw, Tx, Ty;
+			 Tb = ri[7];
+			 Tc = ri[3];
+			 Tv = Tb - Tc;
+			 Tw = ii[7];
+			 Tx = ii[3];
+			 Ty = Tw - Tx;
+			 Td = Tb + Tc;
+			 TN = Tw + Tx;
+			 Tz = Tv - Ty;
+			 TH = Tv + Ty;
+		    }
+		    {
+			 precise float T8, T9, Tq, Tr, Ts, Tt;
+			 T8 = ri[1];
+			 T9 = ri[5];
+			 Tq = T8 - T9;
+			 Tr = ii[1];
+			 Ts = ii[5];
+			 Tt = Tr - Ts;
+			 Ta = T8 + T9;
+			 TM = Tr + Ts;
+			 Tu = Tq + Tt;
+			 TG = Tt - Tq;
+		    }
+	       }
+	       {
+		    precise float T7, Te, TP, TQ;
+		    T7 = T3 + T6;
+		    Te = Ta + Td;
+		    ro[4] = T7 - Te;
+		    ro[0] = T7 + Te;
+		    TP = Ti + Tl;
+		    TQ = TM + TN;
+		    io[4] = TP - TQ;
+		    io[0] = TP + TQ;
+	       }
+	       {
+		    precise float Tf, Tm, TL, TO;
+		    Tf = Td - Ta;
+		    Tm = Ti - Tl;
+		    io[2] = Tf + Tm;
+		    io[6] = Tm - Tf;
+		    TL = T3 - T6;
+		    TO = TM - TN;
+		    ro[6] = TL - TO;
+		    ro[2] = TL + TO;
+	       }
+	       {
+		    precise float Tp, TA, TJ, TK;
+		    Tp = Tn + To;
+		    TA = KP707106781 * (Tu + Tz);
+		    ro[5] = Tp - TA;
+		    ro[1] = Tp + TA;
+		    TJ = TC - TB;
+		    TK = KP707106781 * (TG + TH);
+		    io[5] = TJ - TK;
+		    io[1] = TJ + TK;
+	       }
+	       {
+		    precise float TD, TE, TF, TI;
+		    TD = TB + TC;
+		    TE = KP707106781 * (Tz - Tu);
+		    io[7] = TD - TE;
+		    io[3] = TD + TE;
+		    TF = Tn - To;
+		    TI = KP707106781 * (TG - TH);
+		    ro[7] = TF - TI;
+		    ro[3] = TF + TI;
+	       }
+	  
+}
+
+void graph16_0(in float ri[16],in float ii[16],out float ro[16],out float io[16]) {
+const float KP923879532 = +0.923879532511286756128183189396788286822416626;
+const float KP414213562 = +0.414213562373095048801688724209698078569671875;
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise float T7, T1R, T25, TC, TN, T1x, T1H, T1l, Tt, T22, T2h, T1b, T1g, T1E, T1Z;
+	       precise float T1D, Te, T1S, T26, TJ, TQ, T1m, T1n, TT, Tm, T1X, T2g, T10, T15, T1B;
+	       precise float T1U, T1A;
+	       {
+		    precise float T3, TL, Ty, T1k, T6, T1j, TB, TM;
+		    {
+			 precise float T1, T2, Tw, Tx;
+			 T1 = ri[0];
+			 T2 = ri[8];
+			 T3 = T1 + T2;
+			 TL = T1 - T2;
+			 Tw = ii[0];
+			 Tx = ii[8];
+			 Ty = Tw + Tx;
+			 T1k = Tw - Tx;
+		    }
+		    {
+			 precise float T4, T5, Tz, TA;
+			 T4 = ri[4];
+			 T5 = ri[12];
+			 T6 = T4 + T5;
+			 T1j = T4 - T5;
+			 Tz = ii[4];
+			 TA = ii[12];
+			 TB = Tz + TA;
+			 TM = Tz - TA;
+		    }
+		    T7 = T3 + T6;
+		    T1R = T3 - T6;
+		    T25 = Ty - TB;
+		    TC = Ty + TB;
+		    TN = TL - TM;
+		    T1x = TL + TM;
+		    T1H = T1k - T1j;
+		    T1l = T1j + T1k;
+	       }
+	       {
+		    precise float Tp, T1c, T1a, T20, Ts, T17, T1f, T21;
+		    {
+			 precise float Tn, To, T18, T19;
+			 Tn = ri[15];
+			 To = ri[7];
+			 Tp = Tn + To;
+			 T1c = Tn - To;
+			 T18 = ii[15];
+			 T19 = ii[7];
+			 T1a = T18 - T19;
+			 T20 = T18 + T19;
+		    }
+		    {
+			 precise float Tq, Tr, T1d, T1e;
+			 Tq = ri[3];
+			 Tr = ri[11];
+			 Ts = Tq + Tr;
+			 T17 = Tq - Tr;
+			 T1d = ii[3];
+			 T1e = ii[11];
+			 T1f = T1d - T1e;
+			 T21 = T1d + T1e;
+		    }
+		    Tt = Tp + Ts;
+		    T22 = T20 - T21;
+		    T2h = T20 + T21;
+		    T1b = T17 + T1a;
+		    T1g = T1c - T1f;
+		    T1E = T1a - T17;
+		    T1Z = Tp - Ts;
+		    T1D = T1c + T1f;
+	       }
+	       {
+		    precise float Ta, TP, TF, TO, Td, TR, TI, TS;
+		    {
+			 precise float T8, T9, TD, TE;
+			 T8 = ri[2];
+			 T9 = ri[10];
+			 Ta = T8 + T9;
+			 TP = T8 - T9;
+			 TD = ii[2];
+			 TE = ii[10];
+			 TF = TD + TE;
+			 TO = TD - TE;
+		    }
+		    {
+			 precise float Tb, Tc, TG, TH;
+			 Tb = ri[14];
+			 Tc = ri[6];
+			 Td = Tb + Tc;
+			 TR = Tb - Tc;
+			 TG = ii[14];
+			 TH = ii[6];
+			 TI = TG + TH;
+			 TS = TG - TH;
+		    }
+		    Te = Ta + Td;
+		    T1S = TF - TI;
+		    T26 = Td - Ta;
+		    TJ = TF + TI;
+		    TQ = TO - TP;
+		    T1m = TR - TS;
+		    T1n = TP + TO;
+		    TT = TR + TS;
+	       }
+	       {
+		    precise float Ti, T11, TZ, T1V, Tl, TW, T14, T1W;
+		    {
+			 precise float Tg, Th, TX, TY;
+			 Tg = ri[1];
+			 Th = ri[9];
+			 Ti = Tg + Th;
+			 T11 = Tg - Th;
+			 TX = ii[1];
+			 TY = ii[9];
+			 TZ = TX - TY;
+			 T1V = TX + TY;
+		    }
+		    {
+			 precise float Tj, Tk, T12, T13;
+			 Tj = ri[5];
+			 Tk = ri[13];
+			 Tl = Tj + Tk;
+			 TW = Tj - Tk;
+			 T12 = ii[5];
+			 T13 = ii[13];
+			 T14 = T12 - T13;
+			 T1W = T12 + T13;
+		    }
+		    Tm = Ti + Tl;
+		    T1X = T1V - T1W;
+		    T2g = T1V + T1W;
+		    T10 = TW + TZ;
+		    T15 = T11 - T14;
+		    T1B = TZ - TW;
+		    T1U = Ti - Tl;
+		    T1A = T11 + T14;
+	       }
+	       {
+		    precise float Tf, Tu, T2j, T2k;
+		    Tf = T7 + Te;
+		    Tu = Tm + Tt;
+		    ro[8] = Tf - Tu;
+		    ro[0] = Tf + Tu;
+		    T2j = TC + TJ;
+		    T2k = T2g + T2h;
+		    io[8] = T2j - T2k;
+		    io[0] = T2j + T2k;
+	       }
+	       {
+		    precise float Tv, TK, T2f, T2i;
+		    Tv = Tt - Tm;
+		    TK = TC - TJ;
+		    io[4] = Tv + TK;
+		    io[12] = TK - Tv;
+		    T2f = T7 - Te;
+		    T2i = T2g - T2h;
+		    ro[12] = T2f - T2i;
+		    ro[4] = T2f + T2i;
+	       }
+	       {
+		    precise float T1T, T27, T24, T28, T1Y, T23;
+		    T1T = T1R + T1S;
+		    T27 = T25 - T26;
+		    T1Y = T1U + T1X;
+		    T23 = T1Z - T22;
+		    T24 = T1Y + T23;
+		    T28 = T23 - T1Y;
+		    ro[10] = FNMS(KP707106781, T24, T1T);
+		    io[6] = FMA(KP707106781, T28, T27);
+		    ro[2] = FMA(KP707106781, T24, T1T);
+		    io[14] = FNMS(KP707106781, T28, T27);
+	       }
+	       {
+		    precise float T29, T2d, T2c, T2e, T2a, T2b;
+		    T29 = T1R - T1S;
+		    T2d = T26 + T25;
+		    T2a = T1X - T1U;
+		    T2b = T1Z + T22;
+		    T2c = T2a - T2b;
+		    T2e = T2a + T2b;
+		    ro[14] = FNMS(KP707106781, T2c, T29);
+		    io[2] = FMA(KP707106781, T2e, T2d);
+		    ro[6] = FMA(KP707106781, T2c, T29);
+		    io[10] = FNMS(KP707106781, T2e, T2d);
+	       }
+	       {
+		    precise float TV, T1v, T1p, T1r, T1i, T1q, T1u, T1w, TU, T1o;
+		    TU = TQ - TT;
+		    TV = FMA(KP707106781, TU, TN);
+		    T1v = FNMS(KP707106781, TU, TN);
+		    T1o = T1m - T1n;
+		    T1p = FNMS(KP707106781, T1o, T1l);
+		    T1r = FMA(KP707106781, T1o, T1l);
+		    {
+			 precise float T16, T1h, T1s, T1t;
+			 T16 = FMA(KP414213562, T15, T10);
+			 T1h = FNMS(KP414213562, T1g, T1b);
+			 T1i = T16 - T1h;
+			 T1q = T16 + T1h;
+			 T1s = FMA(KP414213562, T1b, T1g);
+			 T1t = FNMS(KP414213562, T10, T15);
+			 T1u = T1s - T1t;
+			 T1w = T1t + T1s;
+		    }
+		    ro[11] = FNMS(KP923879532, T1i, TV);
+		    io[11] = FNMS(KP923879532, T1u, T1r);
+		    ro[3] = FMA(KP923879532, T1i, TV);
+		    io[3] = FMA(KP923879532, T1u, T1r);
+		    io[7] = FNMS(KP923879532, T1q, T1p);
+		    ro[7] = FNMS(KP923879532, T1w, T1v);
+		    io[15] = FMA(KP923879532, T1q, T1p);
+		    ro[15] = FMA(KP923879532, T1w, T1v);
+	       }
+	       {
+		    precise float T1z, T1L, T1J, T1P, T1G, T1K, T1O, T1Q, T1y, T1I;
+		    T1y = T1n + T1m;
+		    T1z = FMA(KP707106781, T1y, T1x);
+		    T1L = FNMS(KP707106781, T1y, T1x);
+		    T1I = TQ + TT;
+		    T1J = FNMS(KP707106781, T1I, T1H);
+		    T1P = FMA(KP707106781, T1I, T1H);
+		    {
+			 precise float T1C, T1F, T1M, T1N;
+			 T1C = FMA(KP414213562, T1B, T1A);
+			 T1F = FNMS(KP414213562, T1E, T1D);
+			 T1G = T1C + T1F;
+			 T1K = T1F - T1C;
+			 T1M = FNMS(KP414213562, T1A, T1B);
+			 T1N = FMA(KP414213562, T1D, T1E);
+			 T1O = T1M - T1N;
+			 T1Q = T1M + T1N;
+		    }
+		    ro[9] = FNMS(KP923879532, T1G, T1z);
+		    io[9] = FNMS(KP923879532, T1Q, T1P);
+		    ro[1] = FMA(KP923879532, T1G, T1z);
+		    io[1] = FMA(KP923879532, T1Q, T1P);
+		    io[13] = FNMS(KP923879532, T1K, T1J);
+		    ro[13] = FNMS(KP923879532, T1O, T1L);
+		    io[5] = FMA(KP923879532, T1K, T1J);
+		    ro[5] = FMA(KP923879532, T1O, T1L);
+	       }
+	  
+}
+
+void graph16_1(in float ri[16],in float ii[16],out float ro[16],out float io[16]) {
+const float KP382683432 = +0.382683432365089771728459984030398866761344562;
+const float KP923879532 = +0.923879532511286756128183189396788286822416626;
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise float T7, T1R, T25, TC, TN, T1x, T1H, T1l, Tt, T22, T2h, T1b, T1g, T1E, T1Z;
+	       precise float T1D, Te, T1S, T26, TJ, TQ, T1m, T1n, TT, Tm, T1X, T2g, T10, T15, T1B;
+	       precise float T1U, T1A;
+	       {
+		    precise float T3, TL, Ty, T1k, T6, T1j, TB, TM;
+		    {
+			 precise float T1, T2, Tw, Tx;
+			 T1 = ri[0];
+			 T2 = ri[8];
+			 T3 = T1 + T2;
+			 TL = T1 - T2;
+			 Tw = ii[0];
+			 Tx = ii[8];
+			 Ty = Tw + Tx;
+			 T1k = Tw - Tx;
+		    }
+		    {
+			 precise float T4, T5, Tz, TA;
+			 T4 = ri[4];
+			 T5 = ri[12];
+			 T6 = T4 + T5;
+			 T1j = T4 - T5;
+			 Tz = ii[4];
+			 TA = ii[12];
+			 TB = Tz + TA;
+			 TM = Tz - TA;
+		    }
+		    T7 = T3 + T6;
+		    T1R = T3 - T6;
+		    T25 = Ty - TB;
+		    TC = Ty + TB;
+		    TN = TL - TM;
+		    T1x = TL + TM;
+		    T1H = T1k - T1j;
+		    T1l = T1j + T1k;
+	       }
+	       {
+		    precise float Tp, T17, T1f, T20, Ts, T1c, T1a, T21;
+		    {
+			 precise float Tn, To, T1d, T1e;
+			 Tn = ri[15];
+			 To = ri[7];
+			 Tp = Tn + To;
+			 T17 = Tn - To;
+			 T1d = ii[15];
+			 T1e = ii[7];
+			 T1f = T1d - T1e;
+			 T20 = T1d + T1e;
+		    }
+		    {
+			 precise float Tq, Tr, T18, T19;
+			 Tq = ri[3];
+			 Tr = ri[11];
+			 Ts = Tq + Tr;
+			 T1c = Tq - Tr;
+			 T18 = ii[3];
+			 T19 = ii[11];
+			 T1a = T18 - T19;
+			 T21 = T18 + T19;
+		    }
+		    Tt = Tp + Ts;
+		    T22 = T20 - T21;
+		    T2h = T20 + T21;
+		    T1b = T17 - T1a;
+		    T1g = T1c + T1f;
+		    T1E = T1f - T1c;
+		    T1Z = Tp - Ts;
+		    T1D = T17 + T1a;
+	       }
+	       {
+		    precise float Ta, TP, TF, TO, Td, TR, TI, TS;
+		    {
+			 precise float T8, T9, TD, TE;
+			 T8 = ri[2];
+			 T9 = ri[10];
+			 Ta = T8 + T9;
+			 TP = T8 - T9;
+			 TD = ii[2];
+			 TE = ii[10];
+			 TF = TD + TE;
+			 TO = TD - TE;
+		    }
+		    {
+			 precise float Tb, Tc, TG, TH;
+			 Tb = ri[14];
+			 Tc = ri[6];
+			 Td = Tb + Tc;
+			 TR = Tb - Tc;
+			 TG = ii[14];
+			 TH = ii[6];
+			 TI = TG + TH;
+			 TS = TG - TH;
+		    }
+		    Te = Ta + Td;
+		    T1S = TF - TI;
+		    T26 = Td - Ta;
+		    TJ = TF + TI;
+		    TQ = TO - TP;
+		    T1m = TR - TS;
+		    T1n = TP + TO;
+		    TT = TR + TS;
+	       }
+	       {
+		    precise float Ti, T11, TZ, T1V, Tl, TW, T14, T1W;
+		    {
+			 precise float Tg, Th, TX, TY;
+			 Tg = ri[1];
+			 Th = ri[9];
+			 Ti = Tg + Th;
+			 T11 = Tg - Th;
+			 TX = ii[1];
+			 TY = ii[9];
+			 TZ = TX - TY;
+			 T1V = TX + TY;
+		    }
+		    {
+			 precise float Tj, Tk, T12, T13;
+			 Tj = ri[5];
+			 Tk = ri[13];
+			 Tl = Tj + Tk;
+			 TW = Tj - Tk;
+			 T12 = ii[5];
+			 T13 = ii[13];
+			 T14 = T12 - T13;
+			 T1W = T12 + T13;
+		    }
+		    Tm = Ti + Tl;
+		    T1X = T1V - T1W;
+		    T2g = T1V + T1W;
+		    T10 = TW + TZ;
+		    T15 = T11 - T14;
+		    T1B = T11 + T14;
+		    T1U = Ti - Tl;
+		    T1A = TZ - TW;
+	       }
+	       {
+		    precise float Tf, Tu, T2j, T2k;
+		    Tf = T7 + Te;
+		    Tu = Tm + Tt;
+		    ro[8] = Tf - Tu;
+		    ro[0] = Tf + Tu;
+		    T2j = TC + TJ;
+		    T2k = T2g + T2h;
+		    io[8] = T2j - T2k;
+		    io[0] = T2j + T2k;
+	       }
+	       {
+		    precise float Tv, TK, T2f, T2i;
+		    Tv = Tt - Tm;
+		    TK = TC - TJ;
+		    io[4] = Tv + TK;
+		    io[12] = TK - Tv;
+		    T2f = T7 - Te;
+		    T2i = T2g - T2h;
+		    ro[12] = T2f - T2i;
+		    ro[4] = T2f + T2i;
+	       }
+	       {
+		    precise float T1T, T27, T24, T28, T1Y, T23;
+		    T1T = T1R + T1S;
+		    T27 = T25 - T26;
+		    T1Y = T1U + T1X;
+		    T23 = T1Z - T22;
+		    T24 = KP707106781 * (T1Y + T23);
+		    T28 = KP707106781 * (T23 - T1Y);
+		    ro[10] = T1T - T24;
+		    io[6] = T27 + T28;
+		    ro[2] = T1T + T24;
+		    io[14] = T27 - T28;
+	       }
+	       {
+		    precise float T29, T2d, T2c, T2e, T2a, T2b;
+		    T29 = T1R - T1S;
+		    T2d = T26 + T25;
+		    T2a = T1X - T1U;
+		    T2b = T1Z + T22;
+		    T2c = KP707106781 * (T2a - T2b);
+		    T2e = KP707106781 * (T2a + T2b);
+		    ro[14] = T29 - T2c;
+		    io[2] = T2d + T2e;
+		    ro[6] = T29 + T2c;
+		    io[10] = T2d - T2e;
+	       }
+	       {
+		    precise float TV, T1r, T1p, T1v, T1i, T1q, T1u, T1w, TU, T1o;
+		    TU = KP707106781 * (TQ - TT);
+		    TV = TN + TU;
+		    T1r = TN - TU;
+		    T1o = KP707106781 * (T1m - T1n);
+		    T1p = T1l - T1o;
+		    T1v = T1l + T1o;
+		    {
+			 precise float T16, T1h, T1s, T1t;
+			 T16 = sum_products(KP923879532,T10,KP382683432,T15,false);
+			 T1h = sum_products(KP923879532,T1g,KP382683432,T1b,true);
+			 T1i = T16 + T1h;
+			 T1q = T1h - T16;
+			 T1s = sum_products(KP923879532,T15,KP382683432,T10,true);
+			 T1t = sum_products(KP382683432,T1g,KP923879532,T1b,false);
+			 T1u = T1s - T1t;
+			 T1w = T1s + T1t;
+		    }
+		    ro[11] = TV - T1i;
+		    io[11] = T1v - T1w;
+		    ro[3] = TV + T1i;
+		    io[3] = T1v + T1w;
+		    io[15] = T1p - T1q;
+		    ro[15] = T1r - T1u;
+		    io[7] = T1p + T1q;
+		    ro[7] = T1r + T1u;
+	       }
+	       {
+		    precise float T1z, T1L, T1J, T1P, T1G, T1K, T1O, T1Q, T1y, T1I;
+		    T1y = KP707106781 * (T1n + T1m);
+		    T1z = T1x + T1y;
+		    T1L = T1x - T1y;
+		    T1I = KP707106781 * (TQ + TT);
+		    T1J = T1H - T1I;
+		    T1P = T1H + T1I;
+		    {
+			 precise float T1C, T1F, T1M, T1N;
+			 T1C = sum_products(KP382683432,T1A,KP923879532,T1B,false);
+			 T1F = sum_products(KP382683432,T1E,KP923879532,T1D,true);
+			 T1G = T1C + T1F;
+			 T1K = T1F - T1C;
+			 T1M = sum_products(KP382683432,T1B,KP923879532,T1A,true);
+			 T1N = sum_products(KP923879532,T1E,KP382683432,T1D,false);
+			 T1O = T1M - T1N;
+			 T1Q = T1M + T1N;
+		    }
+		    ro[9] = T1z - T1G;
+		    io[9] = T1P - T1Q;
+		    ro[1] = T1z + T1G;
+		    io[1] = T1P + T1Q;
+		    io[13] = T1J - T1K;
+		    ro[13] = T1L - T1O;
+		    io[5] = T1J + T1K;
+		    ro[5] = T1L + T1O;
+	       }
+	  
+}
+
+void twiddle8_0(inout float ri[8],inout float ii[8],in float W[6]) {
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise float T2, T3, Tl, Tn, T5, T6, Tf, T7, Ts, Tb, To, Ti, TC, TG;
+	       {
+		    precise float T4, Tm, Tr, Ta, TB, TF;
+		    T2 = W[0];
+		    T3 = W[2];
+		    T4 = T2 * T3;
+		    Tl = W[4];
+		    Tm = T2 * Tl;
+		    Tn = W[5];
+		    Tr = T2 * Tn;
+		    T5 = W[1];
+		    T6 = W[3];
+		    Ta = T2 * T6;
+		    Tf = FMA(T5, T6, T4);
+		    T7 = FNMS(T5, T6, T4);
+		    Ts = FNMS(T5, Tl, Tr);
+		    Tb = FMA(T5, T3, Ta);
+		    To = FMA(T5, Tn, Tm);
+		    TB = Tf * Tl;
+		    TF = Tf * Tn;
+		    Ti = FNMS(T5, T3, Ta);
+		    TC = FMA(Ti, Tn, TB);
+		    TG = FNMS(Ti, Tl, TF);
+	       }
+	       {
+		    precise float T1, T1s, Td, T1r, Tu, TY, Tk, TW, TN, TR, T18, T1a, T1c, T1d, TA;
+		    precise float TI, T11, T13, T15, T16;
+		    T1 = ri[0];
+		    T1s = ii[0];
+		    {
+			 precise float T8, T9, Tc, T1q;
+			 T8 = ri[4];
+			 T9 = T7 * T8;
+			 Tc = ii[4];
+			 T1q = T7 * Tc;
+			 Td = FMA(Tb, Tc, T9);
+			 T1r = FNMS(Tb, T8, T1q);
+		    }
+		    {
+			 precise float Tp, Tq, Tt, TX;
+			 Tp = ri[6];
+			 Tq = To * Tp;
+			 Tt = ii[6];
+			 TX = To * Tt;
+			 Tu = FMA(Ts, Tt, Tq);
+			 TY = FNMS(Ts, Tp, TX);
+		    }
+		    {
+			 precise float Tg, Th, Tj, TV;
+			 Tg = ri[2];
+			 Th = Tf * Tg;
+			 Tj = ii[2];
+			 TV = Tf * Tj;
+			 Tk = FMA(Ti, Tj, Th);
+			 TW = FNMS(Ti, Tg, TV);
+		    }
+		    {
+			 precise float TK, TL, TM, T19, TO, TP, TQ, T1b;
+			 TK = ri[7];
+			 TL = Tl * TK;
+			 TM = ii[7];
+			 T19 = Tl * TM;
+			 TO = ri[3];
+			 TP = T3 * TO;
+			 TQ = ii[3];
+			 T1b = T3 * TQ;
+			 TN = FMA(Tn, TM, TL);
+			 TR = FMA(T6, TQ, TP);
+			 T18 = TN - TR;
+			 T1a = FNMS(Tn, TK, T19);
+			 T1c = FNMS(T6, TO, T1b);
+			 T1d = T1a - T1c;
+		    }
+		    {
+			 precise float Tx, Ty, Tz, T12, TD, TE, TH, T14;
+			 Tx = ri[1];
+			 Ty = T2 * Tx;
+			 Tz = ii[1];
+			 T12 = T2 * Tz;
+			 TD = ri[5];
+			 TE = TC * TD;
+			 TH = ii[5];
+			 T14 = TC * TH;
+			 TA = FMA(T5, Tz, Ty);
+			 TI = FMA(TG, TH, TE);
+			 T11 = TA - TI;
+			 T13 = FNMS(T5, Tx, T12);
+			 T15 = FNMS(TG, TD, T14);
+			 T16 = T13 - T15;
+		    }
+		    {
+			 precise float T10, T1g, T1z, T1B, T1f, T1C, T1j, T1A;
+			 {
+			      precise float TU, TZ, T1x, T1y;
+			      TU = T1 - Td;
+			      TZ = TW - TY;
+			      T10 = TU + TZ;
+			      T1g = TU - TZ;
+			      T1x = T1s - T1r;
+			      T1y = Tk - Tu;
+			      T1z = T1x - T1y;
+			      T1B = T1y + T1x;
+			 }
+			 {
+			      precise float T17, T1e, T1h, T1i;
+			      T17 = T11 + T16;
+			      T1e = T18 - T1d;
+			      T1f = T17 + T1e;
+			      T1C = T1e - T17;
+			      T1h = T16 - T11;
+			      T1i = T18 + T1d;
+			      T1j = T1h - T1i;
+			      T1A = T1h + T1i;
+			 }
+			 ri[5] = FNMS(KP707106781, T1f, T10);
+			 ii[5] = FNMS(KP707106781, T1A, T1z);
+			 ri[1] = FMA(KP707106781, T1f, T10);
+			 ii[1] = FMA(KP707106781, T1A, T1z);
+			 ri[7] = FNMS(KP707106781, T1j, T1g);
+			 ii[7] = FNMS(KP707106781, T1C, T1B);
+			 ri[3] = FMA(KP707106781, T1j, T1g);
+			 ii[3] = FMA(KP707106781, T1C, T1B);
+		    }
+		    {
+			 precise float Tw, T1k, T1u, T1w, TT, T1v, T1n, T1o;
+			 {
+			      precise float Te, Tv, T1p, T1t;
+			      Te = T1 + Td;
+			      Tv = Tk + Tu;
+			      Tw = Te + Tv;
+			      T1k = Te - Tv;
+			      T1p = TW + TY;
+			      T1t = T1r + T1s;
+			      T1u = T1p + T1t;
+			      T1w = T1t - T1p;
+			 }
+			 {
+			      precise float TJ, TS, T1l, T1m;
+			      TJ = TA + TI;
+			      TS = TN + TR;
+			      TT = TJ + TS;
+			      T1v = TS - TJ;
+			      T1l = T13 + T15;
+			      T1m = T1a + T1c;
+			      T1n = T1l - T1m;
+			      T1o = T1l + T1m;
+			 }
+			 ri[4] = Tw - TT;
+			 ii[4] = T1u - T1o;
+			 ri[0] = Tw + TT;
+			 ii[0] = T1o + T1u;
+			 ri[6] = T1k - T1n;
+			 ii[6] = T1w - T1v;
+			 ri[2] = T1k + T1n;
+			 ii[2] = T1v + T1w;
+		    }
+	       }
+	  
+}
+
+void twiddle8_1(inout float ri[8],inout float ii[8],in float W[6]) {
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise float T2, T5, T3, T6, T8, Tc, Tg, Ti, Tl, Tm, Tn, Tz, Tp, Tx;
+	       {
+		    precise float T4, Tb, T7, Ta;
+		    T2 = W[0];
+		    T5 = W[1];
+		    T3 = W[2];
+		    T6 = W[3];
+		    T4 = T2 * T3;
+		    Tb = T5 * T3;
+		    T7 = T5 * T6;
+		    Ta = T2 * T6;
+		    T8 = T4 - T7;
+		    Tc = Ta + Tb;
+		    Tg = T4 + T7;
+		    Ti = Ta - Tb;
+		    Tl = W[4];
+		    Tm = W[5];
+		    Tn = sum_products(T2,Tl,T5,Tm,false);
+		    Tz = sum_products(Ti,Tl,Tg,Tm,true);
+		    Tp = sum_products(T5,Tl,T2,Tm,true);
+		    Tx = sum_products(Tg,Tl,Ti,Tm,false);
+	       }
+	       {
+		    precise float Tf, T1i, TL, T1d, TJ, T17, TV, TY, Ts, T1j, TO, T1a, TC, T16, TQ;
+		    precise float TT;
+		    {
+			 precise float T1, T1c, Te, T1b, T9, Td;
+			 T1 = ri[0];
+			 T1c = ii[0];
+			 T9 = ri[4];
+			 Td = ii[4];
+			 Te = sum_products(T8,T9,Tc,Td,false);
+			 T1b = sum_products(Tc,T9,T8,Td,true);
+			 Tf = T1 + Te;
+			 T1i = T1c - T1b;
+			 TL = T1 - Te;
+			 T1d = T1b + T1c;
+		    }
+		    {
+			 precise float TF, TW, TI, TX;
+			 {
+			      precise float TD, TE, TG, TH;
+			      TD = ri[7];
+			      TE = ii[7];
+			      TF = sum_products(Tl,TD,Tm,TE,false);
+			      TW = sum_products(Tm,TD,Tl,TE,true);
+			      TG = ri[3];
+			      TH = ii[3];
+			      TI = sum_products(T3,TG,T6,TH,false);
+			      TX = sum_products(T6,TG,T3,TH,true);
+			 }
+			 TJ = TF + TI;
+			 T17 = TW + TX;
+			 TV = TF - TI;
+			 TY = TW - TX;
+		    }
+		    {
+			 precise float Tk, TM, Tr, TN;
+			 {
+			      precise float Th, Tj, To, Tq;
+			      Th = ri[2];
+			      Tj = ii[2];
+			      Tk = sum_products(Tg,Th,Ti,Tj,false);
+			      TM = sum_products(Ti,Th,Tg,Tj,true);
+			      To = ri[6];
+			      Tq = ii[6];
+			      Tr = sum_products(Tn,To,Tp,Tq,false);
+			      TN = sum_products(Tp,To,Tn,Tq,true);
+			 }
+			 Ts = Tk + Tr;
+			 T1j = Tk - Tr;
+			 TO = TM - TN;
+			 T1a = TM + TN;
+		    }
+		    {
+			 precise float Tw, TR, TB, TS;
+			 {
+			      precise float Tu, Tv, Ty, TA;
+			      Tu = ri[1];
+			      Tv = ii[1];
+			      Tw = sum_products(T2,Tu,T5,Tv,false);
+			      TR = sum_products(T5,Tu,T2,Tv,true);
+			      Ty = ri[5];
+			      TA = ii[5];
+			      TB = sum_products(Tx,Ty,Tz,TA,false);
+			      TS = sum_products(Tz,Ty,Tx,TA,true);
+			 }
+			 TC = Tw + TB;
+			 T16 = TR + TS;
+			 TQ = Tw - TB;
+			 TT = TR - TS;
+		    }
+		    {
+			 precise float Tt, TK, T1f, T1g;
+			 Tt = Tf + Ts;
+			 TK = TC + TJ;
+			 ri[4] = Tt - TK;
+			 ri[0] = Tt + TK;
+			 {
+			      precise float T19, T1e, T15, T18;
+			      T19 = T16 + T17;
+			      T1e = T1a + T1d;
+			      ii[0] = T19 + T1e;
+			      ii[4] = T1e - T19;
+			      T15 = Tf - Ts;
+			      T18 = T16 - T17;
+			      ri[6] = T15 - T18;
+			      ri[2] = T15 + T18;
+			 }
+			 T1f = TJ - TC;
+			 T1g = T1d - T1a;
+			 ii[2] = T1f + T1g;
+			 ii[6] = T1g - T1f;
+			 {
+			      precise float T11, T1k, T14, T1h, T12, T13;
+			      T11 = TL - TO;
+			      T1k = T1i - T1j;
+			      T12 = TT - TQ;
+			      T13 = TV + TY;
+			      T14 = KP707106781 * (T12 - T13);
+			      T1h = KP707106781 * (T12 + T13);
+			      ri[7] = T11 - T14;
+			      ii[5] = T1k - T1h;
+			      ri[3] = T11 + T14;
+			      ii[1] = T1h + T1k;
+			 }
+			 {
+			      precise float TP, T1m, T10, T1l, TU, TZ;
+			      TP = TL + TO;
+			      T1m = T1j + T1i;
+			      TU = TQ + TT;
+			      TZ = TV - TY;
+			      T10 = KP707106781 * (TU + TZ);
+			      T1l = KP707106781 * (TZ - TU);
+			      ri[5] = TP - T10;
+			      ii[7] = T1m - T1l;
+			      ri[1] = TP + T10;
+			      ii[3] = T1l + T1m;
+			 }
+		    }
+	       }
+	  
+}
+
+const float twiddles[96]=float[96](
+1,
+0,
+1,
+0,
+1,
+0,
+0.99879545,
+0.0490676761,
+0.9891765,
+0.146730468,
+0.941544056,
+0.336889863,
+0.9951847,
+0.09801714,
+0.956940353,
+0.290284663,
+0.773010433,
+0.6343933,
+0.9891765,
+0.146730468,
+0.9039893,
+0.427555084,
+0.514102757,
+0.8577286,
+0.980785251,
+0.195090324,
+0.8314696,
+0.555570245,
+0.195090324,
+0.980785251,
+0.970031261,
+0.242980182,
+0.7409511,
+0.671559,
+-0.146730468,
+0.9891765,
+0.956940353,
+0.290284663,
+0.6343933,
+0.773010433,
+-0.471396744,
+0.8819213,
+0.941544056,
+0.336889863,
+0.514102757,
+0.8577286,
+-0.7409511,
+0.671559,
+0.9238795,
+0.382683426,
+0.382683426,
+0.9238795,
+-0.9238795,
+0.382683426,
+0.9039893,
+0.427555084,
+0.242980182,
+0.970031261,
+-0.99879545,
+0.0490676761,
+0.8819213,
+0.471396744,
+0.09801714,
+0.9951847,
+-0.956940353,
+-0.290284663,
+0.8577286,
+0.514102757,
+-0.0490676761,
+0.99879545,
+-0.8032075,
+-0.5956993,
+0.8314696,
+0.555570245,
+-0.195090324,
+0.980785251,
+-0.555570245,
+-0.8314696,
+0.8032075,
+0.5956993,
+-0.336889863,
+0.941544056,
+-0.242980182,
+-0.970031261,
+0.773010433,
+0.6343933,
+-0.471396744,
+0.8819213,
+0.09801714,
+-0.9951847,
+0.7409511,
+0.671559,
+-0.5956993,
+0.8032075,
+0.427555084,
+-0.9039893
+);
+vec2 VADD(vec2 a,vec2 b) { return a+b; }
+vec2 VSUB(vec2 a,vec2 b) { return a-b; }
+vec2 VMUL(vec2 a,vec2 b) { return a*b; }
+vec2 VBYI(vec2 a) { return vec2(-a.y,a.x); }
+vec2 VFMA(vec2 a,vec2 b,vec2 c) { return fma(a,b,c); }
+vec2 VFNMS(vec2 a,vec2 b,vec2 c) { return fma(-a,b,c); }
+vec2 VFMAI(vec2 b,vec2 c) { return c+vec2(-b.y,b.x); }
+vec2 VFNMSI(vec2 b,vec2 c) { return c-vec2(-b.y,b.x); }
+vec2 VZMUL(vec2 a,vec2 b) { precise vec2 t=a.y*b.yx; return vec2(fma(a.x,b.x,-t.x),fma(a.x,b.y,t.y)); }
+vec2 VZMULJ(vec2 a,vec2 b) { precise vec2 t=a.y*b.yx; return vec2(fma(a.x,b.x,t.x),fma(a.x,b.y,-t.y)); }
+void simdTwiddle16(inout vec2 x[16],in vec2 W[4]) {
+const float KP382683432 = +0.382683432365089771728459984030398866761344562;
+const float KP923879532 = +0.923879532511286756128183189396788286822416626;
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise vec2 T1, T8, T9, Tl, Ti, TE, T4, Ta, TO, TV, Td, Tm, TA, TH, Ts;
+	       T1 = W[0];
+	       T8 = W[1];
+	       T9 = VZMUL(T1, T8);
+	       Tl = VZMULJ(T1, T8);
+	       Ti = W[3];
+	       TE = VZMULJ(T1, Ti);
+	       T4 = W[2];
+	       Ta = VZMULJ(T9, T4);
+	       TO = VZMUL(T8, T4);
+	       TV = VZMULJ(T1, T4);
+	       Td = VZMUL(T9, T4);
+	       Tm = VZMULJ(Tl, T4);
+	       TA = VZMUL(T1, T4);
+	       TH = VZMULJ(T8, T4);
+	       Ts = VZMUL(Tl, T4);
+	       {
+		    precise vec2 TY, T1q, TR, T1r, T1m, T1n, TL, TZ, T1f, T1g, T1h, Th, T11, T1i, T1j;
+		    precise vec2 T1k, Tw, T12, TU, TX, TW;
+		    TU = x[0];
+		    TW = x[8];
+		    TX = VZMUL(TV, TW);
+		    TY = VSUB(TU, TX);
+		    T1q = VADD(TU, TX);
+		    {
+			 precise vec2 TN, TQ, TM, TP;
+			 TM = x[4];
+			 TN = VZMUL(T9, TM);
+			 TP = x[12];
+			 TQ = VZMUL(TO, TP);
+			 TR = VSUB(TN, TQ);
+			 T1r = VADD(TN, TQ);
+		    }
+		    {
+			 precise vec2 Tz, TJ, TC, TG, TD, TK;
+			 {
+			      precise vec2 Ty, TI, TB, TF;
+			      Ty = x[2];
+			      Tz = VZMUL(Tl, Ty);
+			      TI = x[6];
+			      TJ = VZMUL(TH, TI);
+			      TB = x[10];
+			      TC = VZMUL(TA, TB);
+			      TF = x[14];
+			      TG = VZMUL(TE, TF);
+			 }
+			 T1m = VADD(Tz, TC);
+			 T1n = VADD(TG, TJ);
+			 TD = VSUB(Tz, TC);
+			 TK = VSUB(TG, TJ);
+			 TL = VMUL(vec2(KP707106781), VSUB(TD, TK));
+			 TZ = VMUL(vec2(KP707106781), VADD(TD, TK));
+		    }
+		    {
+			 precise vec2 T3, Tf, T6, Tc, T7, Tg;
+			 {
+			      precise vec2 T2, Te, T5, Tb;
+			      T2 = x[1];
+			      T3 = VZMUL(T1, T2);
+			      Te = x[13];
+			      Tf = VZMUL(Td, Te);
+			      T5 = x[9];
+			      T6 = VZMUL(T4, T5);
+			      Tb = x[5];
+			      Tc = VZMUL(Ta, Tb);
+			 }
+			 T1f = VADD(T3, T6);
+			 T1g = VADD(Tc, Tf);
+			 T1h = VSUB(T1f, T1g);
+			 T7 = VSUB(T3, T6);
+			 Tg = VSUB(Tc, Tf);
+			 Th = VFNMS(vec2(KP382683432), Tg, VMUL(vec2(KP923879532), T7));
+			 T11 = VFMA(vec2(KP382683432), T7, VMUL(vec2(KP923879532), Tg));
+		    }
+		    {
+			 precise vec2 Tk, Tu, To, Tr, Tp, Tv;
+			 {
+			      precise vec2 Tj, Tt, Tn, Tq;
+			      Tj = x[15];
+			      Tk = VZMUL(Ti, Tj);
+			      Tt = x[11];
+			      Tu = VZMUL(Ts, Tt);
+			      Tn = x[7];
+			      To = VZMUL(Tm, Tn);
+			      Tq = x[3];
+			      Tr = VZMUL(T8, Tq);
+			 }
+			 T1i = VADD(Tk, To);
+			 T1j = VADD(Tr, Tu);
+			 T1k = VSUB(T1i, T1j);
+			 Tp = VSUB(Tk, To);
+			 Tv = VSUB(Tr, Tu);
+			 Tw = VFMA(vec2(KP923879532), Tp, VMUL(vec2(KP382683432), Tv));
+			 T12 = VFNMS(vec2(KP382683432), Tp, VMUL(vec2(KP923879532), Tv));
+		    }
+		    {
+			 precise vec2 T1p, T1v, T1u, T1w;
+			 {
+			      precise vec2 T1l, T1o, T1s, T1t;
+			      T1l = VMUL(vec2(KP707106781), VSUB(T1h, T1k));
+			      T1o = VSUB(T1m, T1n);
+			      T1p = VBYI(VSUB(T1l, T1o));
+			      T1v = VBYI(VADD(T1o, T1l));
+			      T1s = VSUB(T1q, T1r);
+			      T1t = VMUL(vec2(KP707106781), VADD(T1h, T1k));
+			      T1u = VSUB(T1s, T1t);
+			      T1w = VADD(T1s, T1t);
+			 }
+			 x[6] = VADD(T1p, T1u);
+			 x[14] = VSUB(T1w, T1v);
+			 x[10] = VSUB(T1u, T1p);
+			 x[2] = VADD(T1v, T1w);
+		    }
+		    {
+			 precise vec2 T1z, T1D, T1C, T1E;
+			 {
+			      precise vec2 T1x, T1y, T1A, T1B;
+			      T1x = VADD(T1q, T1r);
+			      T1y = VADD(T1m, T1n);
+			      T1z = VSUB(T1x, T1y);
+			      T1D = VADD(T1x, T1y);
+			      T1A = VADD(T1f, T1g);
+			      T1B = VADD(T1i, T1j);
+			      T1C = VBYI(VSUB(T1A, T1B));
+			      T1E = VADD(T1A, T1B);
+			 }
+			 x[12] = VSUB(T1z, T1C);
+			 x[0] = VADD(T1D, T1E);
+			 x[4] = VADD(T1z, T1C);
+			 x[8] = VSUB(T1D, T1E);
+		    }
+		    {
+			 precise vec2 TT, T15, T14, T16;
+			 {
+			      precise vec2 Tx, TS, T10, T13;
+			      Tx = VSUB(Th, Tw);
+			      TS = VSUB(TL, TR);
+			      TT = VBYI(VSUB(Tx, TS));
+			      T15 = VBYI(VADD(TS, Tx));
+			      T10 = VSUB(TY, TZ);
+			      T13 = VSUB(T11, T12);
+			      T14 = VSUB(T10, T13);
+			      T16 = VADD(T10, T13);
+			 }
+			 x[5] = VADD(TT, T14);
+			 x[13] = VSUB(T16, T15);
+			 x[11] = VSUB(T14, TT);
+			 x[3] = VADD(T15, T16);
+		    }
+		    {
+			 precise vec2 T19, T1d, T1c, T1e;
+			 {
+			      precise vec2 T17, T18, T1a, T1b;
+			      T17 = VADD(TY, TZ);
+			      T18 = VADD(Th, Tw);
+			      T19 = VADD(T17, T18);
+			      T1d = VSUB(T17, T18);
+			      T1a = VADD(TR, TL);
+			      T1b = VADD(T11, T12);
+			      T1c = VBYI(VADD(T1a, T1b));
+			      T1e = VBYI(VSUB(T1b, T1a));
+			 }
+			 x[15] = VSUB(T19, T1c);
+			 x[7] = VADD(T1d, T1e);
+			 x[1] = VADD(T19, T1c);
+			 x[9] = VSUB(T1d, T1e);
+		    }
+	       }
+	  
+}
+
+const vec2 simdTwiddles[32]=vec2[32](
+vec2(1,0),
+vec2(1,0),
+vec2(1,0),
+vec2(1,0),
+vec2(0.99879545,0.0490676761),
+vec2(0.9891765,0.146730468),
+vec2(0.9039893,0.427555084),
+vec2(0.7409511,0.671559),
+vec2(0.9951847,0.09801714),
+vec2(0.956940353,0.290284663),
+vec2(0.6343933,0.773010433),
+vec2(0.09801714,0.9951847),
+vec2(0.9891765,0.146730468),
+vec2(0.9039893,0.427555084),
+vec2(0.242980182,0.970031261),
+vec2(-0.5956993,0.8032075),
+vec2(0.980785251,0.195090324),
+vec2(0.8314696,0.555570245),
+vec2(-0.195090324,0.980785251),
+vec2(-0.980785251,0.195090324),
+vec2(0.970031261,0.242980182),
+vec2(0.7409511,0.671559),
+vec2(-0.5956993,0.8032075),
+vec2(-0.8577286,-0.514102757),
+vec2(0.956940353,0.290284663),
+vec2(0.6343933,0.773010433),
+vec2(-0.8819213,0.471396744),
+vec2(-0.290284663,-0.956940353),
+vec2(0.941544056,0.336889863),
+vec2(0.514102757,0.8577286),
+vec2(-0.99879545,0.0490676761),
+vec2(0.427555084,-0.9039893)
+);
+
+void forward16(in vec2 x[16],out vec2 y[16]) {
+const float KP923879532 = +0.923879532511286756128183189396788286822416626;
+const float KP382683432 = +0.382683432365089771728459984030398866761344562;
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise vec2 Tp, T13, Tu, TN, Tm, T14, Tv, TY, T7, T17, Ty, TT, Te, T16, Tx;
+	       precise vec2 TQ;
+	       {
+		    precise vec2 Tn, To, TM, Ts, Tt, TL;
+		    Tn = x[4];
+		    To = x[12];
+		    TM = VADD(Tn, To);
+		    Ts = x[0];
+		    Tt = x[8];
+		    TL = VADD(Ts, Tt);
+		    Tp = VSUB(Tn, To);
+		    T13 = VADD(TL, TM);
+		    Tu = VSUB(Ts, Tt);
+		    TN = VSUB(TL, TM);
+	       }
+	       {
+		    precise vec2 Ti, TW, Tl, TX;
+		    {
+			 precise vec2 Tg, Th, Tj, Tk;
+			 Tg = x[14];
+			 Th = x[6];
+			 Ti = VSUB(Tg, Th);
+			 TW = VADD(Tg, Th);
+			 Tj = x[2];
+			 Tk = x[10];
+			 Tl = VSUB(Tj, Tk);
+			 TX = VADD(Tj, Tk);
+		    }
+		    Tm = VMUL(vec2(KP707106781), VSUB(Ti, Tl));
+		    T14 = VADD(TX, TW);
+		    Tv = VMUL(vec2(KP707106781), VADD(Tl, Ti));
+		    TY = VSUB(TW, TX);
+	       }
+	       {
+		    precise vec2 T3, TR, T6, TS;
+		    {
+			 precise vec2 T1, T2, T4, T5;
+			 T1 = x[15];
+			 T2 = x[7];
+			 T3 = VSUB(T1, T2);
+			 TR = VADD(T1, T2);
+			 T4 = x[3];
+			 T5 = x[11];
+			 T6 = VSUB(T4, T5);
+			 TS = VADD(T4, T5);
+		    }
+		    T7 = VFNMS(vec2(KP923879532), T6, VMUL(vec2(KP382683432), T3));
+		    T17 = VADD(TR, TS);
+		    Ty = VFMA(vec2(KP923879532), T3, VMUL(vec2(KP382683432), T6));
+		    TT = VSUB(TR, TS);
+	       }
+	       {
+		    precise vec2 Ta, TO, Td, TP;
+		    {
+			 precise vec2 T8, T9, Tb, Tc;
+			 T8 = x[1];
+			 T9 = x[9];
+			 Ta = VSUB(T8, T9);
+			 TO = VADD(T8, T9);
+			 Tb = x[5];
+			 Tc = x[13];
+			 Td = VSUB(Tb, Tc);
+			 TP = VADD(Tb, Tc);
+		    }
+		    Te = VFMA(vec2(KP382683432), Ta, VMUL(vec2(KP923879532), Td));
+		    T16 = VADD(TO, TP);
+		    Tx = VFNMS(vec2(KP382683432), Td, VMUL(vec2(KP923879532), Ta));
+		    TQ = VSUB(TO, TP);
+	       }
+	       {
+		    precise vec2 T1b, T1c, T1d, T1e;
+		    {
+			 precise vec2 T15, T18, T19, T1a;
+			 T15 = VADD(T13, T14);
+			 T18 = VADD(T16, T17);
+			 T1b = VSUB(T15, T18);
+			 y[8] = T1b;
+			 T1c = VADD(T15, T18);
+			 y[0] = T1c;
+			 T19 = VSUB(T13, T14);
+			 T1a = VBYI(VSUB(T17, T16));
+			 T1d = VSUB(T19, T1a);
+			 y[12] = T1d;
+			 T1e = VADD(T19, T1a);
+			 y[4] = T1e;
+		    }
+		    {
+			 precise vec2 T1f, T1g, T1h, T1i;
+			 {
+			      precise vec2 TV, T11, T10, T12, TU, TZ;
+			      TU = VMUL(vec2(KP707106781), VADD(TQ, TT));
+			      TV = VADD(TN, TU);
+			      T11 = VSUB(TN, TU);
+			      TZ = VMUL(vec2(KP707106781), VSUB(TT, TQ));
+			      T10 = VBYI(VADD(TY, TZ));
+			      T12 = VBYI(VSUB(TZ, TY));
+			      T1f = VSUB(TV, T10);
+			      y[14] = T1f;
+			      T1g = VADD(T11, T12);
+			      y[6] = T1g;
+			      T1h = VADD(TV, T10);
+			      y[2] = T1h;
+			      T1i = VSUB(T11, T12);
+			      y[10] = T1i;
+			 }
+			 {
+			      precise vec2 Tr, TB, TA, TC;
+			      {
+				   precise vec2 Tf, Tq, Tw, Tz;
+				   Tf = VSUB(T7, Te);
+				   Tq = VSUB(Tm, Tp);
+				   Tr = VBYI(VSUB(Tf, Tq));
+				   TB = VBYI(VADD(Tq, Tf));
+				   Tw = VADD(Tu, Tv);
+				   Tz = VADD(Tx, Ty);
+				   TA = VSUB(Tw, Tz);
+				   TC = VADD(Tw, Tz);
+			      }
+			      {
+				   precise vec2 T1j, T1k, T1l, T1m;
+				   T1j = VADD(Tr, TA);
+				   y[7] = T1j;
+				   
+				   T1k = VSUB(TC, TB);
+				   y[15] = T1k;
+				   
+				   T1l = VSUB(TA, Tr);
+				   y[9] = T1l;
+				   
+				   T1m = VADD(TB, TC);
+				   y[1] = T1m;
+				   
+			      }
+			 }
+			 {
+			      precise vec2 TF, TJ, TI, TK;
+			      {
+				   precise vec2 TD, TE, TG, TH;
+				   TD = VSUB(Tu, Tv);
+				   TE = VADD(Te, T7);
+				   TF = VADD(TD, TE);
+				   TJ = VSUB(TD, TE);
+				   TG = VADD(Tp, Tm);
+				   TH = VSUB(Ty, Tx);
+				   TI = VBYI(VADD(TG, TH));
+				   TK = VBYI(VSUB(TH, TG));
+			      }
+			      {
+				   precise vec2 T1n, T1o, T1p, T1q;
+				   T1n = VSUB(TF, TI);
+				   y[13] = T1n;
+				   
+				   T1o = VADD(TJ, TK);
+				   y[5] = T1o;
+				   
+				   T1p = VADD(TF, TI);
+				   y[3] = T1p;
+				   
+				   T1q = VSUB(TJ, TK);
+				   y[11] = T1q;
+				   
+			      }
+			 }
+		    }
+	       }
+	  
+}
+
+void forwardTwiddle8(inout vec2 x[8],in vec2 W[3]) {
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise vec2 T2, T3, Ta, T4, Tb, Tc, Tq;
+	       T2 = W[0];
+	       T3 = W[1];
+	       Ta = VZMULJ(T2, T3);
+	       T4 = VZMUL(T2, T3);
+	       Tb = W[2];
+	       Tc = VZMULJ(Ta, Tb);
+	       Tq = VZMULJ(T2, Tb);
+	       {
+		    precise vec2 T7, Tx, Tt, Ty, Tf, TA, Tk, TB, T1, T6, T5;
+		    T1 = x[0];
+		    T5 = x[4];
+		    T6 = VZMULJ(T4, T5);
+		    T7 = VSUB(T1, T6);
+		    Tx = VADD(T1, T6);
+		    {
+			 precise vec2 Tp, Ts, To, Tr;
+			 To = x[2];
+			 Tp = VZMULJ(Ta, To);
+			 Tr = x[6];
+			 Ts = VZMULJ(Tq, Tr);
+			 Tt = VSUB(Tp, Ts);
+			 Ty = VADD(Tp, Ts);
+		    }
+		    {
+			 precise vec2 T9, Te, T8, Td;
+			 T8 = x[1];
+			 T9 = VZMULJ(T2, T8);
+			 Td = x[5];
+			 Te = VZMULJ(Tc, Td);
+			 Tf = VSUB(T9, Te);
+			 TA = VADD(T9, Te);
+		    }
+		    {
+			 precise vec2 Th, Tj, Tg, Ti;
+			 Tg = x[7];
+			 Th = VZMULJ(Tb, Tg);
+			 Ti = x[3];
+			 Tj = VZMULJ(T3, Ti);
+			 Tk = VSUB(Th, Tj);
+			 TB = VADD(Th, Tj);
+		    }
+		    {
+			 precise vec2 Tz, TC, TD, TE;
+			 Tz = VADD(Tx, Ty);
+			 TC = VADD(TA, TB);
+			 x[4] = VSUB(Tz, TC);
+			 x[0] = VADD(Tz, TC);
+			 TD = VSUB(Tx, Ty);
+			 TE = VBYI(VSUB(TB, TA));
+			 x[6] = VSUB(TD, TE);
+			 x[2] = VADD(TD, TE);
+			 {
+			      precise vec2 Tm, Tv, Tu, Tw, Tl, Tn;
+			      Tl = VMUL(vec2(KP707106781), VADD(Tf, Tk));
+			      Tm = VADD(T7, Tl);
+			      Tv = VSUB(T7, Tl);
+			      Tn = VMUL(vec2(KP707106781), VSUB(Tk, Tf));
+			      Tu = VBYI(VSUB(Tn, Tt));
+			      Tw = VBYI(VADD(Tt, Tn));
+			      x[7] = VSUB(Tm, Tu);
+			      x[3] = VADD(Tv, Tw);
+			      x[1] = VADD(Tm, Tu);
+			      x[5] = VSUB(Tv, Tw);
+			 }
+		    }
+	       }
+	  
+}
+
+void forwardTail128(in vec2 x[128],out vec2 y[128]) {
+const float KP941544065 = +0.941544065183020778412509402599502357185589796;
+const float KP336889853 = +0.336889853392220050689253212619147570477766780;
+const float KP903989293 = +0.903989293123443331586200297230537048710132025;
+const float KP427555093 = +0.427555093430282094320966856888798534304578629;
+const float KP970031253 = +0.970031253194543992603984207286100251456865962;
+const float KP242980179 = +0.242980179903263889948274162077471118320990783;
+const float KP857728610 = +0.857728610000272069902269984284770137042490799;
+const float KP514102744 = +0.514102744193221726593693838968815772608049120;
+const float KP671558954 = +0.671558954847018400625376850427421803228750632;
+const float KP740951125 = +0.740951125354959091175616897495162729728955309;
+const float KP049067674 = +0.049067674327418014254954976942682658314745363;
+const float KP998795456 = +0.998795456205172392714771604759100694443203615;
+const float KP595699304 = +0.595699304492433343467036528829969889511926338;
+const float KP803207531 = +0.803207531480644909806676512963141923879569427;
+const float KP146730474 = +0.146730474455361751658850129646717819706215317;
+const float KP989176509 = +0.989176509964780973451673738016243063983689533;
+const float KP956940335 = +0.956940335732208864935797886980269969482849206;
+const float KP290284677 = +0.290284677254462367636192375817395274691476278;
+const float KP881921264 = +0.881921264348355029712756863660388349508442621;
+const float KP471396736 = +0.471396736825997648556387625905254377657460319;
+const float KP634393284 = +0.634393284163645498215171613225493370675687095;
+const float KP773010453 = +0.773010453362736960810906609758469800971041293;
+const float KP098017140 = +0.098017140329560601994195563888641845861136673;
+const float KP995184726 = +0.995184726672196886244836953109479921575474869;
+const float KP555570233 = +0.555570233019602224742830813948532874374937191;
+const float KP831469612 = +0.831469612302545237078788377617905756738560812;
+const float KP195090322 = +0.195090322016128267848284868477022240927691618;
+const float KP980785280 = +0.980785280403230449126182236134239036973933731;
+const float KP382683432 = +0.382683432365089771728459984030398866761344562;
+const float KP923879532 = +0.923879532511286756128183189396788286822416626;
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+
+	       precise vec2 Tr, T5J, Ted, Tgf, Tfq, TgH, T4U, T6b, T6Z, T8T, Tad, TcZ, Tcc, Td0, T84;
+	       precise vec2 T9l, Tb6, Tbt, T2G, T5X, TeV, Tgr, T3p, T5V, T7B, T95, TeK, Tgt, T7q, T97;
+	       precise vec2 Td8, TdK, TbD, Tc0, T3V, T61, Tfg, TgB, T4E, T65, T7U, T9f, Tf5, Tgx, T7J;
+	       precise vec2 T9b, Tdf, TdN, Td2, Td3, TI, T4V, Tft, Tgg, TZ, T4W, T75, T86, Tek, TgG;
+	       precise vec2 T72, T85, Tas, Tcd, Tdp, Tdq, TdG, Teq, Tgm, Tet, Tgl, T1s, T5P, T1B, T5Q;
+	       precise vec2 T7d, T8Z, TaI, Tcf, T7a, T90, Tdm, Tdn, TdH, Tez, Tgi, TeC, Tgj, T23, T5N;
+	       precise vec2 T2c, T5M, T7k, T8X, TaX, Tcg, T7h, T8W, Tbl, Tbu, Tdb, TdL, TeY, Tgu, TeR;
+	       precise vec2 Tgq, T7x, T98, T7E, T94, T3f, T5Y, T3s, T5U, TbS, Tc1, Tdi, TdO, Tfj, Tgy;
+	       precise vec2 Tfc, TgA, T7Q, T9e, T7X, T9c, T4u, T64, T4H, T62;
+	       {
+		    precise vec2 T3, Ta7, T4P, Ta8, Ta, Tab, T4M, Taa, Tc9, Tca, Ti, Tea, T4S, Tc6, Tc7;
+		    precise vec2 Tp, Teb, T4R;
+		    {
+			 precise vec2 T1, T2, T4N, T4O;
+			 T1 = x[0];
+			 T2 = x[64];
+			 T3 = VSUB(T1, T2);
+			 Ta7 = VADD(T1, T2);
+			 T4N = x[32];
+			 T4O = x[96];
+			 T4P = VSUB(T4N, T4O);
+			 Ta8 = VADD(T4N, T4O);
+		    }
+		    {
+			 precise vec2 T4, T5, T6, T7, T8, T9;
+			 T4 = x[16];
+			 T5 = x[80];
+			 T6 = VSUB(T4, T5);
+			 T7 = x[112];
+			 T8 = x[48];
+			 T9 = VSUB(T7, T8);
+			 Ta = VMUL(vec2(KP707106781), VADD(T6, T9));
+			 Tab = VADD(T7, T8);
+			 T4M = VMUL(vec2(KP707106781), VSUB(T9, T6));
+			 Taa = VADD(T4, T5);
+		    }
+		    {
+			 precise vec2 Te, Th, Tl, To;
+			 {
+			      precise vec2 Tc, Td, Tf, Tg;
+			      Tc = x[8];
+			      Td = x[72];
+			      Te = VSUB(Tc, Td);
+			      Tc9 = VADD(Tc, Td);
+			      Tf = x[40];
+			      Tg = x[104];
+			      Th = VSUB(Tf, Tg);
+			      Tca = VADD(Tf, Tg);
+			 }
+			 Ti = VFNMS(vec2(KP382683432), Th, VMUL(vec2(KP923879532), Te));
+			 Tea = VSUB(Tc9, Tca);
+			 T4S = VFMA(vec2(KP382683432), Te, VMUL(vec2(KP923879532), Th));
+			 {
+			      precise vec2 Tj, Tk, Tm, Tn;
+			      Tj = x[120];
+			      Tk = x[56];
+			      Tl = VSUB(Tj, Tk);
+			      Tc6 = VADD(Tj, Tk);
+			      Tm = x[24];
+			      Tn = x[88];
+			      To = VSUB(Tm, Tn);
+			      Tc7 = VADD(Tm, Tn);
+			 }
+			 Tp = VFMA(vec2(KP923879532), Tl, VMUL(vec2(KP382683432), To));
+			 Teb = VSUB(Tc6, Tc7);
+			 T4R = VFNMS(vec2(KP923879532), To, VMUL(vec2(KP382683432), Tl));
+		    }
+		    {
+			 precise vec2 Tb, Tq, Te9, Tec;
+			 Tb = VADD(T3, Ta);
+			 Tq = VADD(Ti, Tp);
+			 Tr = VADD(Tb, Tq);
+			 T5J = VSUB(Tb, Tq);
+			 Te9 = VSUB(Ta7, Ta8);
+			 Tec = VMUL(vec2(KP707106781), VADD(Tea, Teb));
+			 Ted = VADD(Te9, Tec);
+			 Tgf = VSUB(Te9, Tec);
+		    }
+		    {
+			 precise vec2 Tfo, Tfp, T4Q, T4T;
+			 Tfo = VSUB(Tab, Taa);
+			 Tfp = VMUL(vec2(KP707106781), VSUB(Teb, Tea));
+			 Tfq = VADD(Tfo, Tfp);
+			 TgH = VSUB(Tfp, Tfo);
+			 T4Q = VSUB(T4M, T4P);
+			 T4T = VSUB(T4R, T4S);
+			 T4U = VADD(T4Q, T4T);
+			 T6b = VSUB(T4T, T4Q);
+		    }
+		    {
+			 precise vec2 T6X, T6Y, Ta9, Tac;
+			 T6X = VSUB(T3, Ta);
+			 T6Y = VADD(T4S, T4R);
+			 T6Z = VADD(T6X, T6Y);
+			 T8T = VSUB(T6X, T6Y);
+			 Ta9 = VADD(Ta7, Ta8);
+			 Tac = VADD(Taa, Tab);
+			 Tad = VSUB(Ta9, Tac);
+			 TcZ = VADD(Ta9, Tac);
+		    }
+		    {
+			 precise vec2 Tc8, Tcb, T82, T83;
+			 Tc8 = VADD(Tc6, Tc7);
+			 Tcb = VADD(Tc9, Tca);
+			 Tcc = VSUB(Tc8, Tcb);
+			 Td0 = VADD(Tcb, Tc8);
+			 T82 = VADD(T4P, T4M);
+			 T83 = VSUB(Tp, Ti);
+			 T84 = VADD(T82, T83);
+			 T9l = VSUB(T83, T82);
+		    }
+	       }
+	       {
+		    precise vec2 Tb0, Tb1, T2i, Tb2, T3k, Tb3, Tb4, T2p, Tb5, T3h, T2x, TeH, T3n, Tbs, T2E;
+		    precise vec2 TeI, T3m, Tbp, T2l, T2o, TeG, TeJ;
+		    {
+			 precise vec2 T2g, T2h, T3i, T3j;
+			 T2g = x[1];
+			 T2h = x[65];
+			 Tb0 = VADD(T2g, T2h);
+			 T3i = x[33];
+			 T3j = x[97];
+			 Tb1 = VADD(T3i, T3j);
+			 T2i = VSUB(T2g, T2h);
+			 Tb2 = VADD(Tb0, Tb1);
+			 T3k = VSUB(T3i, T3j);
+		    }
+		    {
+			 precise vec2 T2j, T2k, T2m, T2n;
+			 T2j = x[17];
+			 T2k = x[81];
+			 T2l = VSUB(T2j, T2k);
+			 Tb3 = VADD(T2j, T2k);
+			 T2m = x[113];
+			 T2n = x[49];
+			 T2o = VSUB(T2m, T2n);
+			 Tb4 = VADD(T2m, T2n);
+		    }
+		    T2p = VMUL(vec2(KP707106781), VADD(T2l, T2o));
+		    Tb5 = VADD(Tb3, Tb4);
+		    T3h = VMUL(vec2(KP707106781), VSUB(T2o, T2l));
+		    {
+			 precise vec2 T2t, Tbq, T2w, Tbr;
+			 {
+			      precise vec2 T2r, T2s, T2u, T2v;
+			      T2r = x[9];
+			      T2s = x[73];
+			      T2t = VSUB(T2r, T2s);
+			      Tbq = VADD(T2r, T2s);
+			      T2u = x[41];
+			      T2v = x[105];
+			      T2w = VSUB(T2u, T2v);
+			      Tbr = VADD(T2u, T2v);
+			 }
+			 T2x = VFNMS(vec2(KP382683432), T2w, VMUL(vec2(KP923879532), T2t));
+			 TeH = VSUB(Tbq, Tbr);
+			 T3n = VFMA(vec2(KP382683432), T2t, VMUL(vec2(KP923879532), T2w));
+			 Tbs = VADD(Tbq, Tbr);
+		    }
+		    {
+			 precise vec2 T2A, Tbn, T2D, Tbo;
+			 {
+			      precise vec2 T2y, T2z, T2B, T2C;
+			      T2y = x[121];
+			      T2z = x[57];
+			      T2A = VSUB(T2y, T2z);
+			      Tbn = VADD(T2y, T2z);
+			      T2B = x[25];
+			      T2C = x[89];
+			      T2D = VSUB(T2B, T2C);
+			      Tbo = VADD(T2B, T2C);
+			 }
+			 T2E = VFMA(vec2(KP923879532), T2A, VMUL(vec2(KP382683432), T2D));
+			 TeI = VSUB(Tbn, Tbo);
+			 T3m = VFNMS(vec2(KP923879532), T2D, VMUL(vec2(KP382683432), T2A));
+			 Tbp = VADD(Tbn, Tbo);
+		    }
+		    Tb6 = VSUB(Tb2, Tb5);
+		    Tbt = VSUB(Tbp, Tbs);
+		    {
+			 precise vec2 T2q, T2F, TeT, TeU;
+			 T2q = VADD(T2i, T2p);
+			 T2F = VADD(T2x, T2E);
+			 T2G = VADD(T2q, T2F);
+			 T5X = VSUB(T2q, T2F);
+			 TeT = VSUB(Tb4, Tb3);
+			 TeU = VMUL(vec2(KP707106781), VSUB(TeI, TeH));
+			 TeV = VADD(TeT, TeU);
+			 Tgr = VSUB(TeU, TeT);
+		    }
+		    {
+			 precise vec2 T3l, T3o, T7z, T7A;
+			 T3l = VSUB(T3h, T3k);
+			 T3o = VSUB(T3m, T3n);
+			 T3p = VADD(T3l, T3o);
+			 T5V = VSUB(T3o, T3l);
+			 T7z = VADD(T3k, T3h);
+			 T7A = VSUB(T2E, T2x);
+			 T7B = VADD(T7z, T7A);
+			 T95 = VSUB(T7A, T7z);
+		    }
+		    TeG = VSUB(Tb0, Tb1);
+		    TeJ = VMUL(vec2(KP707106781), VADD(TeH, TeI));
+		    TeK = VADD(TeG, TeJ);
+		    Tgt = VSUB(TeG, TeJ);
+		    {
+			 precise vec2 T7o, T7p, Td6, Td7;
+			 T7o = VSUB(T2i, T2p);
+			 T7p = VADD(T3n, T3m);
+			 T7q = VADD(T7o, T7p);
+			 T97 = VSUB(T7o, T7p);
+			 Td6 = VADD(Tb2, Tb5);
+			 Td7 = VADD(Tbs, Tbp);
+			 Td8 = VADD(Td6, Td7);
+			 TdK = VSUB(Td6, Td7);
+		    }
+	       }
+	       {
+		    precise vec2 Tbx, Tby, T3x, Tbz, T4z, TbA, TbB, T3E, TbC, T4w, T3M, Tf2, T4C, TbZ, T3T;
+		    precise vec2 Tf3, T4B, TbW, T3A, T3D, Tf1, Tf4;
+		    {
+			 precise vec2 T3v, T3w, T4x, T4y;
+			 T3v = x[127];
+			 T3w = x[63];
+			 Tbx = VADD(T3v, T3w);
+			 T4x = x[31];
+			 T4y = x[95];
+			 Tby = VADD(T4x, T4y);
+			 T3x = VSUB(T3v, T3w);
+			 Tbz = VADD(Tbx, Tby);
+			 T4z = VSUB(T4x, T4y);
+		    }
+		    {
+			 precise vec2 T3y, T3z, T3B, T3C;
+			 T3y = x[15];
+			 T3z = x[79];
+			 T3A = VSUB(T3y, T3z);
+			 TbA = VADD(T3y, T3z);
+			 T3B = x[111];
+			 T3C = x[47];
+			 T3D = VSUB(T3B, T3C);
+			 TbB = VADD(T3B, T3C);
+		    }
+		    T3E = VMUL(vec2(KP707106781), VADD(T3A, T3D));
+		    TbC = VADD(TbA, TbB);
+		    T4w = VMUL(vec2(KP707106781), VSUB(T3D, T3A));
+		    {
+			 precise vec2 T3I, TbX, T3L, TbY;
+			 {
+			      precise vec2 T3G, T3H, T3J, T3K;
+			      T3G = x[7];
+			      T3H = x[71];
+			      T3I = VSUB(T3G, T3H);
+			      TbX = VADD(T3G, T3H);
+			      T3J = x[39];
+			      T3K = x[103];
+			      T3L = VSUB(T3J, T3K);
+			      TbY = VADD(T3J, T3K);
+			 }
+			 T3M = VFNMS(vec2(KP382683432), T3L, VMUL(vec2(KP923879532), T3I));
+			 Tf2 = VSUB(TbX, TbY);
+			 T4C = VFMA(vec2(KP382683432), T3I, VMUL(vec2(KP923879532), T3L));
+			 TbZ = VADD(TbX, TbY);
+		    }
+		    {
+			 precise vec2 T3P, TbU, T3S, TbV;
+			 {
+			      precise vec2 T3N, T3O, T3Q, T3R;
+			      T3N = x[119];
+			      T3O = x[55];
+			      T3P = VSUB(T3N, T3O);
+			      TbU = VADD(T3N, T3O);
+			      T3Q = x[23];
+			      T3R = x[87];
+			      T3S = VSUB(T3Q, T3R);
+			      TbV = VADD(T3Q, T3R);
+			 }
+			 T3T = VFMA(vec2(KP923879532), T3P, VMUL(vec2(KP382683432), T3S));
+			 Tf3 = VSUB(TbU, TbV);
+			 T4B = VFNMS(vec2(KP923879532), T3S, VMUL(vec2(KP382683432), T3P));
+			 TbW = VADD(TbU, TbV);
+		    }
+		    TbD = VSUB(Tbz, TbC);
+		    Tc0 = VSUB(TbW, TbZ);
+		    {
+			 precise vec2 T3F, T3U, Tfe, Tff;
+			 T3F = VADD(T3x, T3E);
+			 T3U = VADD(T3M, T3T);
+			 T3V = VADD(T3F, T3U);
+			 T61 = VSUB(T3F, T3U);
+			 Tfe = VSUB(TbB, TbA);
+			 Tff = VMUL(vec2(KP707106781), VSUB(Tf3, Tf2));
+			 Tfg = VADD(Tfe, Tff);
+			 TgB = VSUB(Tff, Tfe);
+		    }
+		    {
+			 precise vec2 T4A, T4D, T7S, T7T;
+			 T4A = VSUB(T4w, T4z);
+			 T4D = VSUB(T4B, T4C);
+			 T4E = VADD(T4A, T4D);
+			 T65 = VSUB(T4D, T4A);
+			 T7S = VADD(T4z, T4w);
+			 T7T = VSUB(T3T, T3M);
+			 T7U = VADD(T7S, T7T);
+			 T9f = VSUB(T7T, T7S);
+		    }
+		    Tf1 = VSUB(Tbx, Tby);
+		    Tf4 = VMUL(vec2(KP707106781), VADD(Tf2, Tf3));
+		    Tf5 = VADD(Tf1, Tf4);
+		    Tgx = VSUB(Tf1, Tf4);
+		    {
+			 precise vec2 T7H, T7I, Tdd, Tde;
+			 T7H = VSUB(T3x, T3E);
+			 T7I = VADD(T4C, T4B);
+			 T7J = VADD(T7H, T7I);
+			 T9b = VSUB(T7H, T7I);
+			 Tdd = VADD(Tbz, TbC);
+			 Tde = VADD(TbZ, TbW);
+			 Tdf = VADD(Tdd, Tde);
+			 TdN = VSUB(Tdd, Tde);
+		    }
+	       }
+	       {
+		    precise vec2 Tu, Tee, TG, Tag, TL, Teh, TX, Tan, TB, Tef, TD, Taj, TS, Tei, TU;
+		    precise vec2 Taq, Teg, Tej;
+		    {
+			 precise vec2 Ts, Tt, Tae, TE, TF, Taf;
+			 Ts = x[4];
+			 Tt = x[68];
+			 Tae = VADD(Ts, Tt);
+			 TE = x[36];
+			 TF = x[100];
+			 Taf = VADD(TE, TF);
+			 Tu = VSUB(Ts, Tt);
+			 Tee = VSUB(Tae, Taf);
+			 TG = VSUB(TE, TF);
+			 Tag = VADD(Tae, Taf);
+		    }
+		    {
+			 precise vec2 TJ, TK, Tal, TV, TW, Tam;
+			 TJ = x[124];
+			 TK = x[60];
+			 Tal = VADD(TJ, TK);
+			 TV = x[28];
+			 TW = x[92];
+			 Tam = VADD(TV, TW);
+			 TL = VSUB(TJ, TK);
+			 Teh = VSUB(Tal, Tam);
+			 TX = VSUB(TV, TW);
+			 Tan = VADD(Tal, Tam);
+		    }
+		    {
+			 precise vec2 Tx, Tah, TA, Tai;
+			 {
+			      precise vec2 Tv, Tw, Ty, Tz;
+			      Tv = x[20];
+			      Tw = x[84];
+			      Tx = VSUB(Tv, Tw);
+			      Tah = VADD(Tv, Tw);
+			      Ty = x[116];
+			      Tz = x[52];
+			      TA = VSUB(Ty, Tz);
+			      Tai = VADD(Ty, Tz);
+			 }
+			 TB = VMUL(vec2(KP707106781), VADD(Tx, TA));
+			 Tef = VSUB(Tai, Tah);
+			 TD = VMUL(vec2(KP707106781), VSUB(TA, Tx));
+			 Taj = VADD(Tah, Tai);
+		    }
+		    {
+			 precise vec2 TO, Tao, TR, Tap;
+			 {
+			      precise vec2 TM, TN, TP, TQ;
+			      TM = x[12];
+			      TN = x[76];
+			      TO = VSUB(TM, TN);
+			      Tao = VADD(TM, TN);
+			      TP = x[108];
+			      TQ = x[44];
+			      TR = VSUB(TP, TQ);
+			      Tap = VADD(TP, TQ);
+			 }
+			 TS = VMUL(vec2(KP707106781), VADD(TO, TR));
+			 Tei = VSUB(Tap, Tao);
+			 TU = VMUL(vec2(KP707106781), VSUB(TR, TO));
+			 Taq = VADD(Tao, Tap);
+		    }
+		    Td2 = VADD(Tag, Taj);
+		    Td3 = VADD(Tan, Taq);
+		    {
+			 precise vec2 TC, TH, Tfr, Tfs;
+			 TC = VADD(Tu, TB);
+			 TH = VSUB(TD, TG);
+			 TI = VFMA(vec2(KP980785280), TC, VMUL(vec2(KP195090322), TH));
+			 T4V = VFNMS(vec2(KP195090322), TC, VMUL(vec2(KP980785280), TH));
+			 Tfr = VFNMS(vec2(KP382683432), Tee, VMUL(vec2(KP923879532), Tef));
+			 Tfs = VFMA(vec2(KP382683432), Teh, VMUL(vec2(KP923879532), Tei));
+			 Tft = VADD(Tfr, Tfs);
+			 Tgg = VSUB(Tfs, Tfr);
+		    }
+		    {
+			 precise vec2 TT, TY, T73, T74;
+			 TT = VADD(TL, TS);
+			 TY = VSUB(TU, TX);
+			 TZ = VFNMS(vec2(KP195090322), TY, VMUL(vec2(KP980785280), TT));
+			 T4W = VFMA(vec2(KP195090322), TT, VMUL(vec2(KP980785280), TY));
+			 T73 = VSUB(TL, TS);
+			 T74 = VADD(TX, TU);
+			 T75 = VFNMS(vec2(KP555570233), T74, VMUL(vec2(KP831469612), T73));
+			 T86 = VFMA(vec2(KP555570233), T73, VMUL(vec2(KP831469612), T74));
+		    }
+		    Teg = VFMA(vec2(KP923879532), Tee, VMUL(vec2(KP382683432), Tef));
+		    Tej = VFNMS(vec2(KP382683432), Tei, VMUL(vec2(KP923879532), Teh));
+		    Tek = VADD(Teg, Tej);
+		    TgG = VSUB(Tej, Teg);
+		    {
+			 precise vec2 T70, T71, Tak, Tar;
+			 T70 = VSUB(Tu, TB);
+			 T71 = VADD(TG, TD);
+			 T72 = VFMA(vec2(KP831469612), T70, VMUL(vec2(KP555570233), T71));
+			 T85 = VFNMS(vec2(KP555570233), T70, VMUL(vec2(KP831469612), T71));
+			 Tak = VSUB(Tag, Taj);
+			 Tar = VSUB(Tan, Taq);
+			 Tas = VMUL(vec2(KP707106781), VADD(Tak, Tar));
+			 Tcd = VMUL(vec2(KP707106781), VSUB(Tar, Tak));
+		    }
+	       }
+	       {
+		    precise vec2 Tav, Tau, T1b, Taw, T1v, Tay, Tax, T18, Taz, T1w, T1j, Teo, T1z, TaD, T1q;
+		    precise vec2 Ten, T1y, TaG, T14, T17, Tem, Tep;
+		    {
+			 precise vec2 T19, T1a, T1t, T1u;
+			 T19 = x[34];
+			 T1a = x[98];
+			 Tav = VADD(T19, T1a);
+			 T1t = x[2];
+			 T1u = x[66];
+			 Tau = VADD(T1t, T1u);
+			 T1b = VSUB(T19, T1a);
+			 Taw = VADD(Tau, Tav);
+			 T1v = VSUB(T1t, T1u);
+		    }
+		    {
+			 precise vec2 T12, T13, T15, T16;
+			 T12 = x[114];
+			 T13 = x[50];
+			 T14 = VSUB(T12, T13);
+			 Tay = VADD(T12, T13);
+			 T15 = x[18];
+			 T16 = x[82];
+			 T17 = VSUB(T15, T16);
+			 Tax = VADD(T15, T16);
+		    }
+		    T18 = VMUL(vec2(KP707106781), VSUB(T14, T17));
+		    Taz = VADD(Tax, Tay);
+		    T1w = VMUL(vec2(KP707106781), VADD(T17, T14));
+		    {
+			 precise vec2 T1f, TaB, T1i, TaC;
+			 {
+			      precise vec2 T1d, T1e, T1g, T1h;
+			      T1d = x[122];
+			      T1e = x[58];
+			      T1f = VSUB(T1d, T1e);
+			      TaB = VADD(T1d, T1e);
+			      T1g = x[26];
+			      T1h = x[90];
+			      T1i = VSUB(T1g, T1h);
+			      TaC = VADD(T1g, T1h);
+			 }
+			 T1j = VFNMS(vec2(KP923879532), T1i, VMUL(vec2(KP382683432), T1f));
+			 Teo = VSUB(TaB, TaC);
+			 T1z = VFMA(vec2(KP923879532), T1f, VMUL(vec2(KP382683432), T1i));
+			 TaD = VADD(TaB, TaC);
+		    }
+		    {
+			 precise vec2 T1m, TaE, T1p, TaF;
+			 {
+			      precise vec2 T1k, T1l, T1n, T1o;
+			      T1k = x[10];
+			      T1l = x[74];
+			      T1m = VSUB(T1k, T1l);
+			      TaE = VADD(T1k, T1l);
+			      T1n = x[42];
+			      T1o = x[106];
+			      T1p = VSUB(T1n, T1o);
+			      TaF = VADD(T1n, T1o);
+			 }
+			 T1q = VFMA(vec2(KP382683432), T1m, VMUL(vec2(KP923879532), T1p));
+			 Ten = VSUB(TaE, TaF);
+			 T1y = VFNMS(vec2(KP382683432), T1p, VMUL(vec2(KP923879532), T1m));
+			 TaG = VADD(TaE, TaF);
+		    }
+		    Tdp = VADD(Taw, Taz);
+		    Tdq = VADD(TaG, TaD);
+		    TdG = VSUB(Tdp, Tdq);
+		    Tem = VSUB(Tau, Tav);
+		    Tep = VMUL(vec2(KP707106781), VADD(Ten, Teo));
+		    Teq = VADD(Tem, Tep);
+		    Tgm = VSUB(Tem, Tep);
+		    {
+			 precise vec2 Ter, Tes, T1c, T1r;
+			 Ter = VSUB(Tay, Tax);
+			 Tes = VMUL(vec2(KP707106781), VSUB(Teo, Ten));
+			 Tet = VADD(Ter, Tes);
+			 Tgl = VSUB(Tes, Ter);
+			 T1c = VSUB(T18, T1b);
+			 T1r = VSUB(T1j, T1q);
+			 T1s = VADD(T1c, T1r);
+			 T5P = VSUB(T1r, T1c);
+		    }
+		    {
+			 precise vec2 T1x, T1A, T7b, T7c;
+			 T1x = VADD(T1v, T1w);
+			 T1A = VADD(T1y, T1z);
+			 T1B = VADD(T1x, T1A);
+			 T5Q = VSUB(T1x, T1A);
+			 T7b = VADD(T1b, T18);
+			 T7c = VSUB(T1z, T1y);
+			 T7d = VADD(T7b, T7c);
+			 T8Z = VSUB(T7c, T7b);
+		    }
+		    {
+			 precise vec2 TaA, TaH, T78, T79;
+			 TaA = VSUB(Taw, Taz);
+			 TaH = VSUB(TaD, TaG);
+			 TaI = VFMA(vec2(KP923879532), TaA, VMUL(vec2(KP382683432), TaH));
+			 Tcf = VFNMS(vec2(KP382683432), TaA, VMUL(vec2(KP923879532), TaH));
+			 T78 = VSUB(T1v, T1w);
+			 T79 = VADD(T1q, T1j);
+			 T7a = VADD(T78, T79);
+			 T90 = VSUB(T78, T79);
+		    }
+	       }
+	       {
+		    precise vec2 TaJ, TaK, T1F, TaL, T27, TaM, TaN, T1M, TaO, T24, T1U, Tew, T2a, TaV, T21;
+		    precise vec2 Tex, T29, TaS, T1I, T1L, Tev, Tey;
+		    {
+			 precise vec2 T1D, T1E, T25, T26;
+			 T1D = x[126];
+			 T1E = x[62];
+			 TaJ = VADD(T1D, T1E);
+			 T25 = x[30];
+			 T26 = x[94];
+			 TaK = VADD(T25, T26);
+			 T1F = VSUB(T1D, T1E);
+			 TaL = VADD(TaJ, TaK);
+			 T27 = VSUB(T25, T26);
+		    }
+		    {
+			 precise vec2 T1G, T1H, T1J, T1K;
+			 T1G = x[14];
+			 T1H = x[78];
+			 T1I = VSUB(T1G, T1H);
+			 TaM = VADD(T1G, T1H);
+			 T1J = x[110];
+			 T1K = x[46];
+			 T1L = VSUB(T1J, T1K);
+			 TaN = VADD(T1J, T1K);
+		    }
+		    T1M = VMUL(vec2(KP707106781), VADD(T1I, T1L));
+		    TaO = VADD(TaM, TaN);
+		    T24 = VMUL(vec2(KP707106781), VSUB(T1L, T1I));
+		    {
+			 precise vec2 T1Q, TaT, T1T, TaU;
+			 {
+			      precise vec2 T1O, T1P, T1R, T1S;
+			      T1O = x[6];
+			      T1P = x[70];
+			      T1Q = VSUB(T1O, T1P);
+			      TaT = VADD(T1O, T1P);
+			      T1R = x[38];
+			      T1S = x[102];
+			      T1T = VSUB(T1R, T1S);
+			      TaU = VADD(T1R, T1S);
+			 }
+			 T1U = VFNMS(vec2(KP382683432), T1T, VMUL(vec2(KP923879532), T1Q));
+			 Tew = VSUB(TaT, TaU);
+			 T2a = VFMA(vec2(KP382683432), T1Q, VMUL(vec2(KP923879532), T1T));
+			 TaV = VADD(TaT, TaU);
+		    }
+		    {
+			 precise vec2 T1X, TaQ, T20, TaR;
+			 {
+			      precise vec2 T1V, T1W, T1Y, T1Z;
+			      T1V = x[118];
+			      T1W = x[54];
+			      T1X = VSUB(T1V, T1W);
+			      TaQ = VADD(T1V, T1W);
+			      T1Y = x[22];
+			      T1Z = x[86];
+			      T20 = VSUB(T1Y, T1Z);
+			      TaR = VADD(T1Y, T1Z);
+			 }
+			 T21 = VFMA(vec2(KP923879532), T1X, VMUL(vec2(KP382683432), T20));
+			 Tex = VSUB(TaQ, TaR);
+			 T29 = VFNMS(vec2(KP923879532), T20, VMUL(vec2(KP382683432), T1X));
+			 TaS = VADD(TaQ, TaR);
+		    }
+		    Tdm = VADD(TaL, TaO);
+		    Tdn = VADD(TaV, TaS);
+		    TdH = VSUB(Tdm, Tdn);
+		    Tev = VSUB(TaJ, TaK);
+		    Tey = VMUL(vec2(KP707106781), VADD(Tew, Tex));
+		    Tez = VADD(Tev, Tey);
+		    Tgi = VSUB(Tev, Tey);
+		    {
+			 precise vec2 TeA, TeB, T1N, T22;
+			 TeA = VSUB(TaN, TaM);
+			 TeB = VMUL(vec2(KP707106781), VSUB(Tex, Tew));
+			 TeC = VADD(TeA, TeB);
+			 Tgj = VSUB(TeB, TeA);
+			 T1N = VADD(T1F, T1M);
+			 T22 = VADD(T1U, T21);
+			 T23 = VADD(T1N, T22);
+			 T5N = VSUB(T1N, T22);
+		    }
+		    {
+			 precise vec2 T28, T2b, T7i, T7j;
+			 T28 = VSUB(T24, T27);
+			 T2b = VSUB(T29, T2a);
+			 T2c = VADD(T28, T2b);
+			 T5M = VSUB(T2b, T28);
+			 T7i = VADD(T27, T24);
+			 T7j = VSUB(T21, T1U);
+			 T7k = VADD(T7i, T7j);
+			 T8X = VSUB(T7j, T7i);
+		    }
+		    {
+			 precise vec2 TaP, TaW, T7f, T7g;
+			 TaP = VSUB(TaL, TaO);
+			 TaW = VSUB(TaS, TaV);
+			 TaX = VFNMS(vec2(KP382683432), TaW, VMUL(vec2(KP923879532), TaP));
+			 Tcg = VFMA(vec2(KP382683432), TaP, VMUL(vec2(KP923879532), TaW));
+			 T7f = VSUB(T1F, T1M);
+			 T7g = VADD(T2a, T29);
+			 T7h = VADD(T7f, T7g);
+			 T8W = VSUB(T7f, T7g);
+		    }
+	       }
+	       {
+		    precise vec2 T2J, TeL, T2V, Tb9, T30, TeO, T3c, Tbg, T2Q, TeM, T2S, Tbc, T37, TeP, T39;
+		    precise vec2 Tbj;
+		    {
+			 precise vec2 T2H, T2I, Tb7, T2T, T2U, Tb8;
+			 T2H = x[5];
+			 T2I = x[69];
+			 Tb7 = VADD(T2H, T2I);
+			 T2T = x[37];
+			 T2U = x[101];
+			 Tb8 = VADD(T2T, T2U);
+			 T2J = VSUB(T2H, T2I);
+			 TeL = VSUB(Tb7, Tb8);
+			 T2V = VSUB(T2T, T2U);
+			 Tb9 = VADD(Tb7, Tb8);
+		    }
+		    {
+			 precise vec2 T2Y, T2Z, Tbe, T3a, T3b, Tbf;
+			 T2Y = x[125];
+			 T2Z = x[61];
+			 Tbe = VADD(T2Y, T2Z);
+			 T3a = x[29];
+			 T3b = x[93];
+			 Tbf = VADD(T3a, T3b);
+			 T30 = VSUB(T2Y, T2Z);
+			 TeO = VSUB(Tbe, Tbf);
+			 T3c = VSUB(T3a, T3b);
+			 Tbg = VADD(Tbe, Tbf);
+		    }
+		    {
+			 precise vec2 T2M, Tba, T2P, Tbb;
+			 {
+			      precise vec2 T2K, T2L, T2N, T2O;
+			      T2K = x[21];
+			      T2L = x[85];
+			      T2M = VSUB(T2K, T2L);
+			      Tba = VADD(T2K, T2L);
+			      T2N = x[117];
+			      T2O = x[53];
+			      T2P = VSUB(T2N, T2O);
+			      Tbb = VADD(T2N, T2O);
+			 }
+			 T2Q = VMUL(vec2(KP707106781), VADD(T2M, T2P));
+			 TeM = VSUB(Tbb, Tba);
+			 T2S = VMUL(vec2(KP707106781), VSUB(T2P, T2M));
+			 Tbc = VADD(Tba, Tbb);
+		    }
+		    {
+			 precise vec2 T33, Tbh, T36, Tbi;
+			 {
+			      precise vec2 T31, T32, T34, T35;
+			      T31 = x[13];
+			      T32 = x[77];
+			      T33 = VSUB(T31, T32);
+			      Tbh = VADD(T31, T32);
+			      T34 = x[109];
+			      T35 = x[45];
+			      T36 = VSUB(T34, T35);
+			      Tbi = VADD(T34, T35);
+			 }
+			 T37 = VMUL(vec2(KP707106781), VADD(T33, T36));
+			 TeP = VSUB(Tbi, Tbh);
+			 T39 = VMUL(vec2(KP707106781), VSUB(T36, T33));
+			 Tbj = VADD(Tbh, Tbi);
+		    }
+		    {
+			 precise vec2 Tbd, Tbk, TeN, TeQ;
+			 Tbd = VSUB(Tb9, Tbc);
+			 Tbk = VSUB(Tbg, Tbj);
+			 Tbl = VMUL(vec2(KP707106781), VADD(Tbd, Tbk));
+			 Tbu = VMUL(vec2(KP707106781), VSUB(Tbk, Tbd));
+			 {
+			      precise vec2 Td9, Tda, TeW, TeX;
+			      Td9 = VADD(Tb9, Tbc);
+			      Tda = VADD(Tbg, Tbj);
+			      Tdb = VADD(Td9, Tda);
+			      TdL = VSUB(Tda, Td9);
+			      TeW = VFNMS(vec2(KP382683432), TeL, VMUL(vec2(KP923879532), TeM));
+			      TeX = VFMA(vec2(KP382683432), TeO, VMUL(vec2(KP923879532), TeP));
+			      TeY = VADD(TeW, TeX);
+			      Tgu = VSUB(TeX, TeW);
+			 }
+			 TeN = VFMA(vec2(KP923879532), TeL, VMUL(vec2(KP382683432), TeM));
+			 TeQ = VFNMS(vec2(KP382683432), TeP, VMUL(vec2(KP923879532), TeO));
+			 TeR = VADD(TeN, TeQ);
+			 Tgq = VSUB(TeQ, TeN);
+			 {
+			      precise vec2 T7t, T7C, T7w, T7D;
+			      {
+				   precise vec2 T7r, T7s, T7u, T7v;
+				   T7r = VSUB(T2J, T2Q);
+				   T7s = VADD(T2V, T2S);
+				   T7t = VFMA(vec2(KP831469612), T7r, VMUL(vec2(KP555570233), T7s));
+				   T7C = VFNMS(vec2(KP555570233), T7r, VMUL(vec2(KP831469612), T7s));
+				   T7u = VSUB(T30, T37);
+				   T7v = VADD(T3c, T39);
+				   T7w = VFNMS(vec2(KP555570233), T7v, VMUL(vec2(KP831469612), T7u));
+				   T7D = VFMA(vec2(KP555570233), T7u, VMUL(vec2(KP831469612), T7v));
+			      }
+			      T7x = VADD(T7t, T7w);
+			      T98 = VSUB(T7D, T7C);
+			      T7E = VADD(T7C, T7D);
+			      T94 = VSUB(T7w, T7t);
+			 }
+			 {
+			      precise vec2 T2X, T3q, T3e, T3r;
+			      {
+				   precise vec2 T2R, T2W, T38, T3d;
+				   T2R = VADD(T2J, T2Q);
+				   T2W = VSUB(T2S, T2V);
+				   T2X = VFMA(vec2(KP980785280), T2R, VMUL(vec2(KP195090322), T2W));
+				   T3q = VFNMS(vec2(KP195090322), T2R, VMUL(vec2(KP980785280), T2W));
+				   T38 = VADD(T30, T37);
+				   T3d = VSUB(T39, T3c);
+				   T3e = VFNMS(vec2(KP195090322), T3d, VMUL(vec2(KP980785280), T38));
+				   T3r = VFMA(vec2(KP195090322), T38, VMUL(vec2(KP980785280), T3d));
+			      }
+			      T3f = VADD(T2X, T3e);
+			      T5Y = VSUB(T3r, T3q);
+			      T3s = VADD(T3q, T3r);
+			      T5U = VSUB(T3e, T2X);
+			 }
+		    }
+	       }
+	       {
+		    precise vec2 T3Y, Tf6, T4a, TbG, T4f, Tf9, T4r, TbN, T45, Tf7, T47, TbJ, T4m, Tfa, T4o;
+		    precise vec2 TbQ;
+		    {
+			 precise vec2 T3W, T3X, TbE, T48, T49, TbF;
+			 T3W = x[3];
+			 T3X = x[67];
+			 TbE = VADD(T3W, T3X);
+			 T48 = x[35];
+			 T49 = x[99];
+			 TbF = VADD(T48, T49);
+			 T3Y = VSUB(T3W, T3X);
+			 Tf6 = VSUB(TbE, TbF);
+			 T4a = VSUB(T48, T49);
+			 TbG = VADD(TbE, TbF);
+		    }
+		    {
+			 precise vec2 T4d, T4e, TbL, T4p, T4q, TbM;
+			 T4d = x[123];
+			 T4e = x[59];
+			 TbL = VADD(T4d, T4e);
+			 T4p = x[27];
+			 T4q = x[91];
+			 TbM = VADD(T4p, T4q);
+			 T4f = VSUB(T4d, T4e);
+			 Tf9 = VSUB(TbL, TbM);
+			 T4r = VSUB(T4p, T4q);
+			 TbN = VADD(TbL, TbM);
+		    }
+		    {
+			 precise vec2 T41, TbH, T44, TbI;
+			 {
+			      precise vec2 T3Z, T40, T42, T43;
+			      T3Z = x[19];
+			      T40 = x[83];
+			      T41 = VSUB(T3Z, T40);
+			      TbH = VADD(T3Z, T40);
+			      T42 = x[115];
+			      T43 = x[51];
+			      T44 = VSUB(T42, T43);
+			      TbI = VADD(T42, T43);
+			 }
+			 T45 = VMUL(vec2(KP707106781), VADD(T41, T44));
+			 Tf7 = VSUB(TbI, TbH);
+			 T47 = VMUL(vec2(KP707106781), VSUB(T44, T41));
+			 TbJ = VADD(TbH, TbI);
+		    }
+		    {
+			 precise vec2 T4i, TbO, T4l, TbP;
+			 {
+			      precise vec2 T4g, T4h, T4j, T4k;
+			      T4g = x[11];
+			      T4h = x[75];
+			      T4i = VSUB(T4g, T4h);
+			      TbO = VADD(T4g, T4h);
+			      T4j = x[107];
+			      T4k = x[43];
+			      T4l = VSUB(T4j, T4k);
+			      TbP = VADD(T4j, T4k);
+			 }
+			 T4m = VMUL(vec2(KP707106781), VADD(T4i, T4l));
+			 Tfa = VSUB(TbP, TbO);
+			 T4o = VMUL(vec2(KP707106781), VSUB(T4l, T4i));
+			 TbQ = VADD(TbO, TbP);
+		    }
+		    {
+			 precise vec2 TbK, TbR, Tf8, Tfb;
+			 TbK = VSUB(TbG, TbJ);
+			 TbR = VSUB(TbN, TbQ);
+			 TbS = VMUL(vec2(KP707106781), VADD(TbK, TbR));
+			 Tc1 = VMUL(vec2(KP707106781), VSUB(TbR, TbK));
+			 {
+			      precise vec2 Tdg, Tdh, Tfh, Tfi;
+			      Tdg = VADD(TbG, TbJ);
+			      Tdh = VADD(TbN, TbQ);
+			      Tdi = VADD(Tdg, Tdh);
+			      TdO = VSUB(Tdh, Tdg);
+			      Tfh = VFNMS(vec2(KP382683432), Tf6, VMUL(vec2(KP923879532), Tf7));
+			      Tfi = VFMA(vec2(KP382683432), Tf9, VMUL(vec2(KP923879532), Tfa));
+			      Tfj = VADD(Tfh, Tfi);
+			      Tgy = VSUB(Tfi, Tfh);
+			 }
+			 Tf8 = VFMA(vec2(KP923879532), Tf6, VMUL(vec2(KP382683432), Tf7));
+			 Tfb = VFNMS(vec2(KP382683432), Tfa, VMUL(vec2(KP923879532), Tf9));
+			 Tfc = VADD(Tf8, Tfb);
+			 TgA = VSUB(Tfb, Tf8);
+			 {
+			      precise vec2 T7M, T7V, T7P, T7W;
+			      {
+				   precise vec2 T7K, T7L, T7N, T7O;
+				   T7K = VSUB(T3Y, T45);
+				   T7L = VADD(T4a, T47);
+				   T7M = VFMA(vec2(KP831469612), T7K, VMUL(vec2(KP555570233), T7L));
+				   T7V = VFNMS(vec2(KP555570233), T7K, VMUL(vec2(KP831469612), T7L));
+				   T7N = VSUB(T4f, T4m);
+				   T7O = VADD(T4r, T4o);
+				   T7P = VFNMS(vec2(KP555570233), T7O, VMUL(vec2(KP831469612), T7N));
+				   T7W = VFMA(vec2(KP555570233), T7N, VMUL(vec2(KP831469612), T7O));
+			      }
+			      T7Q = VADD(T7M, T7P);
+			      T9e = VSUB(T7P, T7M);
+			      T7X = VADD(T7V, T7W);
+			      T9c = VSUB(T7W, T7V);
+			 }
+			 {
+			      precise vec2 T4c, T4F, T4t, T4G;
+			      {
+				   precise vec2 T46, T4b, T4n, T4s;
+				   T46 = VADD(T3Y, T45);
+				   T4b = VSUB(T47, T4a);
+				   T4c = VFMA(vec2(KP980785280), T46, VMUL(vec2(KP195090322), T4b));
+				   T4F = VFNMS(vec2(KP195090322), T46, VMUL(vec2(KP980785280), T4b));
+				   T4n = VADD(T4f, T4m);
+				   T4s = VSUB(T4o, T4r);
+				   T4t = VFNMS(vec2(KP195090322), T4s, VMUL(vec2(KP980785280), T4n));
+				   T4G = VFMA(vec2(KP195090322), T4n, VMUL(vec2(KP980785280), T4s));
+			      }
+			      T4u = VADD(T4c, T4t);
+			      T64 = VSUB(T4t, T4c);
+			      T4H = VADD(T4F, T4G);
+			      T62 = VSUB(T4G, T4F);
+			 }
+		    }
+	       }
+	       {
+		    precise vec2 Td5, Tdx, TdC, TdE, Tdk, Tdt, Tds, Tdy, Tdz, TdD;
+		    {
+			 precise vec2 Td1, Td4, TdA, TdB;
+			 Td1 = VADD(TcZ, Td0);
+			 Td4 = VADD(Td2, Td3);
+			 Td5 = VSUB(Td1, Td4);
+			 Tdx = VADD(Td1, Td4);
+			 TdA = VADD(Td8, Tdb);
+			 TdB = VADD(Tdf, Tdi);
+			 TdC = VADD(TdA, TdB);
+			 TdE = VBYI(VSUB(TdB, TdA));
+		    }
+		    {
+			 precise vec2 Tdc, Tdj, Tdo, Tdr;
+			 Tdc = VSUB(Td8, Tdb);
+			 Tdj = VSUB(Tdf, Tdi);
+			 Tdk = VMUL(vec2(KP707106781), VADD(Tdc, Tdj));
+			 Tdt = VMUL(vec2(KP707106781), VSUB(Tdj, Tdc));
+			 Tdo = VADD(Tdm, Tdn);
+			 Tdr = VADD(Tdp, Tdq);
+			 Tds = VSUB(Tdo, Tdr);
+			 Tdy = VADD(Tdr, Tdo);
+		    }
+		    Tdz = VADD(Tdx, Tdy);
+		    y[64] = VSUB(Tdz, TdC);
+		    y[0] = VADD(Tdz, TdC);
+		    TdD = VSUB(Tdx, Tdy);
+		    y[96] = VSUB(TdD, TdE);
+		    y[32] = VADD(TdD, TdE);
+		    {
+			 precise vec2 Tdl, Tdu, Tdv, Tdw;
+			 Tdl = VADD(Td5, Tdk);
+			 Tdu = VBYI(VADD(Tds, Tdt));
+			 y[112] = VSUB(Tdl, Tdu);
+			 y[16] = VADD(Tdl, Tdu);
+			 Tdv = VSUB(Td5, Tdk);
+			 Tdw = VBYI(VSUB(Tdt, Tds));
+			 y[80] = VSUB(Tdv, Tdw);
+			 y[48] = VADD(Tdv, Tdw);
+		    }
+	       }
+	       {
+		    precise vec2 TdJ, Te4, TdX, Te5, TdQ, Te1, TdU, Te2;
+		    {
+			 precise vec2 TdF, TdI, TdV, TdW;
+			 TdF = VSUB(TcZ, Td0);
+			 TdI = VMUL(vec2(KP707106781), VADD(TdG, TdH));
+			 TdJ = VADD(TdF, TdI);
+			 Te4 = VSUB(TdF, TdI);
+			 TdV = VFNMS(vec2(KP382683432), TdK, VMUL(vec2(KP923879532), TdL));
+			 TdW = VFMA(vec2(KP382683432), TdN, VMUL(vec2(KP923879532), TdO));
+			 TdX = VADD(TdV, TdW);
+			 Te5 = VSUB(TdW, TdV);
+		    }
+		    {
+			 precise vec2 TdM, TdP, TdS, TdT;
+			 TdM = VFMA(vec2(KP923879532), TdK, VMUL(vec2(KP382683432), TdL));
+			 TdP = VFNMS(vec2(KP382683432), TdO, VMUL(vec2(KP923879532), TdN));
+			 TdQ = VADD(TdM, TdP);
+			 Te1 = VSUB(TdP, TdM);
+			 TdS = VSUB(Td3, Td2);
+			 TdT = VMUL(vec2(KP707106781), VSUB(TdH, TdG));
+			 TdU = VADD(TdS, TdT);
+			 Te2 = VSUB(TdT, TdS);
+		    }
+		    {
+			 precise vec2 TdR, TdY, Te7, Te8;
+			 TdR = VADD(TdJ, TdQ);
+			 TdY = VBYI(VADD(TdU, TdX));
+			 y[120] = VSUB(TdR, TdY);
+			 y[8] = VADD(TdR, TdY);
+			 Te7 = VBYI(VADD(Te2, Te1));
+			 Te8 = VADD(Te4, Te5);
+			 y[24] = VADD(Te7, Te8);
+			 y[104] = VSUB(Te8, Te7);
+		    }
+		    {
+			 precise vec2 TdZ, Te0, Te3, Te6;
+			 TdZ = VSUB(TdJ, TdQ);
+			 Te0 = VBYI(VSUB(TdX, TdU));
+			 y[72] = VSUB(TdZ, Te0);
+			 y[56] = VADD(TdZ, Te0);
+			 Te3 = VBYI(VSUB(Te1, Te2));
+			 Te6 = VSUB(Te4, Te5);
+			 y[40] = VADD(Te3, Te6);
+			 y[88] = VSUB(Te6, Te3);
+		    }
+	       }
+	       {
+		    precise vec2 TaZ, Tcs, Tci, Tcq, Tc4, Tct, Tcl, Tcp;
+		    {
+			 precise vec2 Tat, TaY, Tce, Tch;
+			 Tat = VADD(Tad, Tas);
+			 TaY = VADD(TaI, TaX);
+			 TaZ = VADD(Tat, TaY);
+			 Tcs = VSUB(Tat, TaY);
+			 Tce = VADD(Tcc, Tcd);
+			 Tch = VADD(Tcf, Tcg);
+			 Tci = VADD(Tce, Tch);
+			 Tcq = VSUB(Tch, Tce);
+			 {
+			      precise vec2 Tbw, Tcj, Tc3, Tck;
+			      {
+				   precise vec2 Tbm, Tbv, TbT, Tc2;
+				   Tbm = VADD(Tb6, Tbl);
+				   Tbv = VADD(Tbt, Tbu);
+				   Tbw = VFMA(vec2(KP980785280), Tbm, VMUL(vec2(KP195090322), Tbv));
+				   Tcj = VFNMS(vec2(KP195090322), Tbm, VMUL(vec2(KP980785280), Tbv));
+				   TbT = VADD(TbD, TbS);
+				   Tc2 = VADD(Tc0, Tc1);
+				   Tc3 = VFNMS(vec2(KP195090322), Tc2, VMUL(vec2(KP980785280), TbT));
+				   Tck = VFMA(vec2(KP195090322), TbT, VMUL(vec2(KP980785280), Tc2));
+			      }
+			      Tc4 = VADD(Tbw, Tc3);
+			      Tct = VSUB(Tck, Tcj);
+			      Tcl = VADD(Tcj, Tck);
+			      Tcp = VSUB(Tc3, Tbw);
+			 }
+		    }
+		    {
+			 precise vec2 Tc5, Tcm, Tcv, Tcw;
+			 Tc5 = VADD(TaZ, Tc4);
+			 Tcm = VBYI(VADD(Tci, Tcl));
+			 y[124] = VSUB(Tc5, Tcm);
+			 y[4] = VADD(Tc5, Tcm);
+			 Tcv = VBYI(VADD(Tcq, Tcp));
+			 Tcw = VADD(Tcs, Tct);
+			 y[28] = VADD(Tcv, Tcw);
+			 y[100] = VSUB(Tcw, Tcv);
+		    }
+		    {
+			 precise vec2 Tcn, Tco, Tcr, Tcu;
+			 Tcn = VSUB(TaZ, Tc4);
+			 Tco = VBYI(VSUB(Tcl, Tci));
+			 y[68] = VSUB(Tcn, Tco);
+			 y[60] = VADD(Tcn, Tco);
+			 Tcr = VBYI(VSUB(Tcp, Tcq));
+			 Tcu = VSUB(Tcs, Tct);
+			 y[36] = VADD(Tcr, Tcu);
+			 y[92] = VSUB(Tcu, Tcr);
+		    }
+	       }
+	       {
+		    precise vec2 Tcz, TcU, TcK, TcS, TcG, TcV, TcN, TcR;
+		    {
+			 precise vec2 Tcx, Tcy, TcI, TcJ;
+			 Tcx = VSUB(Tad, Tas);
+			 Tcy = VSUB(Tcg, Tcf);
+			 Tcz = VADD(Tcx, Tcy);
+			 TcU = VSUB(Tcx, Tcy);
+			 TcI = VSUB(Tcd, Tcc);
+			 TcJ = VSUB(TaX, TaI);
+			 TcK = VADD(TcI, TcJ);
+			 TcS = VSUB(TcJ, TcI);
+			 {
+			      precise vec2 TcC, TcL, TcF, TcM;
+			      {
+				   precise vec2 TcA, TcB, TcD, TcE;
+				   TcA = VSUB(Tb6, Tbl);
+				   TcB = VSUB(Tbu, Tbt);
+				   TcC = VFMA(vec2(KP831469612), TcA, VMUL(vec2(KP555570233), TcB));
+				   TcL = VFNMS(vec2(KP555570233), TcA, VMUL(vec2(KP831469612), TcB));
+				   TcD = VSUB(TbD, TbS);
+				   TcE = VSUB(Tc1, Tc0);
+				   TcF = VFNMS(vec2(KP555570233), TcE, VMUL(vec2(KP831469612), TcD));
+				   TcM = VFMA(vec2(KP555570233), TcD, VMUL(vec2(KP831469612), TcE));
+			      }
+			      TcG = VADD(TcC, TcF);
+			      TcV = VSUB(TcM, TcL);
+			      TcN = VADD(TcL, TcM);
+			      TcR = VSUB(TcF, TcC);
+			 }
+		    }
+		    {
+			 precise vec2 TcH, TcO, TcX, TcY;
+			 TcH = VADD(Tcz, TcG);
+			 TcO = VBYI(VADD(TcK, TcN));
+			 y[116] = VSUB(TcH, TcO);
+			 y[12] = VADD(TcH, TcO);
+			 TcX = VBYI(VADD(TcS, TcR));
+			 TcY = VADD(TcU, TcV);
+			 y[20] = VADD(TcX, TcY);
+			 y[108] = VSUB(TcY, TcX);
+		    }
+		    {
+			 precise vec2 TcP, TcQ, TcT, TcW;
+			 TcP = VSUB(Tcz, TcG);
+			 TcQ = VBYI(VSUB(TcN, TcK));
+			 y[76] = VSUB(TcP, TcQ);
+			 y[52] = VADD(TcP, TcQ);
+			 TcT = VBYI(VSUB(TcR, TcS));
+			 TcW = VSUB(TcU, TcV);
+			 y[44] = VADD(TcT, TcW);
+			 y[84] = VSUB(TcW, TcT);
+		    }
+	       }
+	       {
+		    precise vec2 TeF, Tg8, TfI, Tg0, Tfy, Tga, TfG, TfP, Tfm, TfJ, TfB, TfF, TfW, Tgb, Tg3;
+		    precise vec2 Tg7;
+		    {
+			 precise vec2 Tel, TfY, TeE, TfZ, Teu, TeD;
+			 Tel = VADD(Ted, Tek);
+			 TfY = VSUB(Tft, Tfq);
+			 Teu = VFMA(vec2(KP980785280), Teq, VMUL(vec2(KP195090322), Tet));
+			 TeD = VFNMS(vec2(KP195090322), TeC, VMUL(vec2(KP980785280), Tez));
+			 TeE = VADD(Teu, TeD);
+			 TfZ = VSUB(TeD, Teu);
+			 TeF = VADD(Tel, TeE);
+			 Tg8 = VSUB(TfZ, TfY);
+			 TfI = VSUB(Tel, TeE);
+			 Tg0 = VADD(TfY, TfZ);
+		    }
+		    {
+			 precise vec2 Tfu, TfN, Tfx, TfO, Tfv, Tfw;
+			 Tfu = VADD(Tfq, Tft);
+			 TfN = VSUB(Ted, Tek);
+			 Tfv = VFNMS(vec2(KP195090322), Teq, VMUL(vec2(KP980785280), Tet));
+			 Tfw = VFMA(vec2(KP195090322), Tez, VMUL(vec2(KP980785280), TeC));
+			 Tfx = VADD(Tfv, Tfw);
+			 TfO = VSUB(Tfw, Tfv);
+			 Tfy = VADD(Tfu, Tfx);
+			 Tga = VSUB(TfN, TfO);
+			 TfG = VSUB(Tfx, Tfu);
+			 TfP = VADD(TfN, TfO);
+		    }
+		    {
+			 precise vec2 Tf0, Tfz, Tfl, TfA;
+			 {
+			      precise vec2 TeS, TeZ, Tfd, Tfk;
+			      TeS = VADD(TeK, TeR);
+			      TeZ = VADD(TeV, TeY);
+			      Tf0 = VFMA(vec2(KP995184726), TeS, VMUL(vec2(KP098017140), TeZ));
+			      Tfz = VFNMS(vec2(KP098017140), TeS, VMUL(vec2(KP995184726), TeZ));
+			      Tfd = VADD(Tf5, Tfc);
+			      Tfk = VADD(Tfg, Tfj);
+			      Tfl = VFNMS(vec2(KP098017140), Tfk, VMUL(vec2(KP995184726), Tfd));
+			      TfA = VFMA(vec2(KP098017140), Tfd, VMUL(vec2(KP995184726), Tfk));
+			 }
+			 Tfm = VADD(Tf0, Tfl);
+			 TfJ = VSUB(TfA, Tfz);
+			 TfB = VADD(Tfz, TfA);
+			 TfF = VSUB(Tfl, Tf0);
+		    }
+		    {
+			 precise vec2 TfS, Tg1, TfV, Tg2;
+			 {
+			      precise vec2 TfQ, TfR, TfT, TfU;
+			      TfQ = VSUB(TeK, TeR);
+			      TfR = VSUB(TeY, TeV);
+			      TfS = VFMA(vec2(KP773010453), TfQ, VMUL(vec2(KP634393284), TfR));
+			      Tg1 = VFNMS(vec2(KP634393284), TfQ, VMUL(vec2(KP773010453), TfR));
+			      TfT = VSUB(Tf5, Tfc);
+			      TfU = VSUB(Tfj, Tfg);
+			      TfV = VFNMS(vec2(KP634393284), TfU, VMUL(vec2(KP773010453), TfT));
+			      Tg2 = VFMA(vec2(KP634393284), TfT, VMUL(vec2(KP773010453), TfU));
+			 }
+			 TfW = VADD(TfS, TfV);
+			 Tgb = VSUB(Tg2, Tg1);
+			 Tg3 = VADD(Tg1, Tg2);
+			 Tg7 = VSUB(TfV, TfS);
+		    }
+		    {
+			 precise vec2 Tfn, TfC, Tg9, Tgc;
+			 Tfn = VADD(TeF, Tfm);
+			 TfC = VBYI(VADD(Tfy, TfB));
+			 y[126] = VSUB(Tfn, TfC);
+			 y[2] = VADD(Tfn, TfC);
+			 Tg9 = VBYI(VSUB(Tg7, Tg8));
+			 Tgc = VSUB(Tga, Tgb);
+			 y[46] = VADD(Tg9, Tgc);
+			 y[82] = VSUB(Tgc, Tg9);
+		    }
+		    {
+			 precise vec2 Tgd, Tge, TfD, TfE;
+			 Tgd = VBYI(VADD(Tg8, Tg7));
+			 Tge = VADD(Tga, Tgb);
+			 y[18] = VADD(Tgd, Tge);
+			 y[110] = VSUB(Tge, Tgd);
+			 TfD = VSUB(TeF, Tfm);
+			 TfE = VBYI(VSUB(TfB, Tfy));
+			 y[66] = VSUB(TfD, TfE);
+			 y[62] = VADD(TfD, TfE);
+		    }
+		    {
+			 precise vec2 TfH, TfK, TfX, Tg4;
+			 TfH = VBYI(VSUB(TfF, TfG));
+			 TfK = VSUB(TfI, TfJ);
+			 y[34] = VADD(TfH, TfK);
+			 y[94] = VSUB(TfK, TfH);
+			 TfX = VADD(TfP, TfW);
+			 Tg4 = VBYI(VADD(Tg0, Tg3));
+			 y[114] = VSUB(TfX, Tg4);
+			 y[14] = VADD(TfX, Tg4);
+		    }
+		    {
+			 precise vec2 Tg5, Tg6, TfL, TfM;
+			 Tg5 = VSUB(TfP, TfW);
+			 Tg6 = VBYI(VSUB(Tg3, Tg0));
+			 y[78] = VSUB(Tg5, Tg6);
+			 y[50] = VADD(Tg5, Tg6);
+			 TfL = VBYI(VADD(TfG, TfF));
+			 TfM = VADD(TfI, TfJ);
+			 y[30] = VADD(TfL, TfM);
+			 y[98] = VSUB(TfM, TfL);
+		    }
+	       }
+	       {
+		    precise vec2 Tgp, Thm, TgW, The, TgM, Tho, TgU, Th3, TgE, TgX, TgP, TgT, Tha, Thp, Thh;
+		    precise vec2 Thl;
+		    {
+			 precise vec2 Tgh, Thc, Tgo, Thd, Tgk, Tgn;
+			 Tgh = VSUB(Tgf, Tgg);
+			 Thc = VADD(TgH, TgG);
+			 Tgk = VFMA(vec2(KP555570233), Tgi, VMUL(vec2(KP831469612), Tgj));
+			 Tgn = VFNMS(vec2(KP555570233), Tgm, VMUL(vec2(KP831469612), Tgl));
+			 Tgo = VSUB(Tgk, Tgn);
+			 Thd = VADD(Tgn, Tgk);
+			 Tgp = VADD(Tgh, Tgo);
+			 Thm = VSUB(Thd, Thc);
+			 TgW = VSUB(Tgh, Tgo);
+			 The = VADD(Thc, Thd);
+		    }
+		    {
+			 precise vec2 TgI, Th1, TgL, Th2, TgJ, TgK;
+			 TgI = VSUB(TgG, TgH);
+			 Th1 = VADD(Tgf, Tgg);
+			 TgJ = VFNMS(vec2(KP555570233), Tgj, VMUL(vec2(KP831469612), Tgi));
+			 TgK = VFMA(vec2(KP831469612), Tgm, VMUL(vec2(KP555570233), Tgl));
+			 TgL = VSUB(TgJ, TgK);
+			 Th2 = VADD(TgK, TgJ);
+			 TgM = VADD(TgI, TgL);
+			 Tho = VSUB(Th1, Th2);
+			 TgU = VSUB(TgL, TgI);
+			 Th3 = VADD(Th1, Th2);
+		    }
+		    {
+			 precise vec2 Tgw, TgN, TgD, TgO;
+			 {
+			      precise vec2 Tgs, Tgv, Tgz, TgC;
+			      Tgs = VSUB(Tgq, Tgr);
+			      Tgv = VSUB(Tgt, Tgu);
+			      Tgw = VFMA(vec2(KP471396736), Tgs, VMUL(vec2(KP881921264), Tgv));
+			      TgN = VFNMS(vec2(KP471396736), Tgv, VMUL(vec2(KP881921264), Tgs));
+			      Tgz = VSUB(Tgx, Tgy);
+			      TgC = VSUB(TgA, TgB);
+			      TgD = VFNMS(vec2(KP471396736), TgC, VMUL(vec2(KP881921264), Tgz));
+			      TgO = VFMA(vec2(KP881921264), TgC, VMUL(vec2(KP471396736), Tgz));
+			 }
+			 TgE = VADD(Tgw, TgD);
+			 TgX = VSUB(TgO, TgN);
+			 TgP = VADD(TgN, TgO);
+			 TgT = VSUB(TgD, Tgw);
+		    }
+		    {
+			 precise vec2 Th6, Thf, Th9, Thg;
+			 {
+			      precise vec2 Th4, Th5, Th7, Th8;
+			      Th4 = VADD(Tgr, Tgq);
+			      Th5 = VADD(Tgt, Tgu);
+			      Th6 = VFMA(vec2(KP290284677), Th4, VMUL(vec2(KP956940335), Th5));
+			      Thf = VFNMS(vec2(KP290284677), Th5, VMUL(vec2(KP956940335), Th4));
+			      Th7 = VADD(Tgx, Tgy);
+			      Th8 = VADD(TgB, TgA);
+			      Th9 = VFNMS(vec2(KP290284677), Th8, VMUL(vec2(KP956940335), Th7));
+			      Thg = VFMA(vec2(KP956940335), Th8, VMUL(vec2(KP290284677), Th7));
+			 }
+			 Tha = VADD(Th6, Th9);
+			 Thp = VSUB(Thg, Thf);
+			 Thh = VADD(Thf, Thg);
+			 Thl = VSUB(Th9, Th6);
+		    }
+		    {
+			 precise vec2 TgF, TgQ, Thn, Thq;
+			 TgF = VADD(Tgp, TgE);
+			 TgQ = VBYI(VADD(TgM, TgP));
+			 y[118] = VSUB(TgF, TgQ);
+			 y[10] = VADD(TgF, TgQ);
+			 Thn = VBYI(VSUB(Thl, Thm));
+			 Thq = VSUB(Tho, Thp);
+			 y[38] = VADD(Thn, Thq);
+			 y[90] = VSUB(Thq, Thn);
+		    }
+		    {
+			 precise vec2 Thr, Ths, TgR, TgS;
+			 Thr = VBYI(VADD(Thm, Thl));
+			 Ths = VADD(Tho, Thp);
+			 y[26] = VADD(Thr, Ths);
+			 y[102] = VSUB(Ths, Thr);
+			 TgR = VSUB(Tgp, TgE);
+			 TgS = VBYI(VSUB(TgP, TgM));
+			 y[74] = VSUB(TgR, TgS);
+			 y[54] = VADD(TgR, TgS);
+		    }
+		    {
+			 precise vec2 TgV, TgY, Thb, Thi;
+			 TgV = VBYI(VSUB(TgT, TgU));
+			 TgY = VSUB(TgW, TgX);
+			 y[42] = VADD(TgV, TgY);
+			 y[86] = VSUB(TgY, TgV);
+			 Thb = VADD(Th3, Tha);
+			 Thi = VBYI(VADD(The, Thh));
+			 y[122] = VSUB(Thb, Thi);
+			 y[6] = VADD(Thb, Thi);
+		    }
+		    {
+			 precise vec2 Thj, Thk, TgZ, Th0;
+			 Thj = VSUB(Th3, Tha);
+			 Thk = VBYI(VSUB(Thh, The));
+			 y[70] = VSUB(Thj, Thk);
+			 y[58] = VADD(Thj, Thk);
+			 TgZ = VBYI(VADD(TgU, TgT));
+			 Th0 = VADD(TgW, TgX);
+			 y[22] = VADD(TgZ, Th0);
+			 y[106] = VSUB(Th0, TgZ);
+		    }
+	       }
+	       {
+		    precise vec2 T80, T8n, T8f, T8j, T8A, T8P, T8H, T8L, T7n, T8M, T8O, T8c, T8k, T8t, T8E;
+		    precise vec2 T8m;
+		    {
+			 precise vec2 T7G, T8d, T7Z, T8e;
+			 {
+			      precise vec2 T7y, T7F, T7R, T7Y;
+			      T7y = VADD(T7q, T7x);
+			      T7F = VADD(T7B, T7E);
+			      T7G = VFMA(vec2(KP989176509), T7y, VMUL(vec2(KP146730474), T7F));
+			      T8d = VFNMS(vec2(KP146730474), T7y, VMUL(vec2(KP989176509), T7F));
+			      T7R = VADD(T7J, T7Q);
+			      T7Y = VADD(T7U, T7X);
+			      T7Z = VFNMS(vec2(KP146730474), T7Y, VMUL(vec2(KP989176509), T7R));
+			      T8e = VFMA(vec2(KP146730474), T7R, VMUL(vec2(KP989176509), T7Y));
+			 }
+			 T80 = VADD(T7G, T7Z);
+			 T8n = VSUB(T8e, T8d);
+			 T8f = VADD(T8d, T8e);
+			 T8j = VSUB(T7Z, T7G);
+		    }
+		    {
+			 precise vec2 T8w, T8F, T8z, T8G;
+			 {
+			      precise vec2 T8u, T8v, T8x, T8y;
+			      T8u = VSUB(T7q, T7x);
+			      T8v = VSUB(T7E, T7B);
+			      T8w = VFMA(vec2(KP803207531), T8u, VMUL(vec2(KP595699304), T8v));
+			      T8F = VFNMS(vec2(KP595699304), T8u, VMUL(vec2(KP803207531), T8v));
+			      T8x = VSUB(T7J, T7Q);
+			      T8y = VSUB(T7X, T7U);
+			      T8z = VFNMS(vec2(KP595699304), T8y, VMUL(vec2(KP803207531), T8x));
+			      T8G = VFMA(vec2(KP595699304), T8x, VMUL(vec2(KP803207531), T8y));
+			 }
+			 T8A = VADD(T8w, T8z);
+			 T8P = VSUB(T8G, T8F);
+			 T8H = VADD(T8F, T8G);
+			 T8L = VSUB(T8z, T8w);
+		    }
+		    {
+			 precise vec2 T77, T8r, T88, T8C, T7m, T8D, T8b, T8s, T76, T87;
+			 T76 = VADD(T72, T75);
+			 T77 = VADD(T6Z, T76);
+			 T8r = VSUB(T6Z, T76);
+			 T87 = VADD(T85, T86);
+			 T88 = VADD(T84, T87);
+			 T8C = VSUB(T87, T84);
+			 {
+			      precise vec2 T7e, T7l, T89, T8a;
+			      T7e = VFMA(vec2(KP956940335), T7a, VMUL(vec2(KP290284677), T7d));
+			      T7l = VFNMS(vec2(KP290284677), T7k, VMUL(vec2(KP956940335), T7h));
+			      T7m = VADD(T7e, T7l);
+			      T8D = VSUB(T7l, T7e);
+			      T89 = VFNMS(vec2(KP290284677), T7a, VMUL(vec2(KP956940335), T7d));
+			      T8a = VFMA(vec2(KP290284677), T7h, VMUL(vec2(KP956940335), T7k));
+			      T8b = VADD(T89, T8a);
+			      T8s = VSUB(T8a, T89);
+			 }
+			 T7n = VADD(T77, T7m);
+			 T8M = VSUB(T8D, T8C);
+			 T8O = VSUB(T8r, T8s);
+			 T8c = VADD(T88, T8b);
+			 T8k = VSUB(T8b, T88);
+			 T8t = VADD(T8r, T8s);
+			 T8E = VADD(T8C, T8D);
+			 T8m = VSUB(T77, T7m);
+		    }
+		    {
+			 precise vec2 T81, T8g, T8N, T8Q;
+			 T81 = VADD(T7n, T80);
+			 T8g = VBYI(VADD(T8c, T8f));
+			 y[125] = VSUB(T81, T8g);
+			 y[3] = VADD(T81, T8g);
+			 T8N = VBYI(VSUB(T8L, T8M));
+			 T8Q = VSUB(T8O, T8P);
+			 y[45] = VADD(T8N, T8Q);
+			 y[83] = VSUB(T8Q, T8N);
+		    }
+		    {
+			 precise vec2 T8R, T8S, T8h, T8i;
+			 T8R = VBYI(VADD(T8M, T8L));
+			 T8S = VADD(T8O, T8P);
+			 y[19] = VADD(T8R, T8S);
+			 y[109] = VSUB(T8S, T8R);
+			 T8h = VSUB(T7n, T80);
+			 T8i = VBYI(VSUB(T8f, T8c));
+			 y[67] = VSUB(T8h, T8i);
+			 y[61] = VADD(T8h, T8i);
+		    }
+		    {
+			 precise vec2 T8l, T8o, T8B, T8I;
+			 T8l = VBYI(VSUB(T8j, T8k));
+			 T8o = VSUB(T8m, T8n);
+			 y[35] = VADD(T8l, T8o);
+			 y[93] = VSUB(T8o, T8l);
+			 T8B = VADD(T8t, T8A);
+			 T8I = VBYI(VADD(T8E, T8H));
+			 y[115] = VSUB(T8B, T8I);
+			 y[13] = VADD(T8B, T8I);
+		    }
+		    {
+			 precise vec2 T8J, T8K, T8p, T8q;
+			 T8J = VSUB(T8t, T8A);
+			 T8K = VBYI(VSUB(T8H, T8E));
+			 y[77] = VSUB(T8J, T8K);
+			 y[51] = VADD(T8J, T8K);
+			 T8p = VBYI(VADD(T8k, T8j));
+			 T8q = VADD(T8m, T8n);
+			 y[29] = VADD(T8p, T8q);
+			 y[99] = VSUB(T8q, T8p);
+		    }
+	       }
+	       {
+		    precise vec2 T4K, T5d, T55, T59, T5q, T5F, T5x, T5B, T2f, T5C, T5E, T52, T5a, T5j, T5u;
+		    precise vec2 T5c;
+		    {
+			 precise vec2 T3u, T53, T4J, T54;
+			 {
+			      precise vec2 T3g, T3t, T4v, T4I;
+			      T3g = VADD(T2G, T3f);
+			      T3t = VADD(T3p, T3s);
+			      T3u = VFMA(vec2(KP998795456), T3g, VMUL(vec2(KP049067674), T3t));
+			      T53 = VFNMS(vec2(KP049067674), T3g, VMUL(vec2(KP998795456), T3t));
+			      T4v = VADD(T3V, T4u);
+			      T4I = VADD(T4E, T4H);
+			      T4J = VFNMS(vec2(KP049067674), T4I, VMUL(vec2(KP998795456), T4v));
+			      T54 = VFMA(vec2(KP049067674), T4v, VMUL(vec2(KP998795456), T4I));
+			 }
+			 T4K = VADD(T3u, T4J);
+			 T5d = VSUB(T54, T53);
+			 T55 = VADD(T53, T54);
+			 T59 = VSUB(T4J, T3u);
+		    }
+		    {
+			 precise vec2 T5m, T5v, T5p, T5w;
+			 {
+			      precise vec2 T5k, T5l, T5n, T5o;
+			      T5k = VSUB(T2G, T3f);
+			      T5l = VSUB(T3s, T3p);
+			      T5m = VFMA(vec2(KP740951125), T5k, VMUL(vec2(KP671558954), T5l));
+			      T5v = VFNMS(vec2(KP671558954), T5k, VMUL(vec2(KP740951125), T5l));
+			      T5n = VSUB(T3V, T4u);
+			      T5o = VSUB(T4H, T4E);
+			      T5p = VFNMS(vec2(KP671558954), T5o, VMUL(vec2(KP740951125), T5n));
+			      T5w = VFMA(vec2(KP671558954), T5n, VMUL(vec2(KP740951125), T5o));
+			 }
+			 T5q = VADD(T5m, T5p);
+			 T5F = VSUB(T5w, T5v);
+			 T5x = VADD(T5v, T5w);
+			 T5B = VSUB(T5p, T5m);
+		    }
+		    {
+			 precise vec2 T11, T5h, T4Y, T5s, T2e, T5t, T51, T5i, T10, T4X;
+			 T10 = VADD(TI, TZ);
+			 T11 = VADD(Tr, T10);
+			 T5h = VSUB(Tr, T10);
+			 T4X = VADD(T4V, T4W);
+			 T4Y = VADD(T4U, T4X);
+			 T5s = VSUB(T4X, T4U);
+			 {
+			      precise vec2 T1C, T2d, T4Z, T50;
+			      T1C = VFMA(vec2(KP098017140), T1s, VMUL(vec2(KP995184726), T1B));
+			      T2d = VFNMS(vec2(KP098017140), T2c, VMUL(vec2(KP995184726), T23));
+			      T2e = VADD(T1C, T2d);
+			      T5t = VSUB(T2d, T1C);
+			      T4Z = VFNMS(vec2(KP098017140), T1B, VMUL(vec2(KP995184726), T1s));
+			      T50 = VFMA(vec2(KP995184726), T2c, VMUL(vec2(KP098017140), T23));
+			      T51 = VADD(T4Z, T50);
+			      T5i = VSUB(T50, T4Z);
+			 }
+			 T2f = VADD(T11, T2e);
+			 T5C = VSUB(T5t, T5s);
+			 T5E = VSUB(T5h, T5i);
+			 T52 = VADD(T4Y, T51);
+			 T5a = VSUB(T51, T4Y);
+			 T5j = VADD(T5h, T5i);
+			 T5u = VADD(T5s, T5t);
+			 T5c = VSUB(T11, T2e);
+		    }
+		    {
+			 precise vec2 T4L, T56, T5D, T5G;
+			 T4L = VADD(T2f, T4K);
+			 T56 = VBYI(VADD(T52, T55));
+			 y[127] = VSUB(T4L, T56);
+			 y[1] = VADD(T4L, T56);
+			 T5D = VBYI(VSUB(T5B, T5C));
+			 T5G = VSUB(T5E, T5F);
+			 y[47] = VADD(T5D, T5G);
+			 y[81] = VSUB(T5G, T5D);
+		    }
+		    {
+			 precise vec2 T5H, T5I, T57, T58;
+			 T5H = VBYI(VADD(T5C, T5B));
+			 T5I = VADD(T5E, T5F);
+			 y[17] = VADD(T5H, T5I);
+			 y[111] = VSUB(T5I, T5H);
+			 T57 = VSUB(T2f, T4K);
+			 T58 = VBYI(VSUB(T55, T52));
+			 y[65] = VSUB(T57, T58);
+			 y[63] = VADD(T57, T58);
+		    }
+		    {
+			 precise vec2 T5b, T5e, T5r, T5y;
+			 T5b = VBYI(VSUB(T59, T5a));
+			 T5e = VSUB(T5c, T5d);
+			 y[33] = VADD(T5b, T5e);
+			 y[95] = VSUB(T5e, T5b);
+			 T5r = VADD(T5j, T5q);
+			 T5y = VBYI(VADD(T5u, T5x));
+			 y[113] = VSUB(T5r, T5y);
+			 y[15] = VADD(T5r, T5y);
+		    }
+		    {
+			 precise vec2 T5z, T5A, T5f, T5g;
+			 T5z = VSUB(T5j, T5q);
+			 T5A = VBYI(VSUB(T5x, T5u));
+			 y[79] = VSUB(T5z, T5A);
+			 y[49] = VADD(T5z, T5A);
+			 T5f = VBYI(VADD(T5a, T59));
+			 T5g = VADD(T5c, T5d);
+			 y[31] = VADD(T5f, T5g);
+			 y[97] = VSUB(T5g, T5f);
+		    }
+	       }
+	       {
+		    precise vec2 T9i, T9B, T9t, T9x, T9O, Ta3, T9V, T9Z, T93, Ta0, Ta2, T9q, T9y, T9H, T9S;
+		    precise vec2 T9A;
+		    {
+			 precise vec2 T9a, T9r, T9h, T9s;
+			 {
+			      precise vec2 T96, T99, T9d, T9g;
+			      T96 = VSUB(T94, T95);
+			      T99 = VSUB(T97, T98);
+			      T9a = VFMA(vec2(KP514102744), T96, VMUL(vec2(KP857728610), T99));
+			      T9r = VFNMS(vec2(KP514102744), T99, VMUL(vec2(KP857728610), T96));
+			      T9d = VSUB(T9b, T9c);
+			      T9g = VSUB(T9e, T9f);
+			      T9h = VFNMS(vec2(KP514102744), T9g, VMUL(vec2(KP857728610), T9d));
+			      T9s = VFMA(vec2(KP857728610), T9g, VMUL(vec2(KP514102744), T9d));
+			 }
+			 T9i = VADD(T9a, T9h);
+			 T9B = VSUB(T9s, T9r);
+			 T9t = VADD(T9r, T9s);
+			 T9x = VSUB(T9h, T9a);
+		    }
+		    {
+			 precise vec2 T9K, T9T, T9N, T9U;
+			 {
+			      precise vec2 T9I, T9J, T9L, T9M;
+			      T9I = VADD(T95, T94);
+			      T9J = VADD(T97, T98);
+			      T9K = VFMA(vec2(KP242980179), T9I, VMUL(vec2(KP970031253), T9J));
+			      T9T = VFNMS(vec2(KP242980179), T9J, VMUL(vec2(KP970031253), T9I));
+			      T9L = VADD(T9b, T9c);
+			      T9M = VADD(T9f, T9e);
+			      T9N = VFNMS(vec2(KP242980179), T9M, VMUL(vec2(KP970031253), T9L));
+			      T9U = VFMA(vec2(KP970031253), T9M, VMUL(vec2(KP242980179), T9L));
+			 }
+			 T9O = VADD(T9K, T9N);
+			 Ta3 = VSUB(T9U, T9T);
+			 T9V = VADD(T9T, T9U);
+			 T9Z = VSUB(T9N, T9K);
+		    }
+		    {
+			 precise vec2 T8V, T9F, T9m, T9Q, T92, T9R, T9p, T9G, T8U, T9k;
+			 T8U = VSUB(T86, T85);
+			 T8V = VSUB(T8T, T8U);
+			 T9F = VADD(T8T, T8U);
+			 T9k = VSUB(T75, T72);
+			 T9m = VSUB(T9k, T9l);
+			 T9Q = VADD(T9l, T9k);
+			 {
+			      precise vec2 T8Y, T91, T9n, T9o;
+			      T8Y = VFMA(vec2(KP471396736), T8W, VMUL(vec2(KP881921264), T8X));
+			      T91 = VFNMS(vec2(KP471396736), T90, VMUL(vec2(KP881921264), T8Z));
+			      T92 = VSUB(T8Y, T91);
+			      T9R = VADD(T91, T8Y);
+			      T9n = VFNMS(vec2(KP471396736), T8X, VMUL(vec2(KP881921264), T8W));
+			      T9o = VFMA(vec2(KP881921264), T90, VMUL(vec2(KP471396736), T8Z));
+			      T9p = VSUB(T9n, T9o);
+			      T9G = VADD(T9o, T9n);
+			 }
+			 T93 = VADD(T8V, T92);
+			 Ta0 = VSUB(T9R, T9Q);
+			 Ta2 = VSUB(T9F, T9G);
+			 T9q = VADD(T9m, T9p);
+			 T9y = VSUB(T9p, T9m);
+			 T9H = VADD(T9F, T9G);
+			 T9S = VADD(T9Q, T9R);
+			 T9A = VSUB(T8V, T92);
+		    }
+		    {
+			 precise vec2 T9j, T9u, Ta1, Ta4;
+			 T9j = VADD(T93, T9i);
+			 T9u = VBYI(VADD(T9q, T9t));
+			 y[117] = VSUB(T9j, T9u);
+			 y[11] = VADD(T9j, T9u);
+			 Ta1 = VBYI(VSUB(T9Z, Ta0));
+			 Ta4 = VSUB(Ta2, Ta3);
+			 y[37] = VADD(Ta1, Ta4);
+			 y[91] = VSUB(Ta4, Ta1);
+		    }
+		    {
+			 precise vec2 Ta5, Ta6, T9v, T9w;
+			 Ta5 = VBYI(VADD(Ta0, T9Z));
+			 Ta6 = VADD(Ta2, Ta3);
+			 y[27] = VADD(Ta5, Ta6);
+			 y[101] = VSUB(Ta6, Ta5);
+			 T9v = VSUB(T93, T9i);
+			 T9w = VBYI(VSUB(T9t, T9q));
+			 y[75] = VSUB(T9v, T9w);
+			 y[53] = VADD(T9v, T9w);
+		    }
+		    {
+			 precise vec2 T9z, T9C, T9P, T9W;
+			 T9z = VBYI(VSUB(T9x, T9y));
+			 T9C = VSUB(T9A, T9B);
+			 y[43] = VADD(T9z, T9C);
+			 y[85] = VSUB(T9C, T9z);
+			 T9P = VADD(T9H, T9O);
+			 T9W = VBYI(VADD(T9S, T9V));
+			 y[123] = VSUB(T9P, T9W);
+			 y[5] = VADD(T9P, T9W);
+		    }
+		    {
+			 precise vec2 T9X, T9Y, T9D, T9E;
+			 T9X = VSUB(T9H, T9O);
+			 T9Y = VBYI(VSUB(T9V, T9S));
+			 y[69] = VSUB(T9X, T9Y);
+			 y[59] = VADD(T9X, T9Y);
+			 T9D = VBYI(VADD(T9y, T9x));
+			 T9E = VADD(T9A, T9B);
+			 y[21] = VADD(T9D, T9E);
+			 y[107] = VSUB(T9E, T9D);
+		    }
+	       }
+	       {
+		    precise vec2 T68, T6r, T6j, T6n, T6E, T6T, T6L, T6P, T5T, T6Q, T6S, T6g, T6o, T6x, T6I;
+		    precise vec2 T6q;
+		    {
+			 precise vec2 T60, T6h, T67, T6i;
+			 {
+			      precise vec2 T5W, T5Z, T63, T66;
+			      T5W = VSUB(T5U, T5V);
+			      T5Z = VSUB(T5X, T5Y);
+			      T60 = VFMA(vec2(KP427555093), T5W, VMUL(vec2(KP903989293), T5Z));
+			      T6h = VFNMS(vec2(KP427555093), T5Z, VMUL(vec2(KP903989293), T5W));
+			      T63 = VSUB(T61, T62);
+			      T66 = VSUB(T64, T65);
+			      T67 = VFNMS(vec2(KP427555093), T66, VMUL(vec2(KP903989293), T63));
+			      T6i = VFMA(vec2(KP903989293), T66, VMUL(vec2(KP427555093), T63));
+			 }
+			 T68 = VADD(T60, T67);
+			 T6r = VSUB(T6i, T6h);
+			 T6j = VADD(T6h, T6i);
+			 T6n = VSUB(T67, T60);
+		    }
+		    {
+			 precise vec2 T6A, T6J, T6D, T6K;
+			 {
+			      precise vec2 T6y, T6z, T6B, T6C;
+			      T6y = VADD(T5V, T5U);
+			      T6z = VADD(T5X, T5Y);
+			      T6A = VFMA(vec2(KP336889853), T6y, VMUL(vec2(KP941544065), T6z));
+			      T6J = VFNMS(vec2(KP336889853), T6z, VMUL(vec2(KP941544065), T6y));
+			      T6B = VADD(T61, T62);
+			      T6C = VADD(T65, T64);
+			      T6D = VFNMS(vec2(KP336889853), T6C, VMUL(vec2(KP941544065), T6B));
+			      T6K = VFMA(vec2(KP941544065), T6C, VMUL(vec2(KP336889853), T6B));
+			 }
+			 T6E = VADD(T6A, T6D);
+			 T6T = VSUB(T6K, T6J);
+			 T6L = VADD(T6J, T6K);
+			 T6P = VSUB(T6D, T6A);
+		    }
+		    {
+			 precise vec2 T5L, T6v, T6c, T6G, T5S, T6H, T6f, T6w, T5K, T6a;
+			 T5K = VSUB(T4W, T4V);
+			 T5L = VSUB(T5J, T5K);
+			 T6v = VADD(T5J, T5K);
+			 T6a = VSUB(TZ, TI);
+			 T6c = VSUB(T6a, T6b);
+			 T6G = VADD(T6b, T6a);
+			 {
+			      precise vec2 T5O, T5R, T6d, T6e;
+			      T5O = VFMA(vec2(KP773010453), T5M, VMUL(vec2(KP634393284), T5N));
+			      T5R = VFNMS(vec2(KP634393284), T5Q, VMUL(vec2(KP773010453), T5P));
+			      T5S = VSUB(T5O, T5R);
+			      T6H = VADD(T5R, T5O);
+			      T6d = VFNMS(vec2(KP634393284), T5M, VMUL(vec2(KP773010453), T5N));
+			      T6e = VFMA(vec2(KP634393284), T5P, VMUL(vec2(KP773010453), T5Q));
+			      T6f = VSUB(T6d, T6e);
+			      T6w = VADD(T6e, T6d);
+			 }
+			 T5T = VADD(T5L, T5S);
+			 T6Q = VSUB(T6H, T6G);
+			 T6S = VSUB(T6v, T6w);
+			 T6g = VADD(T6c, T6f);
+			 T6o = VSUB(T6f, T6c);
+			 T6x = VADD(T6v, T6w);
+			 T6I = VADD(T6G, T6H);
+			 T6q = VSUB(T5L, T5S);
+		    }
+		    {
+			 precise vec2 T69, T6k, T6R, T6U;
+			 T69 = VADD(T5T, T68);
+			 T6k = VBYI(VADD(T6g, T6j));
+			 y[119] = VSUB(T69, T6k);
+			 y[9] = VADD(T69, T6k);
+			 T6R = VBYI(VSUB(T6P, T6Q));
+			 T6U = VSUB(T6S, T6T);
+			 y[39] = VADD(T6R, T6U);
+			 y[89] = VSUB(T6U, T6R);
+		    }
+		    {
+			 precise vec2 T6V, T6W, T6l, T6m;
+			 T6V = VBYI(VADD(T6Q, T6P));
+			 T6W = VADD(T6S, T6T);
+			 y[25] = VADD(T6V, T6W);
+			 y[103] = VSUB(T6W, T6V);
+			 T6l = VSUB(T5T, T68);
+			 T6m = VBYI(VSUB(T6j, T6g));
+			 y[73] = VSUB(T6l, T6m);
+			 y[55] = VADD(T6l, T6m);
+		    }
+		    {
+			 precise vec2 T6p, T6s, T6F, T6M;
+			 T6p = VBYI(VSUB(T6n, T6o));
+			 T6s = VSUB(T6q, T6r);
+			 y[41] = VADD(T6p, T6s);
+			 y[87] = VSUB(T6s, T6p);
+			 T6F = VADD(T6x, T6E);
+			 T6M = VBYI(VADD(T6I, T6L));
+			 y[121] = VSUB(T6F, T6M);
+			 y[7] = VADD(T6F, T6M);
+		    }
+		    {
+			 precise vec2 T6N, T6O, T6t, T6u;
+			 T6N = VSUB(T6x, T6E);
+			 T6O = VBYI(VSUB(T6L, T6I));
+			 y[71] = VSUB(T6N, T6O);
+			 y[57] = VADD(T6N, T6O);
+			 T6t = VBYI(VADD(T6o, T6n));
+			 T6u = VADD(T6q, T6r);
+			 y[23] = VADD(T6t, T6u);
+			 y[105] = VSUB(T6u, T6t);
+		    }
+	       }
+	  
+}
+
+void real128(in float samples[128],out float Cr[65],out float Ci[65]) {
+const float KP803207531 = +0.803207531480644909806676512963141923879569427;
+const float KP595699304 = +0.595699304492433343467036528829969889511926338;
+const float KP146730474 = +0.146730474455361751658850129646717819706215317;
+const float KP989176509 = +0.989176509964780973451673738016243063983689533;
+const float KP740951125 = +0.740951125354959091175616897495162729728955309;
+const float KP671558954 = +0.671558954847018400625376850427421803228750632;
+const float KP049067674 = +0.049067674327418014254954976942682658314745363;
+const float KP998795456 = +0.998795456205172392714771604759100694443203615;
+const float KP242980179 = +0.242980179903263889948274162077471118320990783;
+const float KP970031253 = +0.970031253194543992603984207286100251456865962;
+const float KP514102744 = +0.514102744193221726593693838968815772608049120;
+const float KP857728610 = +0.857728610000272069902269984284770137042490799;
+const float KP336889853 = +0.336889853392220050689253212619147570477766780;
+const float KP941544065 = +0.941544065183020778412509402599502357185589796;
+const float KP427555093 = +0.427555093430282094320966856888798534304578629;
+const float KP903989293 = +0.903989293123443331586200297230537048710132025;
+const float KP098017140 = +0.098017140329560601994195563888641845861136673;
+const float KP995184726 = +0.995184726672196886244836953109479921575474869;
+const float KP634393284 = +0.634393284163645498215171613225493370675687095;
+const float KP773010453 = +0.773010453362736960810906609758469800971041293;
+const float KP881921264 = +0.881921264348355029712756863660388349508442621;
+const float KP471396736 = +0.471396736825997648556387625905254377657460319;
+const float KP956940335 = +0.956940335732208864935797886980269969482849206;
+const float KP290284677 = +0.290284677254462367636192375817395274691476278;
+const float KP555570233 = +0.555570233019602224742830813948532874374937191;
+const float KP831469612 = +0.831469612302545237078788377617905756738560812;
+const float KP195090322 = +0.195090322016128267848284868477022240927691618;
+const float KP980785280 = +0.980785280403230449126182236134239036973933731;
+const float KP382683432 = +0.382683432365089771728459984030398866761344562;
+const float KP923879532 = +0.923879532511286756128183189396788286822416626;
+const float KP707106781 = +0.707106781186547524400844362104849039284835938;
+Ci[0]=0.0; Ci[64]=0.0;
+
+	       precise float TcD, TdU, T27, T7r, T5S, T8y, Tf, Ta5, Tu, Tbq, TcG, TdV, T2e, T8z, T5V;
+	       precise float T7s, TK, Ta6, TcK, TdX, T2o, T5X, T7w, T8B, TZ, Ta7, TcN, TdY, T2x, T5Y;
+	       precise float T7z, T8C, T1g, Taa, TcU, TeA, TcX, Tez, T1v, Tab, T2M, T6z, T7E, T9e, T7H;
+	       precise float T9d, T2T, T6A, T4X, T6L, Tdz, TeL, TdK, TeP, T5G, T6P, T8d, T9p, TaV, Tc3;
+	       precise float Tbi, Tc4, T8o, T9t, T3I, T6H, Tde, TeH, Tdp, TeF, T4r, T6F, T7U, T9l, Tao;
+	       precise float TbW, TaL, TbX, T85, T9j, T1L, Tad, Td3, Tew, Td6, Tex, T20, Tae, T37, T6x;
+	       precise float T7L, T9a, T7O, T9b, T3e, T6w, TbZ, Tc0, T3Z, T4s, Tds, TeI, T4g, T4t, T80;
+	       precise float T87, Tdl, TeE, T7X, T86, TaD, TaM, Tc6, Tc7, T5e, T5H, TdN, TeM, T5v, T5I;
+	       precise float T8j, T8q, TdG, TeO, T8g, T8p, Tba, Tbj;
+	       {
+		    precise float T3, T23, Td, T25, T6, T5R, Ta, T24;
+		    {
+			 precise float T1, T2, Tb, Tc;
+			 T1 = samples[0];
+			 T2 = samples[64];
+			 T3 = T1 + T2;
+			 T23 = T1 - T2;
+			 Tb = samples[112];
+			 Tc = samples[48];
+			 Td = Tb + Tc;
+			 T25 = Tb - Tc;
+		    }
+		    {
+			 precise float T4, T5, T8, T9;
+			 T4 = samples[32];
+			 T5 = samples[96];
+			 T6 = T4 + T5;
+			 T5R = T4 - T5;
+			 T8 = samples[16];
+			 T9 = samples[80];
+			 Ta = T8 + T9;
+			 T24 = T8 - T9;
+		    }
+		    TcD = T3 - T6;
+		    TdU = Td - Ta;
+		    {
+			 precise float T26, T5Q, T7, Te;
+			 T26 = KP707106781 * (T24 + T25);
+			 T27 = T23 + T26;
+			 T7r = T23 - T26;
+			 T5Q = KP707106781 * (T25 - T24);
+			 T5S = T5Q - T5R;
+			 T8y = T5R + T5Q;
+			 T7 = T3 + T6;
+			 Te = Ta + Td;
+			 Tf = T7 + Te;
+			 Ta5 = T7 - Te;
+		    }
+	       }
+	       {
+		    precise float Ti, T28, Ts, T2c, Tl, T29, Tp, T2b;
+		    {
+			 precise float Tg, Th, Tq, Tr;
+			 Tg = samples[8];
+			 Th = samples[72];
+			 Ti = Tg + Th;
+			 T28 = Tg - Th;
+			 Tq = samples[24];
+			 Tr = samples[88];
+			 Ts = Tq + Tr;
+			 T2c = Tq - Tr;
+		    }
+		    {
+			 precise float Tj, Tk, Tn, To;
+			 Tj = samples[40];
+			 Tk = samples[104];
+			 Tl = Tj + Tk;
+			 T29 = Tj - Tk;
+			 Tn = samples[120];
+			 To = samples[56];
+			 Tp = Tn + To;
+			 T2b = Tn - To;
+		    }
+		    {
+			 precise float Tm, Tt, TcE, TcF;
+			 Tm = Ti + Tl;
+			 Tt = Tp + Ts;
+			 Tu = Tm + Tt;
+			 Tbq = Tt - Tm;
+			 TcE = Ti - Tl;
+			 TcF = Tp - Ts;
+			 TcG = KP707106781 * (TcE + TcF);
+			 TdV = KP707106781 * (TcF - TcE);
+		    }
+		    {
+			 precise float T2a, T2d, T5T, T5U;
+			 T2a = sum_products(KP382683432,T29,KP923879532,T28,true);
+			 T2d = sum_products(KP923879532,T2b,KP382683432,T2c,false);
+			 T2e = T2a + T2d;
+			 T8z = T2d - T2a;
+			 T5T = sum_products(KP923879532,T2c,KP382683432,T2b,true);
+			 T5U = sum_products(KP382683432,T28,KP923879532,T29,false);
+			 T5V = T5T - T5U;
+			 T7s = T5U + T5T;
+		    }
+	       }
+	       {
+		    precise float Ty, T2g, TB, T2m, TF, T2l, TI, T2j;
+		    {
+			 precise float Tw, Tx, Tz, TA;
+			 Tw = samples[4];
+			 Tx = samples[68];
+			 Ty = Tw + Tx;
+			 T2g = Tw - Tx;
+			 Tz = samples[36];
+			 TA = samples[100];
+			 TB = Tz + TA;
+			 T2m = Tz - TA;
+			 {
+			      precise float TD, TE, T2h, TG, TH, T2i;
+			      TD = samples[20];
+			      TE = samples[84];
+			      T2h = TD - TE;
+			      TG = samples[116];
+			      TH = samples[52];
+			      T2i = TG - TH;
+			      TF = TD + TE;
+			      T2l = KP707106781 * (T2i - T2h);
+			      TI = TG + TH;
+			      T2j = KP707106781 * (T2h + T2i);
+			 }
+		    }
+		    {
+			 precise float TC, TJ, TcI, TcJ;
+			 TC = Ty + TB;
+			 TJ = TF + TI;
+			 TK = TC + TJ;
+			 Ta6 = TC - TJ;
+			 TcI = Ty - TB;
+			 TcJ = TI - TF;
+			 TcK = sum_products(KP923879532,TcI,KP382683432,TcJ,false);
+			 TdX = sum_products(KP382683432,TcI,KP923879532,TcJ,true);
+		    }
+		    {
+			 precise float T2k, T2n, T7u, T7v;
+			 T2k = T2g + T2j;
+			 T2n = T2l - T2m;
+			 T2o = sum_products(KP980785280,T2k,KP195090322,T2n,false);
+			 T5X = sum_products(KP195090322,T2k,KP980785280,T2n,true);
+			 T7u = T2g - T2j;
+			 T7v = T2m + T2l;
+			 T7w = sum_products(KP831469612,T7u,KP555570233,T7v,false);
+			 T8B = sum_products(KP555570233,T7u,KP831469612,T7v,true);
+		    }
+	       }
+	       {
+		    precise float TN, T2p, TQ, T2v, TU, T2u, TX, T2s;
+		    {
+			 precise float TL, TM, TO, TP;
+			 TL = samples[124];
+			 TM = samples[60];
+			 TN = TL + TM;
+			 T2p = TL - TM;
+			 TO = samples[28];
+			 TP = samples[92];
+			 TQ = TO + TP;
+			 T2v = TO - TP;
+			 {
+			      precise float TS, TT, T2q, TV, TW, T2r;
+			      TS = samples[12];
+			      TT = samples[76];
+			      T2q = TS - TT;
+			      TV = samples[108];
+			      TW = samples[44];
+			      T2r = TV - TW;
+			      TU = TS + TT;
+			      T2u = KP707106781 * (T2r - T2q);
+			      TX = TV + TW;
+			      T2s = KP707106781 * (T2q + T2r);
+			 }
+		    }
+		    {
+			 precise float TR, TY, TcL, TcM;
+			 TR = TN + TQ;
+			 TY = TU + TX;
+			 TZ = TR + TY;
+			 Ta7 = TR - TY;
+			 TcL = TN - TQ;
+			 TcM = TX - TU;
+			 TcN = sum_products(KP382683432,TcM,KP923879532,TcL,true);
+			 TdY = sum_products(KP382683432,TcL,KP923879532,TcM,false);
+		    }
+		    {
+			 precise float T2t, T2w, T7x, T7y;
+			 T2t = T2p + T2s;
+			 T2w = T2u - T2v;
+			 T2x = sum_products(KP195090322,T2w,KP980785280,T2t,true);
+			 T5Y = sum_products(KP195090322,T2t,KP980785280,T2w,false);
+			 T7x = T2p - T2s;
+			 T7y = T2v + T2u;
+			 T7z = sum_products(KP555570233,T7y,KP831469612,T7x,true);
+			 T8C = sum_products(KP555570233,T7x,KP831469612,T7y,false);
+		    }
+	       }
+	       {
+		    precise float T14, T2N, T17, T2D, T1b, T2O, T1e, T2C, T1j, T1m, T2K, TcR, T2Q, T1q, T1t;
+		    precise float T2H, TcS, T2R;
+		    {
+			 precise float T12, T13, T15, T16;
+			 T12 = samples[2];
+			 T13 = samples[66];
+			 T14 = T12 + T13;
+			 T2N = T12 - T13;
+			 T15 = samples[34];
+			 T16 = samples[98];
+			 T17 = T15 + T16;
+			 T2D = T15 - T16;
+		    }
+		    {
+			 precise float T19, T1a, T2B, T1c, T1d, T2A;
+			 T19 = samples[18];
+			 T1a = samples[82];
+			 T2B = T19 - T1a;
+			 T1c = samples[114];
+			 T1d = samples[50];
+			 T2A = T1c - T1d;
+			 T1b = T19 + T1a;
+			 T2O = KP707106781 * (T2B + T2A);
+			 T1e = T1c + T1d;
+			 T2C = KP707106781 * (T2A - T2B);
+		    }
+		    {
+			 precise float T2I, T2J, T2F, T2G;
+			 {
+			      precise float T1h, T1i, T1k, T1l;
+			      T1h = samples[10];
+			      T1i = samples[74];
+			      T1j = T1h + T1i;
+			      T2I = T1h - T1i;
+			      T1k = samples[42];
+			      T1l = samples[106];
+			      T1m = T1k + T1l;
+			      T2J = T1k - T1l;
+			 }
+			 T2K = sum_products(KP382683432,T2I,KP923879532,T2J,false);
+			 TcR = T1j - T1m;
+			 T2Q = sum_products(KP382683432,T2J,KP923879532,T2I,true);
+			 {
+			      precise float T1o, T1p, T1r, T1s;
+			      T1o = samples[122];
+			      T1p = samples[58];
+			      T1q = T1o + T1p;
+			      T2F = T1o - T1p;
+			      T1r = samples[26];
+			      T1s = samples[90];
+			      T1t = T1r + T1s;
+			      T2G = T1r - T1s;
+			 }
+			 T2H = sum_products(KP923879532,T2G,KP382683432,T2F,true);
+			 TcS = T1q - T1t;
+			 T2R = sum_products(KP923879532,T2F,KP382683432,T2G,false);
+		    }
+		    {
+			 precise float T18, T1f, TcQ, TcT;
+			 T18 = T14 + T17;
+			 T1f = T1b + T1e;
+			 T1g = T18 + T1f;
+			 Taa = T18 - T1f;
+			 TcQ = T14 - T17;
+			 TcT = KP707106781 * (TcR + TcS);
+			 TcU = TcQ + TcT;
+			 TeA = TcQ - TcT;
+		    }
+		    {
+			 precise float TcV, TcW, T1n, T1u;
+			 TcV = T1e - T1b;
+			 TcW = KP707106781 * (TcS - TcR);
+			 TcX = TcV + TcW;
+			 Tez = TcW - TcV;
+			 T1n = T1j + T1m;
+			 T1u = T1q + T1t;
+			 T1v = T1n + T1u;
+			 Tab = T1u - T1n;
+		    }
+		    {
+			 precise float T2E, T2L, T7C, T7D;
+			 T2E = T2C - T2D;
+			 T2L = T2H - T2K;
+			 T2M = T2E + T2L;
+			 T6z = T2L - T2E;
+			 T7C = T2N - T2O;
+			 T7D = T2K + T2H;
+			 T7E = T7C + T7D;
+			 T9e = T7C - T7D;
+		    }
+		    {
+			 precise float T7F, T7G, T2P, T2S;
+			 T7F = T2D + T2C;
+			 T7G = T2R - T2Q;
+			 T7H = T7F + T7G;
+			 T9d = T7G - T7F;
+			 T2P = T2N + T2O;
+			 T2S = T2Q + T2R;
+			 T2T = T2P + T2S;
+			 T6A = T2P - T2S;
+		    }
+	       }
+	       {
+		    precise float T4z, TaP, T5B, TaQ, T4G, TaT, T5y, TaS, Tbf, Tbg, T4O, Tdw, T5E, Tbc, Tbd;
+		    precise float T4V, Tdx, T5D;
+		    {
+			 precise float T4x, T4y, T5z, T5A;
+			 T4x = samples[127];
+			 T4y = samples[63];
+			 T4z = T4x - T4y;
+			 TaP = T4x + T4y;
+			 T5z = samples[31];
+			 T5A = samples[95];
+			 T5B = T5z - T5A;
+			 TaQ = T5z + T5A;
+		    }
+		    {
+			 precise float T4A, T4B, T4C, T4D, T4E, T4F;
+			 T4A = samples[15];
+			 T4B = samples[79];
+			 T4C = T4A - T4B;
+			 T4D = samples[111];
+			 T4E = samples[47];
+			 T4F = T4D - T4E;
+			 T4G = KP707106781 * (T4C + T4F);
+			 TaT = T4D + T4E;
+			 T5y = KP707106781 * (T4F - T4C);
+			 TaS = T4A + T4B;
+		    }
+		    {
+			 precise float T4K, T4N, T4R, T4U;
+			 {
+			      precise float T4I, T4J, T4L, T4M;
+			      T4I = samples[7];
+			      T4J = samples[71];
+			      T4K = T4I - T4J;
+			      Tbf = T4I + T4J;
+			      T4L = samples[39];
+			      T4M = samples[103];
+			      T4N = T4L - T4M;
+			      Tbg = T4L + T4M;
+			 }
+			 T4O = sum_products(KP382683432,T4N,KP923879532,T4K,true);
+			 Tdw = Tbf - Tbg;
+			 T5E = sum_products(KP382683432,T4K,KP923879532,T4N,false);
+			 {
+			      precise float T4P, T4Q, T4S, T4T;
+			      T4P = samples[119];
+			      T4Q = samples[55];
+			      T4R = T4P - T4Q;
+			      Tbc = T4P + T4Q;
+			      T4S = samples[23];
+			      T4T = samples[87];
+			      T4U = T4S - T4T;
+			      Tbd = T4S + T4T;
+			 }
+			 T4V = sum_products(KP923879532,T4R,KP382683432,T4U,false);
+			 Tdx = Tbc - Tbd;
+			 T5D = sum_products(KP923879532,T4U,KP382683432,T4R,true);
+		    }
+		    {
+			 precise float T4H, T4W, Tdv, Tdy;
+			 T4H = T4z + T4G;
+			 T4W = T4O + T4V;
+			 T4X = T4H + T4W;
+			 T6L = T4H - T4W;
+			 Tdv = TaP - TaQ;
+			 Tdy = KP707106781 * (Tdw + Tdx);
+			 Tdz = Tdv + Tdy;
+			 TeL = Tdv - Tdy;
+		    }
+		    {
+			 precise float TdI, TdJ, T5C, T5F;
+			 TdI = TaT - TaS;
+			 TdJ = KP707106781 * (Tdx - Tdw);
+			 TdK = TdI + TdJ;
+			 TeP = TdJ - TdI;
+			 T5C = T5y - T5B;
+			 T5F = T5D - T5E;
+			 T5G = T5C + T5F;
+			 T6P = T5F - T5C;
+		    }
+		    {
+			 precise float T8b, T8c, TaR, TaU;
+			 T8b = T4z - T4G;
+			 T8c = T5E + T5D;
+			 T8d = T8b + T8c;
+			 T9p = T8b - T8c;
+			 TaR = TaP + TaQ;
+			 TaU = TaS + TaT;
+			 TaV = TaR - TaU;
+			 Tc3 = TaR + TaU;
+		    }
+		    {
+			 precise float Tbe, Tbh, T8m, T8n;
+			 Tbe = Tbc + Tbd;
+			 Tbh = Tbf + Tbg;
+			 Tbi = Tbe - Tbh;
+			 Tc4 = Tbh + Tbe;
+			 T8m = T5B + T5y;
+			 T8n = T4V - T4O;
+			 T8o = T8m + T8n;
+			 T9t = T8n - T8m;
+		    }
+	       }
+	       {
+		    precise float T3k, Tai, T4m, Taj, T3r, Tam, T4j, Tal, TaI, TaJ, T3z, Tdb, T4p, TaF, TaG;
+		    precise float T3G, Tdc, T4o;
+		    {
+			 precise float T3i, T3j, T4k, T4l;
+			 T3i = samples[1];
+			 T3j = samples[65];
+			 T3k = T3i - T3j;
+			 Tai = T3i + T3j;
+			 T4k = samples[33];
+			 T4l = samples[97];
+			 T4m = T4k - T4l;
+			 Taj = T4k + T4l;
+		    }
+		    {
+			 precise float T3l, T3m, T3n, T3o, T3p, T3q;
+			 T3l = samples[17];
+			 T3m = samples[81];
+			 T3n = T3l - T3m;
+			 T3o = samples[113];
+			 T3p = samples[49];
+			 T3q = T3o - T3p;
+			 T3r = KP707106781 * (T3n + T3q);
+			 Tam = T3o + T3p;
+			 T4j = KP707106781 * (T3q - T3n);
+			 Tal = T3l + T3m;
+		    }
+		    {
+			 precise float T3v, T3y, T3C, T3F;
+			 {
+			      precise float T3t, T3u, T3w, T3x;
+			      T3t = samples[9];
+			      T3u = samples[73];
+			      T3v = T3t - T3u;
+			      TaI = T3t + T3u;
+			      T3w = samples[41];
+			      T3x = samples[105];
+			      T3y = T3w - T3x;
+			      TaJ = T3w + T3x;
+			 }
+			 T3z = sum_products(KP382683432,T3y,KP923879532,T3v,true);
+			 Tdb = TaI - TaJ;
+			 T4p = sum_products(KP382683432,T3v,KP923879532,T3y,false);
+			 {
+			      precise float T3A, T3B, T3D, T3E;
+			      T3A = samples[121];
+			      T3B = samples[57];
+			      T3C = T3A - T3B;
+			      TaF = T3A + T3B;
+			      T3D = samples[25];
+			      T3E = samples[89];
+			      T3F = T3D - T3E;
+			      TaG = T3D + T3E;
+			 }
+			 T3G = sum_products(KP923879532,T3C,KP382683432,T3F,false);
+			 Tdc = TaF - TaG;
+			 T4o = sum_products(KP923879532,T3F,KP382683432,T3C,true);
+		    }
+		    {
+			 precise float T3s, T3H, Tda, Tdd;
+			 T3s = T3k + T3r;
+			 T3H = T3z + T3G;
+			 T3I = T3s + T3H;
+			 T6H = T3s - T3H;
+			 Tda = Tai - Taj;
+			 Tdd = KP707106781 * (Tdb + Tdc);
+			 Tde = Tda + Tdd;
+			 TeH = Tda - Tdd;
+		    }
+		    {
+			 precise float Tdn, Tdo, T4n, T4q;
+			 Tdn = Tam - Tal;
+			 Tdo = KP707106781 * (Tdc - Tdb);
+			 Tdp = Tdn + Tdo;
+			 TeF = Tdo - Tdn;
+			 T4n = T4j - T4m;
+			 T4q = T4o - T4p;
+			 T4r = T4n + T4q;
+			 T6F = T4q - T4n;
+		    }
+		    {
+			 precise float T7S, T7T, Tak, Tan;
+			 T7S = T3k - T3r;
+			 T7T = T4p + T4o;
+			 T7U = T7S + T7T;
+			 T9l = T7S - T7T;
+			 Tak = Tai + Taj;
+			 Tan = Tal + Tam;
+			 Tao = Tak - Tan;
+			 TbW = Tak + Tan;
+		    }
+		    {
+			 precise float TaH, TaK, T83, T84;
+			 TaH = TaF + TaG;
+			 TaK = TaI + TaJ;
+			 TaL = TaH - TaK;
+			 TbX = TaK + TaH;
+			 T83 = T4m + T4j;
+			 T84 = T3G - T3z;
+			 T85 = T83 + T84;
+			 T9j = T84 - T83;
+		    }
+	       }
+	       {
+		    precise float T1z, T2V, T1C, T39, T1G, T38, T1J, T2Y, T1O, T1R, T32, Td0, T3c, T1V, T1Y;
+		    precise float T35, Td1, T3b;
+		    {
+			 precise float T1x, T1y, T1A, T1B;
+			 T1x = samples[126];
+			 T1y = samples[62];
+			 T1z = T1x + T1y;
+			 T2V = T1x - T1y;
+			 T1A = samples[30];
+			 T1B = samples[94];
+			 T1C = T1A + T1B;
+			 T39 = T1A - T1B;
+		    }
+		    {
+			 precise float T1E, T1F, T2W, T1H, T1I, T2X;
+			 T1E = samples[14];
+			 T1F = samples[78];
+			 T2W = T1E - T1F;
+			 T1H = samples[110];
+			 T1I = samples[46];
+			 T2X = T1H - T1I;
+			 T1G = T1E + T1F;
+			 T38 = KP707106781 * (T2X - T2W);
+			 T1J = T1H + T1I;
+			 T2Y = KP707106781 * (T2W + T2X);
+		    }
+		    {
+			 precise float T30, T31, T33, T34;
+			 {
+			      precise float T1M, T1N, T1P, T1Q;
+			      T1M = samples[6];
+			      T1N = samples[70];
+			      T1O = T1M + T1N;
+			      T30 = T1M - T1N;
+			      T1P = samples[38];
+			      T1Q = samples[102];
+			      T1R = T1P + T1Q;
+			      T31 = T1P - T1Q;
+			 }
+			 T32 = sum_products(KP382683432,T31,KP923879532,T30,true);
+			 Td0 = T1O - T1R;
+			 T3c = sum_products(KP382683432,T30,KP923879532,T31,false);
+			 {
+			      precise float T1T, T1U, T1W, T1X;
+			      T1T = samples[118];
+			      T1U = samples[54];
+			      T1V = T1T + T1U;
+			      T33 = T1T - T1U;
+			      T1W = samples[22];
+			      T1X = samples[86];
+			      T1Y = T1W + T1X;
+			      T34 = T1W - T1X;
+			 }
+			 T35 = sum_products(KP923879532,T33,KP382683432,T34,false);
+			 Td1 = T1V - T1Y;
+			 T3b = sum_products(KP923879532,T34,KP382683432,T33,true);
+		    }
+		    {
+			 precise float T1D, T1K, TcZ, Td2;
+			 T1D = T1z + T1C;
+			 T1K = T1G + T1J;
+			 T1L = T1D + T1K;
+			 Tad = T1D - T1K;
+			 TcZ = T1z - T1C;
+			 Td2 = KP707106781 * (Td0 + Td1);
+			 Td3 = TcZ + Td2;
+			 Tew = TcZ - Td2;
+		    }
+		    {
+			 precise float Td4, Td5, T1S, T1Z;
+			 Td4 = T1J - T1G;
+			 Td5 = KP707106781 * (Td1 - Td0);
+			 Td6 = Td4 + Td5;
+			 Tex = Td5 - Td4;
+			 T1S = T1O + T1R;
+			 T1Z = T1V + T1Y;
+			 T20 = T1S + T1Z;
+			 Tae = T1Z - T1S;
+		    }
+		    {
+			 precise float T2Z, T36, T7J, T7K;
+			 T2Z = T2V + T2Y;
+			 T36 = T32 + T35;
+			 T37 = T2Z + T36;
+			 T6x = T2Z - T36;
+			 T7J = T2V - T2Y;
+			 T7K = T3c + T3b;
+			 T7L = T7J + T7K;
+			 T9a = T7J - T7K;
+		    }
+		    {
+			 precise float T7M, T7N, T3a, T3d;
+			 T7M = T39 + T38;
+			 T7N = T35 - T32;
+			 T7O = T7M + T7N;
+			 T9b = T7N - T7M;
+			 T3a = T38 - T39;
+			 T3d = T3b - T3c;
+			 T3e = T3a + T3d;
+			 T6w = T3d - T3a;
+		    }
+	       }
+	       {
+		    precise float T3L, Tdf, T3X, Tar, T42, Tdi, T4e, Tay, T3S, Tdg, T3U, Tau, T49, Tdj, T4b;
+		    precise float TaB, Tdh, Tdk;
+		    {
+			 precise float T3J, T3K, Tap, T3V, T3W, Taq;
+			 T3J = samples[5];
+			 T3K = samples[69];
+			 Tap = T3J + T3K;
+			 T3V = samples[37];
+			 T3W = samples[101];
+			 Taq = T3V + T3W;
+			 T3L = T3J - T3K;
+			 Tdf = Tap - Taq;
+			 T3X = T3V - T3W;
+			 Tar = Tap + Taq;
+		    }
+		    {
+			 precise float T40, T41, Taw, T4c, T4d, Tax;
+			 T40 = samples[125];
+			 T41 = samples[61];
+			 Taw = T40 + T41;
+			 T4c = samples[29];
+			 T4d = samples[93];
+			 Tax = T4c + T4d;
+			 T42 = T40 - T41;
+			 Tdi = Taw - Tax;
+			 T4e = T4c - T4d;
+			 Tay = Taw + Tax;
+		    }
+		    {
+			 precise float T3O, Tas, T3R, Tat;
+			 {
+			      precise float T3M, T3N, T3P, T3Q;
+			      T3M = samples[21];
+			      T3N = samples[85];
+			      T3O = T3M - T3N;
+			      Tas = T3M + T3N;
+			      T3P = samples[117];
+			      T3Q = samples[53];
+			      T3R = T3P - T3Q;
+			      Tat = T3P + T3Q;
+			 }
+			 T3S = KP707106781 * (T3O + T3R);
+			 Tdg = Tat - Tas;
+			 T3U = KP707106781 * (T3R - T3O);
+			 Tau = Tas + Tat;
+		    }
+		    {
+			 precise float T45, Taz, T48, TaA;
+			 {
+			      precise float T43, T44, T46, T47;
+			      T43 = samples[13];
+			      T44 = samples[77];
+			      T45 = T43 - T44;
+			      Taz = T43 + T44;
+			      T46 = samples[109];
+			      T47 = samples[45];
+			      T48 = T46 - T47;
+			      TaA = T46 + T47;
+			 }
+			 T49 = KP707106781 * (T45 + T48);
+			 Tdj = TaA - Taz;
+			 T4b = KP707106781 * (T48 - T45);
+			 TaB = Taz + TaA;
+		    }
+		    TbZ = Tar + Tau;
+		    Tc0 = Tay + TaB;
+		    {
+			 precise float T3T, T3Y, Tdq, Tdr;
+			 T3T = T3L + T3S;
+			 T3Y = T3U - T3X;
+			 T3Z = sum_products(KP980785280,T3T,KP195090322,T3Y,false);
+			 T4s = sum_products(KP195090322,T3T,KP980785280,T3Y,true);
+			 Tdq = sum_products(KP382683432,Tdf,KP923879532,Tdg,true);
+			 Tdr = sum_products(KP382683432,Tdi,KP923879532,Tdj,false);
+			 Tds = Tdq + Tdr;
+			 TeI = Tdr - Tdq;
+		    }
+		    {
+			 precise float T4a, T4f, T7Y, T7Z;
+			 T4a = T42 + T49;
+			 T4f = T4b - T4e;
+			 T4g = sum_products(KP195090322,T4f,KP980785280,T4a,true);
+			 T4t = sum_products(KP195090322,T4a,KP980785280,T4f,false);
+			 T7Y = T42 - T49;
+			 T7Z = T4e + T4b;
+			 T80 = sum_products(KP555570233,T7Z,KP831469612,T7Y,true);
+			 T87 = sum_products(KP555570233,T7Y,KP831469612,T7Z,false);
+		    }
+		    Tdh = sum_products(KP923879532,Tdf,KP382683432,Tdg,false);
+		    Tdk = sum_products(KP382683432,Tdj,KP923879532,Tdi,true);
+		    Tdl = Tdh + Tdk;
+		    TeE = Tdk - Tdh;
+		    {
+			 precise float T7V, T7W, Tav, TaC;
+			 T7V = T3L - T3S;
+			 T7W = T3X + T3U;
+			 T7X = sum_products(KP831469612,T7V,KP555570233,T7W,false);
+			 T86 = sum_products(KP555570233,T7V,KP831469612,T7W,true);
+			 Tav = Tar - Tau;
+			 TaC = Tay - TaB;
+			 TaD = KP707106781 * (Tav + TaC);
+			 TaM = KP707106781 * (TaC - Tav);
+		    }
+	       }
+	       {
+		    precise float T50, TdA, T5c, TaY, T5h, TdD, T5t, Tb5, T57, TdB, T59, Tb1, T5o, TdE, T5q;
+		    precise float Tb8, TdC, TdF;
+		    {
+			 precise float T4Y, T4Z, TaW, T5a, T5b, TaX;
+			 T4Y = samples[3];
+			 T4Z = samples[67];
+			 TaW = T4Y + T4Z;
+			 T5a = samples[35];
+			 T5b = samples[99];
+			 TaX = T5a + T5b;
+			 T50 = T4Y - T4Z;
+			 TdA = TaW - TaX;
+			 T5c = T5a - T5b;
+			 TaY = TaW + TaX;
+		    }
+		    {
+			 precise float T5f, T5g, Tb3, T5r, T5s, Tb4;
+			 T5f = samples[123];
+			 T5g = samples[59];
+			 Tb3 = T5f + T5g;
+			 T5r = samples[27];
+			 T5s = samples[91];
+			 Tb4 = T5r + T5s;
+			 T5h = T5f - T5g;
+			 TdD = Tb3 - Tb4;
+			 T5t = T5r - T5s;
+			 Tb5 = Tb3 + Tb4;
+		    }
+		    {
+			 precise float T53, TaZ, T56, Tb0;
+			 {
+			      precise float T51, T52, T54, T55;
+			      T51 = samples[19];
+			      T52 = samples[83];
+			      T53 = T51 - T52;
+			      TaZ = T51 + T52;
+			      T54 = samples[115];
+			      T55 = samples[51];
+			      T56 = T54 - T55;
+			      Tb0 = T54 + T55;
+			 }
+			 T57 = KP707106781 * (T53 + T56);
+			 TdB = Tb0 - TaZ;
+			 T59 = KP707106781 * (T56 - T53);
+			 Tb1 = TaZ + Tb0;
+		    }
+		    {
+			 precise float T5k, Tb6, T5n, Tb7;
+			 {
+			      precise float T5i, T5j, T5l, T5m;
+			      T5i = samples[11];
+			      T5j = samples[75];
+			      T5k = T5i - T5j;
+			      Tb6 = T5i + T5j;
+			      T5l = samples[107];
+			      T5m = samples[43];
+			      T5n = T5l - T5m;
+			      Tb7 = T5l + T5m;
+			 }
+			 T5o = KP707106781 * (T5k + T5n);
+			 TdE = Tb7 - Tb6;
+			 T5q = KP707106781 * (T5n - T5k);
+			 Tb8 = Tb6 + Tb7;
+		    }
+		    Tc6 = TaY + Tb1;
+		    Tc7 = Tb5 + Tb8;
+		    {
+			 precise float T58, T5d, TdL, TdM;
+			 T58 = T50 + T57;
+			 T5d = T59 - T5c;
+			 T5e = sum_products(KP980785280,T58,KP195090322,T5d,false);
+			 T5H = sum_products(KP195090322,T58,KP980785280,T5d,true);
+			 TdL = sum_products(KP382683432,TdA,KP923879532,TdB,true);
+			 TdM = sum_products(KP382683432,TdD,KP923879532,TdE,false);
+			 TdN = TdL + TdM;
+			 TeM = TdM - TdL;
+		    }
+		    {
+			 precise float T5p, T5u, T8h, T8i;
+			 T5p = T5h + T5o;
+			 T5u = T5q - T5t;
+			 T5v = sum_products(KP195090322,T5u,KP980785280,T5p,true);
+			 T5I = sum_products(KP195090322,T5p,KP980785280,T5u,false);
+			 T8h = T5h - T5o;
+			 T8i = T5t + T5q;
+			 T8j = sum_products(KP555570233,T8i,KP831469612,T8h,true);
+			 T8q = sum_products(KP555570233,T8h,KP831469612,T8i,false);
+		    }
+		    TdC = sum_products(KP923879532,TdA,KP382683432,TdB,false);
+		    TdF = sum_products(KP382683432,TdE,KP923879532,TdD,true);
+		    TdG = TdC + TdF;
+		    TeO = TdF - TdC;
+		    {
+			 precise float T8e, T8f, Tb2, Tb9;
+			 T8e = T50 - T57;
+			 T8f = T5c + T59;
+			 T8g = sum_products(KP831469612,T8e,KP555570233,T8f,false);
+			 T8p = sum_products(KP555570233,T8e,KP831469612,T8f,true);
+			 Tb2 = TaY - Tb1;
+			 Tb9 = Tb5 - Tb8;
+			 Tba = KP707106781 * (Tb2 + Tb9);
+			 Tbj = KP707106781 * (Tb9 - Tb2);
+		    }
+	       }
+	       {
+		    precise float T11, TbV, Tc9, Tcf, T22, Tcb, Tc2, Tce;
+		    {
+			 precise float Tv, T10, Tc5, Tc8;
+			 Tv = Tf + Tu;
+			 T10 = TK + TZ;
+			 T11 = Tv + T10;
+			 TbV = Tv - T10;
+			 Tc5 = Tc3 + Tc4;
+			 Tc8 = Tc6 + Tc7;
+			 Tc9 = Tc5 - Tc8;
+			 Tcf = Tc5 + Tc8;
+		    }
+		    {
+			 precise float T1w, T21, TbY, Tc1;
+			 T1w = T1g + T1v;
+			 T21 = T1L + T20;
+			 T22 = T1w + T21;
+			 Tcb = T21 - T1w;
+			 TbY = TbW + TbX;
+			 Tc1 = TbZ + Tc0;
+			 Tc2 = TbY - Tc1;
+			 Tce = TbY + Tc1;
+		    }
+		    Cr[32] = T11 - T22;
+		    Ci[32] = Tcf - Tce;
+		    {
+			 precise float Tca, Tcc, Tcd, Tcg;
+			 Tca = KP707106781 * (Tc2 + Tc9);
+			 Cr[48] = TbV - Tca;
+			 Cr[16] = TbV + Tca;
+			 Tcc = KP707106781 * (Tc9 - Tc2);
+			 Ci[16] = Tcb + Tcc;
+			 Ci[48] = Tcc - Tcb;
+			 Tcd = T11 + T22;
+			 Tcg = Tce + Tcf;
+			 Cr[64] = Tcd - Tcg;
+			 Cr[0] = Tcd + Tcg;
+		    }
+	       }
+	       {
+		    precise float Tch, Tcu, Tck, Tct, Tco, Tcy, Tcr, Tcz, Tci, Tcj;
+		    Tch = Tf - Tu;
+		    Tcu = TZ - TK;
+		    Tci = T1g - T1v;
+		    Tcj = T1L - T20;
+		    Tck = KP707106781 * (Tci + Tcj);
+		    Tct = KP707106781 * (Tcj - Tci);
+		    {
+			 precise float Tcm, Tcn, Tcp, Tcq;
+			 Tcm = TbW - TbX;
+			 Tcn = Tc0 - TbZ;
+			 Tco = sum_products(KP923879532,Tcm,KP382683432,Tcn,false);
+			 Tcy = sum_products(KP382683432,Tcm,KP923879532,Tcn,true);
+			 Tcp = Tc3 - Tc4;
+			 Tcq = Tc7 - Tc6;
+			 Tcr = sum_products(KP382683432,Tcq,KP923879532,Tcp,true);
+			 Tcz = sum_products(KP382683432,Tcp,KP923879532,Tcq,false);
+		    }
+		    {
+			 precise float Tcl, Tcs, Tcx, TcA;
+			 Tcl = Tch + Tck;
+			 Tcs = Tco + Tcr;
+			 Cr[56] = Tcl - Tcs;
+			 Cr[8] = Tcl + Tcs;
+			 Tcx = Tcu + Tct;
+			 TcA = Tcy + Tcz;
+			 Ci[8] = Tcx + TcA;
+			 Ci[56] = TcA - Tcx;
+		    }
+		    {
+			 precise float Tcv, Tcw, TcB, TcC;
+			 Tcv = Tct - Tcu;
+			 Tcw = Tcr - Tco;
+			 Ci[24] = Tcv + Tcw;
+			 Ci[40] = Tcw - Tcv;
+			 TcB = Tch - Tck;
+			 TcC = Tcz - Tcy;
+			 Cr[40] = TcB - TcC;
+			 Cr[24] = TcB + TcC;
+		    }
+	       }
+	       {
+		    precise float Ta9, TbB, Tbs, TbM, Tag, TbL, TbJ, TbR, TaO, Tbw, Tbp, TbC, TbG, TbQ, Tbl;
+		    precise float Tbx, Ta8, Tbr;
+		    Ta8 = KP707106781 * (Ta6 + Ta7);
+		    Ta9 = Ta5 + Ta8;
+		    TbB = Ta5 - Ta8;
+		    Tbr = KP707106781 * (Ta7 - Ta6);
+		    Tbs = Tbq + Tbr;
+		    TbM = Tbr - Tbq;
+		    {
+			 precise float Tac, Taf, TbH, TbI;
+			 Tac = sum_products(KP923879532,Taa,KP382683432,Tab,false);
+			 Taf = sum_products(KP382683432,Tae,KP923879532,Tad,true);
+			 Tag = Tac + Taf;
+			 TbL = Taf - Tac;
+			 TbH = TaV - Tba;
+			 TbI = Tbj - Tbi;
+			 TbJ = sum_products(KP555570233,TbI,KP831469612,TbH,true);
+			 TbR = sum_products(KP555570233,TbH,KP831469612,TbI,false);
+		    }
+		    {
+			 precise float TaE, TaN, Tbn, Tbo;
+			 TaE = Tao + TaD;
+			 TaN = TaL + TaM;
+			 TaO = sum_products(KP980785280,TaE,KP195090322,TaN,false);
+			 Tbw = sum_products(KP195090322,TaE,KP980785280,TaN,true);
+			 Tbn = sum_products(KP382683432,Taa,KP923879532,Tab,true);
+			 Tbo = sum_products(KP382683432,Tad,KP923879532,Tae,false);
+			 Tbp = Tbn + Tbo;
+			 TbC = Tbo - Tbn;
+		    }
+		    {
+			 precise float TbE, TbF, Tbb, Tbk;
+			 TbE = Tao - TaD;
+			 TbF = TaM - TaL;
+			 TbG = sum_products(KP831469612,TbE,KP555570233,TbF,false);
+			 TbQ = sum_products(KP555570233,TbE,KP831469612,TbF,true);
+			 Tbb = TaV + Tba;
+			 Tbk = Tbi + Tbj;
+			 Tbl = sum_products(KP195090322,Tbk,KP980785280,Tbb,true);
+			 Tbx = sum_products(KP195090322,Tbb,KP980785280,Tbk,false);
+		    }
+		    {
+			 precise float Tah, Tbm, Tbv, Tby;
+			 Tah = Ta9 + Tag;
+			 Tbm = TaO + Tbl;
+			 Cr[60] = Tah - Tbm;
+			 Cr[4] = Tah + Tbm;
+			 Tbv = Tbs + Tbp;
+			 Tby = Tbw + Tbx;
+			 Ci[4] = Tbv + Tby;
+			 Ci[60] = Tby - Tbv;
+		    }
+		    {
+			 precise float Tbt, Tbu, Tbz, TbA;
+			 Tbt = Tbp - Tbs;
+			 Tbu = Tbl - TaO;
+			 Ci[28] = Tbt + Tbu;
+			 Ci[36] = Tbu - Tbt;
+			 Tbz = Ta9 - Tag;
+			 TbA = Tbx - Tbw;
+			 Cr[36] = Tbz - TbA;
+			 Cr[28] = Tbz + TbA;
+		    }
+		    {
+			 precise float TbD, TbK, TbP, TbS;
+			 TbD = TbB + TbC;
+			 TbK = TbG + TbJ;
+			 Cr[52] = TbD - TbK;
+			 Cr[12] = TbD + TbK;
+			 TbP = TbM + TbL;
+			 TbS = TbQ + TbR;
+			 Ci[12] = TbP + TbS;
+			 Ci[52] = TbS - TbP;
+		    }
+		    {
+			 precise float TbN, TbO, TbT, TbU;
+			 TbN = TbL - TbM;
+			 TbO = TbJ - TbG;
+			 Ci[20] = TbN + TbO;
+			 Ci[44] = TbO - TbN;
+			 TbT = TbB - TbC;
+			 TbU = TbR - TbQ;
+			 Cr[44] = TbT - TbU;
+			 Cr[20] = TbT + TbU;
+		    }
+	       }
+	       {
+		    precise float Tev, Tf7, Tfc, Tfm, Tff, Tfn, TeC, Tfh, TeK, Tf2, TeV, Tf8, TeY, Tfi, TeR;
+		    precise float Tf3;
+		    {
+			 precise float Tet, Teu, Tfa, Tfb;
+			 Tet = TcD - TcG;
+			 Teu = TdY - TdX;
+			 Tev = Tet - Teu;
+			 Tf7 = Tet + Teu;
+			 Tfa = TeF + TeE;
+			 Tfb = TeH + TeI;
+			 Tfc = sum_products(KP290284677,Tfa,KP956940335,Tfb,false);
+			 Tfm = sum_products(KP290284677,Tfb,KP956940335,Tfa,true);
+		    }
+		    {
+			 precise float Tfd, Tfe, Tey, TeB;
+			 Tfd = TeL + TeM;
+			 Tfe = TeP + TeO;
+			 Tff = sum_products(KP290284677,Tfe,KP956940335,Tfd,true);
+			 Tfn = sum_products(KP956940335,Tfe,KP290284677,Tfd,false);
+			 Tey = sum_products(KP555570233,Tew,KP831469612,Tex,false);
+			 TeB = sum_products(KP555570233,TeA,KP831469612,Tez,true);
+			 TeC = Tey - TeB;
+			 Tfh = TeB + Tey;
+		    }
+		    {
+			 precise float TeG, TeJ, TeT, TeU;
+			 TeG = TeE - TeF;
+			 TeJ = TeH - TeI;
+			 TeK = sum_products(KP471396736,TeG,KP881921264,TeJ,false);
+			 Tf2 = sum_products(KP471396736,TeJ,KP881921264,TeG,true);
+			 TeT = sum_products(KP555570233,Tex,KP831469612,Tew,true);
+			 TeU = sum_products(KP831469612,TeA,KP555570233,Tez,false);
+			 TeV = TeT - TeU;
+			 Tf8 = TeU + TeT;
+		    }
+		    {
+			 precise float TeW, TeX, TeN, TeQ;
+			 TeW = TcN - TcK;
+			 TeX = TdV - TdU;
+			 TeY = TeW - TeX;
+			 Tfi = TeX + TeW;
+			 TeN = TeL - TeM;
+			 TeQ = TeO - TeP;
+			 TeR = sum_products(KP471396736,TeQ,KP881921264,TeN,true);
+			 Tf3 = sum_products(KP881921264,TeQ,KP471396736,TeN,false);
+		    }
+		    {
+			 precise float TeD, TeS, Tf1, Tf4;
+			 TeD = Tev + TeC;
+			 TeS = TeK + TeR;
+			 Cr[54] = TeD - TeS;
+			 Cr[10] = TeD + TeS;
+			 Tf1 = TeY + TeV;
+			 Tf4 = Tf2 + Tf3;
+			 Ci[10] = Tf1 + Tf4;
+			 Ci[54] = Tf4 - Tf1;
+		    }
+		    {
+			 precise float TeZ, Tf0, Tf5, Tf6;
+			 TeZ = TeV - TeY;
+			 Tf0 = TeR - TeK;
+			 Ci[22] = TeZ + Tf0;
+			 Ci[42] = Tf0 - TeZ;
+			 Tf5 = Tev - TeC;
+			 Tf6 = Tf3 - Tf2;
+			 Cr[42] = Tf5 - Tf6;
+			 Cr[22] = Tf5 + Tf6;
+		    }
+		    {
+			 precise float Tf9, Tfg, Tfl, Tfo;
+			 Tf9 = Tf7 + Tf8;
+			 Tfg = Tfc + Tff;
+			 Cr[58] = Tf9 - Tfg;
+			 Cr[6] = Tf9 + Tfg;
+			 Tfl = Tfi + Tfh;
+			 Tfo = Tfm + Tfn;
+			 Ci[6] = Tfl + Tfo;
+			 Ci[58] = Tfo - Tfl;
+		    }
+		    {
+			 precise float Tfj, Tfk, Tfp, Tfq;
+			 Tfj = Tfh - Tfi;
+			 Tfk = Tff - Tfc;
+			 Ci[26] = Tfj + Tfk;
+			 Ci[38] = Tfk - Tfj;
+			 Tfp = Tf7 - Tf8;
+			 Tfq = Tfn - Tfm;
+			 Cr[38] = Tfp - Tfq;
+			 Cr[26] = Tfp + Tfq;
+		    }
+	       }
+	       {
+		    precise float TcP, Te9, Tee, Teo, Teh, Tep, Td8, Tej, Tdu, Te4, TdT, Tea, Te0, Tek, TdP;
+		    precise float Te5;
+		    {
+			 precise float TcH, TcO, Tec, Ted;
+			 TcH = TcD + TcG;
+			 TcO = TcK + TcN;
+			 TcP = TcH + TcO;
+			 Te9 = TcH - TcO;
+			 Tec = Tde - Tdl;
+			 Ted = Tds - Tdp;
+			 Tee = sum_products(KP773010453,Tec,KP634393284,Ted,false);
+			 Teo = sum_products(KP634393284,Tec,KP773010453,Ted,true);
+		    }
+		    {
+			 precise float Tef, Teg, TcY, Td7;
+			 Tef = Tdz - TdG;
+			 Teg = TdN - TdK;
+			 Teh = sum_products(KP634393284,Teg,KP773010453,Tef,true);
+			 Tep = sum_products(KP634393284,Tef,KP773010453,Teg,false);
+			 TcY = sum_products(KP980785280,TcU,KP195090322,TcX,false);
+			 Td7 = sum_products(KP195090322,Td6,KP980785280,Td3,true);
+			 Td8 = TcY + Td7;
+			 Tej = Td7 - TcY;
+		    }
+		    {
+			 precise float Tdm, Tdt, TdR, TdS;
+			 Tdm = Tde + Tdl;
+			 Tdt = Tdp + Tds;
+			 Tdu = sum_products(KP995184726,Tdm,KP098017140,Tdt,false);
+			 Te4 = sum_products(KP098017140,Tdm,KP995184726,Tdt,true);
+			 TdR = sum_products(KP195090322,TcU,KP980785280,TcX,true);
+			 TdS = sum_products(KP195090322,Td3,KP980785280,Td6,false);
+			 TdT = TdR + TdS;
+			 Tea = TdS - TdR;
+		    }
+		    {
+			 precise float TdW, TdZ, TdH, TdO;
+			 TdW = TdU + TdV;
+			 TdZ = TdX + TdY;
+			 Te0 = TdW + TdZ;
+			 Tek = TdZ - TdW;
+			 TdH = Tdz + TdG;
+			 TdO = TdK + TdN;
+			 TdP = sum_products(KP098017140,TdO,KP995184726,TdH,true);
+			 Te5 = sum_products(KP098017140,TdH,KP995184726,TdO,false);
+		    }
+		    {
+			 precise float Td9, TdQ, Te3, Te6;
+			 Td9 = TcP + Td8;
+			 TdQ = Tdu + TdP;
+			 Cr[62] = Td9 - TdQ;
+			 Cr[2] = Td9 + TdQ;
+			 Te3 = Te0 + TdT;
+			 Te6 = Te4 + Te5;
+			 Ci[2] = Te3 + Te6;
+			 Ci[62] = Te6 - Te3;
+		    }
+		    {
+			 precise float Te1, Te2, Te7, Te8;
+			 Te1 = TdT - Te0;
+			 Te2 = TdP - Tdu;
+			 Ci[30] = Te1 + Te2;
+			 Ci[34] = Te2 - Te1;
+			 Te7 = TcP - Td8;
+			 Te8 = Te5 - Te4;
+			 Cr[34] = Te7 - Te8;
+			 Cr[30] = Te7 + Te8;
+		    }
+		    {
+			 precise float Teb, Tei, Ten, Teq;
+			 Teb = Te9 + Tea;
+			 Tei = Tee + Teh;
+			 Cr[50] = Teb - Tei;
+			 Cr[14] = Teb + Tei;
+			 Ten = Tek + Tej;
+			 Teq = Teo + Tep;
+			 Ci[14] = Ten + Teq;
+			 Ci[50] = Teq - Ten;
+		    }
+		    {
+			 precise float Tel, Tem, Ter, Tes;
+			 Tel = Tej - Tek;
+			 Tem = Teh - Tee;
+			 Ci[18] = Tel + Tem;
+			 Ci[46] = Tem - Tel;
+			 Ter = Te9 - Tea;
+			 Tes = Tep - Teo;
+			 Cr[46] = Ter - Tes;
+			 Cr[18] = Ter + Tes;
+		    }
+	       }
+	       {
+		    precise float T6v, T77, T6C, T7h, T6Y, T7i, T6V, T78, T6R, T7n, T73, T7f, T6K, T7m, T72;
+		    precise float T7c;
+		    {
+			 precise float T6t, T6u, T6T, T6U;
+			 T6t = T27 - T2e;
+			 T6u = T5Y - T5X;
+			 T6v = T6t - T6u;
+			 T77 = T6t + T6u;
+			 {
+			      precise float T6y, T6B, T6W, T6X;
+			      T6y = sum_products(KP773010453,T6w,KP634393284,T6x,false);
+			      T6B = sum_products(KP634393284,T6A,KP773010453,T6z,true);
+			      T6C = T6y - T6B;
+			      T7h = T6B + T6y;
+			      T6W = T2x - T2o;
+			      T6X = T5V - T5S;
+			      T6Y = T6W - T6X;
+			      T7i = T6X + T6W;
+			 }
+			 T6T = sum_products(KP634393284,T6w,KP773010453,T6x,true);
+			 T6U = sum_products(KP634393284,T6z,KP773010453,T6A,false);
+			 T6V = T6T - T6U;
+			 T78 = T6U + T6T;
+			 {
+			      precise float T6N, T7d, T6Q, T7e, T6M, T6O;
+			      T6M = T5I - T5H;
+			      T6N = T6L - T6M;
+			      T7d = T6L + T6M;
+			      T6O = T5v - T5e;
+			      T6Q = T6O - T6P;
+			      T7e = T6P + T6O;
+			      T6R = sum_products(KP427555093,T6Q,KP903989293,T6N,true);
+			      T7n = sum_products(KP941544065,T7e,KP336889853,T7d,false);
+			      T73 = sum_products(KP903989293,T6Q,KP427555093,T6N,false);
+			      T7f = sum_products(KP336889853,T7e,KP941544065,T7d,true);
+			 }
+			 {
+			      precise float T6G, T7a, T6J, T7b, T6E, T6I;
+			      T6E = T4g - T3Z;
+			      T6G = T6E - T6F;
+			      T7a = T6F + T6E;
+			      T6I = T4t - T4s;
+			      T6J = T6H - T6I;
+			      T7b = T6H + T6I;
+			      T6K = sum_products(KP427555093,T6G,KP903989293,T6J,false);
+			      T7m = sum_products(KP336889853,T7b,KP941544065,T7a,true);
+			      T72 = sum_products(KP427555093,T6J,KP903989293,T6G,true);
+			      T7c = sum_products(KP336889853,T7a,KP941544065,T7b,false);
+			 }
+		    }
+		    {
+			 precise float T6D, T6S, T71, T74;
+			 T6D = T6v + T6C;
+			 T6S = T6K + T6R;
+			 Cr[55] = T6D - T6S;
+			 Cr[9] = T6D + T6S;
+			 T71 = T6Y + T6V;
+			 T74 = T72 + T73;
+			 Ci[9] = T71 + T74;
+			 Ci[55] = T74 - T71;
+		    }
+		    {
+			 precise float T6Z, T70, T75, T76;
+			 T6Z = T6V - T6Y;
+			 T70 = T6R - T6K;
+			 Ci[23] = T6Z + T70;
+			 Ci[41] = T70 - T6Z;
+			 T75 = T6v - T6C;
+			 T76 = T73 - T72;
+			 Cr[41] = T75 - T76;
+			 Cr[23] = T75 + T76;
+		    }
+		    {
+			 precise float T79, T7g, T7l, T7o;
+			 T79 = T77 + T78;
+			 T7g = T7c + T7f;
+			 Cr[57] = T79 - T7g;
+			 Cr[7] = T79 + T7g;
+			 T7l = T7i + T7h;
+			 T7o = T7m + T7n;
+			 Ci[7] = T7l + T7o;
+			 Ci[57] = T7o - T7l;
+		    }
+		    {
+			 precise float T7j, T7k, T7p, T7q;
+			 T7j = T7h - T7i;
+			 T7k = T7f - T7c;
+			 Ci[25] = T7j + T7k;
+			 Ci[39] = T7k - T7j;
+			 T7p = T77 - T78;
+			 T7q = T7n - T7m;
+			 Cr[39] = T7p - T7q;
+			 Cr[25] = T7p + T7q;
+		    }
+	       }
+	       {
+		    precise float T99, T9L, T9g, T9V, T9C, T9W, T9z, T9M, T9v, Ta1, T9H, T9T, T9o, Ta0, T9G;
+		    precise float T9Q;
+		    {
+			 precise float T97, T98, T9x, T9y;
+			 T97 = T7r - T7s;
+			 T98 = T8C - T8B;
+			 T99 = T97 - T98;
+			 T9L = T97 + T98;
+			 {
+			      precise float T9c, T9f, T9A, T9B;
+			      T9c = sum_products(KP471396736,T9a,KP881921264,T9b,false);
+			      T9f = sum_products(KP471396736,T9e,KP881921264,T9d,true);
+			      T9g = T9c - T9f;
+			      T9V = T9f + T9c;
+			      T9A = T7z - T7w;
+			      T9B = T8z - T8y;
+			      T9C = T9A - T9B;
+			      T9W = T9B + T9A;
+			 }
+			 T9x = sum_products(KP471396736,T9b,KP881921264,T9a,true);
+			 T9y = sum_products(KP881921264,T9e,KP471396736,T9d,false);
+			 T9z = T9x - T9y;
+			 T9M = T9y + T9x;
+			 {
+			      precise float T9r, T9R, T9u, T9S, T9q, T9s;
+			      T9q = T8q - T8p;
+			      T9r = T9p - T9q;
+			      T9R = T9p + T9q;
+			      T9s = T8j - T8g;
+			      T9u = T9s - T9t;
+			      T9S = T9t + T9s;
+			      T9v = sum_products(KP514102744,T9u,KP857728610,T9r,true);
+			      Ta1 = sum_products(KP970031253,T9S,KP242980179,T9R,false);
+			      T9H = sum_products(KP857728610,T9u,KP514102744,T9r,false);
+			      T9T = sum_products(KP242980179,T9S,KP970031253,T9R,true);
+			 }
+			 {
+			      precise float T9k, T9O, T9n, T9P, T9i, T9m;
+			      T9i = T80 - T7X;
+			      T9k = T9i - T9j;
+			      T9O = T9j + T9i;
+			      T9m = T87 - T86;
+			      T9n = T9l - T9m;
+			      T9P = T9l + T9m;
+			      T9o = sum_products(KP514102744,T9k,KP857728610,T9n,false);
+			      Ta0 = sum_products(KP242980179,T9P,KP970031253,T9O,true);
+			      T9G = sum_products(KP514102744,T9n,KP857728610,T9k,true);
+			      T9Q = sum_products(KP242980179,T9O,KP970031253,T9P,false);
+			 }
+		    }
+		    {
+			 precise float T9h, T9w, T9F, T9I;
+			 T9h = T99 + T9g;
+			 T9w = T9o + T9v;
+			 Cr[53] = T9h - T9w;
+			 Cr[11] = T9h + T9w;
+			 T9F = T9C + T9z;
+			 T9I = T9G + T9H;
+			 Ci[11] = T9F + T9I;
+			 Ci[53] = T9I - T9F;
+		    }
+		    {
+			 precise float T9D, T9E, T9J, T9K;
+			 T9D = T9z - T9C;
+			 T9E = T9v - T9o;
+			 Ci[21] = T9D + T9E;
+			 Ci[43] = T9E - T9D;
+			 T9J = T99 - T9g;
+			 T9K = T9H - T9G;
+			 Cr[43] = T9J - T9K;
+			 Cr[21] = T9J + T9K;
+		    }
+		    {
+			 precise float T9N, T9U, T9Z, Ta2;
+			 T9N = T9L + T9M;
+			 T9U = T9Q + T9T;
+			 Cr[59] = T9N - T9U;
+			 Cr[5] = T9N + T9U;
+			 T9Z = T9W + T9V;
+			 Ta2 = Ta0 + Ta1;
+			 Ci[5] = T9Z + Ta2;
+			 Ci[59] = Ta2 - T9Z;
+		    }
+		    {
+			 precise float T9X, T9Y, Ta3, Ta4;
+			 T9X = T9V - T9W;
+			 T9Y = T9T - T9Q;
+			 Ci[27] = T9X + T9Y;
+			 Ci[37] = T9Y - T9X;
+			 Ta3 = T9L - T9M;
+			 Ta4 = Ta1 - Ta0;
+			 Cr[37] = Ta3 - Ta4;
+			 Cr[27] = Ta3 + Ta4;
+		    }
+	       }
+	       {
+		    precise float T2z, T69, T3g, T6j, T60, T6k, T5P, T6a, T5L, T6p, T65, T6h, T4w, T6o, T64;
+		    precise float T6e;
+		    {
+			 precise float T2f, T2y, T5N, T5O;
+			 T2f = T27 + T2e;
+			 T2y = T2o + T2x;
+			 T2z = T2f + T2y;
+			 T69 = T2f - T2y;
+			 {
+			      precise float T2U, T3f, T5W, T5Z;
+			      T2U = sum_products(KP098017140,T2M,KP995184726,T2T,false);
+			      T3f = sum_products(KP098017140,T3e,KP995184726,T37,true);
+			      T3g = T2U + T3f;
+			      T6j = T3f - T2U;
+			      T5W = T5S + T5V;
+			      T5Z = T5X + T5Y;
+			      T60 = T5W + T5Z;
+			      T6k = T5Z - T5W;
+			 }
+			 T5N = sum_products(KP098017140,T2T,KP995184726,T2M,true);
+			 T5O = sum_products(KP995184726,T3e,KP098017140,T37,false);
+			 T5P = T5N + T5O;
+			 T6a = T5O - T5N;
+			 {
+			      precise float T5x, T6f, T5K, T6g, T5w, T5J;
+			      T5w = T5e + T5v;
+			      T5x = T4X + T5w;
+			      T6f = T4X - T5w;
+			      T5J = T5H + T5I;
+			      T5K = T5G + T5J;
+			      T6g = T5J - T5G;
+			      T5L = sum_products(KP049067674,T5K,KP998795456,T5x,true);
+			      T6p = sum_products(KP671558954,T6f,KP740951125,T6g,false);
+			      T65 = sum_products(KP049067674,T5x,KP998795456,T5K,false);
+			      T6h = sum_products(KP671558954,T6g,KP740951125,T6f,true);
+			 }
+			 {
+			      precise float T4i, T6c, T4v, T6d, T4h, T4u;
+			      T4h = T3Z + T4g;
+			      T4i = T3I + T4h;
+			      T6c = T3I - T4h;
+			      T4u = T4s + T4t;
+			      T4v = T4r + T4u;
+			      T6d = T4u - T4r;
+			      T4w = sum_products(KP998795456,T4i,KP049067674,T4v,false);
+			      T6o = sum_products(KP671558954,T6c,KP740951125,T6d,true);
+			      T64 = sum_products(KP049067674,T4i,KP998795456,T4v,true);
+			      T6e = sum_products(KP740951125,T6c,KP671558954,T6d,false);
+			 }
+		    }
+		    {
+			 precise float T3h, T5M, T63, T66;
+			 T3h = T2z + T3g;
+			 T5M = T4w + T5L;
+			 Cr[63] = T3h - T5M;
+			 Cr[1] = T3h + T5M;
+			 T63 = T60 + T5P;
+			 T66 = T64 + T65;
+			 Ci[1] = T63 + T66;
+			 Ci[63] = T66 - T63;
+		    }
+		    {
+			 precise float T61, T62, T67, T68;
+			 T61 = T5P - T60;
+			 T62 = T5L - T4w;
+			 Ci[31] = T61 + T62;
+			 Ci[33] = T62 - T61;
+			 T67 = T2z - T3g;
+			 T68 = T65 - T64;
+			 Cr[33] = T67 - T68;
+			 Cr[31] = T67 + T68;
+		    }
+		    {
+			 precise float T6b, T6i, T6n, T6q;
+			 T6b = T69 + T6a;
+			 T6i = T6e + T6h;
+			 Cr[49] = T6b - T6i;
+			 Cr[15] = T6b + T6i;
+			 T6n = T6k + T6j;
+			 T6q = T6o + T6p;
+			 Ci[15] = T6n + T6q;
+			 Ci[49] = T6q - T6n;
+		    }
+		    {
+			 precise float T6l, T6m, T6r, T6s;
+			 T6l = T6j - T6k;
+			 T6m = T6h - T6e;
+			 Ci[17] = T6l + T6m;
+			 Ci[47] = T6m - T6l;
+			 T6r = T69 - T6a;
+			 T6s = T6p - T6o;
+			 Cr[47] = T6r - T6s;
+			 Cr[17] = T6r + T6s;
+		    }
+	       }
+	       {
+		    precise float T7B, T8N, T7Q, T8X, T8E, T8Y, T8x, T8O, T8t, T93, T8J, T8V, T8a, T92, T8I;
+		    precise float T8S;
+		    {
+			 precise float T7t, T7A, T8v, T8w;
+			 T7t = T7r + T7s;
+			 T7A = T7w + T7z;
+			 T7B = T7t + T7A;
+			 T8N = T7t - T7A;
+			 {
+			      precise float T7I, T7P, T8A, T8D;
+			      T7I = sum_products(KP956940335,T7E,KP290284677,T7H,false);
+			      T7P = sum_products(KP290284677,T7O,KP956940335,T7L,true);
+			      T7Q = T7I + T7P;
+			      T8X = T7P - T7I;
+			      T8A = T8y + T8z;
+			      T8D = T8B + T8C;
+			      T8E = T8A + T8D;
+			      T8Y = T8D - T8A;
+			 }
+			 T8v = sum_products(KP290284677,T7E,KP956940335,T7H,true);
+			 T8w = sum_products(KP290284677,T7L,KP956940335,T7O,false);
+			 T8x = T8v + T8w;
+			 T8O = T8w - T8v;
+			 {
+			      precise float T8l, T8T, T8s, T8U, T8k, T8r;
+			      T8k = T8g + T8j;
+			      T8l = T8d + T8k;
+			      T8T = T8d - T8k;
+			      T8r = T8p + T8q;
+			      T8s = T8o + T8r;
+			      T8U = T8r - T8o;
+			      T8t = sum_products(KP146730474,T8s,KP989176509,T8l,true);
+			      T93 = sum_products(KP595699304,T8T,KP803207531,T8U,false);
+			      T8J = sum_products(KP146730474,T8l,KP989176509,T8s,false);
+			      T8V = sum_products(KP595699304,T8U,KP803207531,T8T,true);
+			 }
+			 {
+			      precise float T82, T8Q, T89, T8R, T81, T88;
+			      T81 = T7X + T80;
+			      T82 = T7U + T81;
+			      T8Q = T7U - T81;
+			      T88 = T86 + T87;
+			      T89 = T85 + T88;
+			      T8R = T88 - T85;
+			      T8a = sum_products(KP989176509,T82,KP146730474,T89,false);
+			      T92 = sum_products(KP595699304,T8Q,KP803207531,T8R,true);
+			      T8I = sum_products(KP146730474,T82,KP989176509,T89,true);
+			      T8S = sum_products(KP803207531,T8Q,KP595699304,T8R,false);
+			 }
+		    }
+		    {
+			 precise float T7R, T8u, T8H, T8K;
+			 T7R = T7B + T7Q;
+			 T8u = T8a + T8t;
+			 Cr[61] = T7R - T8u;
+			 Cr[3] = T7R + T8u;
+			 T8H = T8E + T8x;
+			 T8K = T8I + T8J;
+			 Ci[3] = T8H + T8K;
+			 Ci[61] = T8K - T8H;
+		    }
+		    {
+			 precise float T8F, T8G, T8L, T8M;
+			 T8F = T8x - T8E;
+			 T8G = T8t - T8a;
+			 Ci[29] = T8F + T8G;
+			 Ci[35] = T8G - T8F;
+			 T8L = T7B - T7Q;
+			 T8M = T8J - T8I;
+			 Cr[35] = T8L - T8M;
+			 Cr[29] = T8L + T8M;
+		    }
+		    {
+			 precise float T8P, T8W, T91, T94;
+			 T8P = T8N + T8O;
+			 T8W = T8S + T8V;
+			 Cr[51] = T8P - T8W;
+			 Cr[13] = T8P + T8W;
+			 T91 = T8Y + T8X;
+			 T94 = T92 + T93;
+			 Ci[13] = T91 + T94;
+			 Ci[51] = T94 - T91;
+		    }
+		    {
+			 precise float T8Z, T90, T95, T96;
+			 T8Z = T8X - T8Y;
+			 T90 = T8V - T8S;
+			 Ci[19] = T8Z + T90;
+			 Ci[45] = T90 - T8Z;
+			 T95 = T8N - T8O;
+			 T96 = T93 - T92;
+			 Cr[45] = T95 - T96;
+			 Cr[19] = T95 + T96;
+		    }
+	       }
+	  
+}
+void main() {
+    uint batch=gl_GlobalInvocationID.x; if(batch>=p.batches) return;
+    if(p.n==8) {
+        float ri[8],ii[8],ro[8],io[8];
+        for(uint i=0;i<8;++i) { vec2 v=src.value[batch*8+i]; ri[i]=v.y; ii[i]=v.x; }
+        if(p.graph==0) graph8_0(ri,ii,ro,io); else graph8_1(ri,ii,ro,io);
+        for(uint i=0;i<8;++i) dst.value[batch*8+i]=vec2(io[i],ro[i]);
+    } else if(p.n==16) {
+        float ri[16],ii[16],ro[16],io[16];
+        for(uint i=0;i<16;++i) { vec2 v=src.value[batch*16+i]; ri[i]=v.y; ii[i]=v.x; }
+        if(p.graph==0) graph16_0(ri,ii,ro,io); else graph16_1(ri,ii,ro,io);
+        for(uint i=0;i<16;++i) dst.value[batch*16+i]=vec2(io[i],ro[i]);
+    } else if(p.n==128) {
+        if(p.graph==7) {
+            vec2 x[128],y[128];
+            for(uint i=0;i<128;++i) x[i]=src.value[batch*128+i];
+            forwardTail128(x,y);
+            for(uint i=0;i<128;++i) dst.value[batch*128+i]=y[i];
+            return;
+        }
+        if(p.graph==6) {
+            vec2 intermediate[128];
+            for(uint j=0;j<8;++j) {
+                vec2 x[16],y[16];
+                for(uint l=0;l<16;++l) x[l]=src.value[batch*128+j+8*l];
+                forward16(x,y);
+                for(uint k=0;k<16;++k) intermediate[j+8*k]=y[k];
+            }
+            for(uint k=0;k<16;++k) {
+                vec2 x[8],W[3];
+                for(uint j=0;j<8;++j) x[j]=intermediate[j+8*k];
+                for(uint w=0;w<3;++w) W[w]=vec2(twiddles[k*6+2*w],twiddles[k*6+2*w+1]);
+                forwardTwiddle8(x,W);
+                for(uint j=0;j<8;++j) dst.value[batch*128+k+16*j]=x[j];
+            }
+            return;
+        }
+        if(p.graph==5) {
+            float samples[128],Cr[65],Ci[65];
+            for(uint i=0;i<128;++i) samples[i]=src.value[batch*128+i].x;
+            real128(samples,Cr,Ci);
+            for(uint i=0;i<128;++i) {
+                uint k=i<=64?i:128-i;
+                dst.value[batch*128+i]=vec2(Cr[k],i<=64?Ci[k]:-Ci[k]);
+            }
+            return;
+        }
+        float realPart[128],imagPart[128];
+        if(p.graph==2 || p.graph==4) {
+            // Sixteen decimated inverse8 transforms, then eight SIMD inverse16 groups.
+            for(uint j=0;j<16;++j) {
+                float ri[8],ii[8],ro[8],io[8];
+                for(uint l=0;l<8;++l) { vec2 v=src.value[batch*128+j+16*l]; ri[l]=v.y; ii[l]=v.x; }
+                graph8_1(ri,ii,ro,io);
+                for(uint k=0;k<8;++k) { realPart[j+16*k]=io[k]; imagPart[j+16*k]=ro[k]; }
+            }
+            for(uint k=0;k<8;++k) {
+                vec2 x[16],W[4];
+                for(uint j=0;j<16;++j) x[j]=vec2(realPart[j+16*k],imagPart[j+16*k]);
+                for(uint w=0;w<4;++w) W[w]=simdTwiddles[k*4+w];
+                simdTwiddle16(x,W);
+                for(uint j=0;j<16;++j) {
+                    uint index=p.graph==4?(batch/128)*16384+(k+8*j)*128+batch%128:batch*128+k+8*j;
+                    dst.value[index]=p.graph==4?x[j]/16384.0:x[j];
+                }
+            }
+            return;
+        }
+        // Eight decimated 16-point transforms, then sixteen twiddle8 groups.
+        for(uint j=0;j<8;++j) {
+            float ri[16],ii[16],ro[16],io[16];
+            for(uint l=0;l<16;++l) { vec2 v=src.value[batch*128+j+8*l]; ri[l]=v.y; ii[l]=v.x; }
+            // Keep the already validated leaf path fixed during twiddle tests.
+            graph16_1(ri,ii,ro,io);
+            for(uint k=0;k<16;++k) { realPart[j+8*k]=ro[k]; imagPart[j+8*k]=io[k]; }
+        }
+        for(uint k=0;k<16;++k) {
+            float ri[8],ii[8],W[6];
+            for(uint j=0;j<8;++j) { ri[j]=realPart[j+8*k]; ii[j]=imagPart[j+8*k]; }
+            for(uint w=0;w<6;++w) W[w]=twiddles[k*6+w];
+            if(p.graph==0) twiddle8_0(ri,ii,W); else twiddle8_1(ri,ii,W);
+            for(uint j=0;j<8;++j) {
+                uint index=p.graph==3?(batch/128)*16384+(k+16*j)*128+batch%128:batch*128+k+16*j;
+                dst.value[index]=vec2(ii[j],ri[j]);
+            }
+        }
+    }
+}
