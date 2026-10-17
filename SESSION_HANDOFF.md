@@ -2,7 +2,41 @@
 
 Last updated: 2026-10-17 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Current checkpoint: ABI7 GPU quality validation
+## Current checkpoint: ABI8 maps and ABI81 native-matching base FFT
+
+This section supersedes the ABI7 checkpoint below. This publication contains
+English documentation and a portable summary only. Implementation, test tools,
+generated shaders and full logs remain local/uncommitted.
+
+- Ten fresh 64x64/30ppd/age24/D65 synthetic pairs match official v3.0.7
+  Q/Q_JOD exactly. Independent GPU checks: 71 comparisons /227984 values per
+  pair, 2279840 values total, zero differences; native base index/frequency
+  assertions also pass. See tests/MAP_GPU_VALIDATION.md and the summary JSON.
+- GPU preparation now includes guarded64-sample residual DC, separately
+  normalized band subtraction and original binary comparison mask. Optional
+  ABI81 computes the native-matching8x8 base FFT; magnitude/index/frequency
+  selection still runs on CPU. No shaderFloat64 is required.
+- Local accepted checkpoint: validation/map_gpu_abi8_639278691970167183/.
+  Combined suites: quality_gpu_base_fft_suite_639278697831326240 and
+  quality_hdr_gpu_base_fft_suite_639278700680928595 under validation/.
+- Short publication checks: two fresh localized repeats each match53 numeric
+  files from the accepted export by SHA256. Fresh localized and identity scores
+  match official Octave exactly; identity band/total errors are0 and Q/Q_JOD10.
+  Three incompatible shader configurations reject with exit2. No Vulkan errors
+  or VUIDs occur in the fresh pipeline logs. These were sequential runs.
+  Evidence: validation/abi8_quick_checks_639278706524535142/.
+- DC domain: exactly64 samples; finite nonzero exponents[-90,100], span<=16,
+  zeros allowed. Comparison-mask reference must be positive finite. Do not
+  extrapolate this validation to black/exceptional inputs or arbitrary sizes.
+- Remaining CPU: calibration/plans, base hypot/first-max/physical frequency,
+  base geometric adaptation/CSF/noise/scalar double power, double bicubic mask
+  resize and diagnostics/readbacks. Next: independently validate remaining
+  preparation ports, then dimensions/viewing/color/real HDR generalization,
+  a usable public metric API and other required output modes.
+- Preserve staged corrdn-test shader and dirty lib/VkFFT. Publish implementation
+  separately after reviewing mixed changes. Update this note at publication.
+
+## Historical checkpoint (superseded): ABI7 GPU quality validation
 
 This section supersedes the historical progress notes below. This publication
 contains documentation and a compact validation summary only. The implementation,

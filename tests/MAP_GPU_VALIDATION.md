@@ -30,7 +30,8 @@ as single coefficients; this is parameter preparation, not per-pixel GPU work.
   luminance boundary; the final GPU backend performs the map clamp as well.
 - Raw masking normalizes by the pyramid power-of-two factor and takes the
   minimum of the absolute reference/test amplitudes. Supported normalization
-  factors are1,2,4,8,16. Residual DC removal still occurs on the CPU before it.
+  factors are1,2,4,8,16. ABI8 now removes residual DC on GPU within its
+  explicitly guarded64-sample domain; earlier ABI3/7 runs used CPU removal.
 - Pooling uses zero padding and the native tap traversal. The pinned square
   bands64/32 use one-rounding multiply-add;16/8 use separate multiply/add.
   Other pooling shapes are explicitly rejected rather than assumed equivalent.
@@ -89,7 +90,7 @@ validation/map_gpu_final_exports_path.txt and its PASS.txt for completion.
 
 Build IQM and IQM-jnd-single-test before running integration tests, and
 IQM-map-gpu-test in validation/fft_publish_build for standalone checks. Generate
-the ABI7 shader into a fresh directory; do not use compile_shaders.sh:
+the ABI8 shader into a fresh directory; do not use compile_shaders.sh:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/generate_power_shaders.ps1 -OutputDirectory '<fresh directory>'
@@ -109,7 +110,7 @@ the selected backend. For full current reference-FFT integration use:
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/run_quality_validation.ps1 `
   -ReferenceShader '<verified FFT SPV>' -MathShaderDirectory '<verified math dir>' `
-  -MapShader '<ABI7 map.spv>' -HDR
+  -MapShader '<ABI8 map.spv>' -HDR
 # Repeat without -HDR for the original six pairs.
 ```
 
@@ -121,9 +122,10 @@ Q/Q_JOD comparisons. Preserve failed/incomplete batches.
 
 ## Remaining CPU work and scope
 
-Residual DC, calibration LUT construction,
-base-frequency selection/noise, difference preparation and double diff-mask
-resize still include CPU work. CPU diagnostic sums/readback also remain. Reconstruction
+Calibration LUT construction, resize plans, base-frequency hypot/selection,
+base adaptation/noise and double diff-mask resize still include CPU work.
+The default base route retains CPU DFT; the opt-in ABI81 shader replaces it
+with native-matching GPU FFT. CPU diagnostic sums/readback also remain. Reconstruction
 and visibility/detection outputs have not been ported/validated here.
 
 The integrated scope is still64x64,30ppd,age24,D65 single-channel luminance,
@@ -325,3 +327,131 @@ Remaining implementation work is now the CPU preparation listed above,
 generalizing dimensions and conditions, real HDR/color validation, other
 required outputs and exposing a usable metric API. This milestone does not
 claim a completed general-purpose HDR-VDP-3 implementation or a percentage.
+
+## ABI8 preparation and native8x8 base FFT continuation
+
+ABI8 adds GPU normalized band differences, original comparison-mask construction
+and residual DC removal. The difference operation divides each image's band
+separately before subtracting; subtracting first would change rounding.
+Comparison masks use native single subtraction, absolute value and correctly
+rounded division, followed by the strict >0.001 single threshold. Binary0/1
+results are widened on the host for the existing double bicubic resize; this
+does not substitute a single-precision resize. Reference luminance must remain
+positive and finite in this GPU operation; general black/exceptional-input
+behavior is not claimed here.
+
+DC removal is explicitly limited to64 samples, finite nonzero exponents in
+[-90,100] and an exponent span no greater than16 (zeros are allowed). At most
+24+16+6=46 significant bits are needed in intermediate sums in this domain;
+the native double sum is exact, and compensated float pairs retain the sum
+before the once-rounded float mean. Divide by64 commutes with float rounding
+in this normal range. Unsupported inputs throw rather than silently switching
+precision. These guards are a current harness limitation, not general image
+support. The standalone native fixture includes signed fields, zero/constant
+fields, three shapes, six normalizations including3, and float neighbors around
+the relative-difference threshold:100 comparisons/59296 values, zero differences.
+The full preparation-enabled chain passes all ten official quality pairs in
+quality_gpu_maps_suite_639278692891709180 and
+quality_hdr_gpu_maps_suite_639278694995648294 under validation/.
+
+Base-frequency work has a separately versioned FFT shader, ABI81. The observed
+Octave native8x8 real2D plan uses8 scalar r2cf_8 transforms followed by5 n1_8
+transforms and conjugate reconstruction:420 additions,36 multiplications,
+zero FMAs; local single FFTW reports22 threads. It is not the128x128 real/SIMD
+plan used by preprocessing. generate_base_fft_shader.ps1 reads the existing
+SHA-pinned FFTW3.3.10 archive and preserves original C notices and COPYING
+beside the generated GPL-2.0-or-later reference shader. This experimental
+runtime path is opt-in, like the reference preprocessing backend.
+
+The independent64-input fixture includes zero/constant/impulse, directional
+cosines, unequal-frequency equal-amplitude ties, a perturbed tie, checkerboard
+and random signed fields. All8192 real/imaginary spectral values and64
+first-max index/frequency selections match native Octave exactly. Packed
+runner inputs additionally have zero padding; padding is not extra FFT data.
+The selected spectrum is on GPU; native single hypot, column-major first-max
+selection and physical double frequency calculation remain CPU work. Setting
+IQM_BASE_FFT_SHADER selects this route, replacing the CPU double DFT. Without
+that setting the existing CPU DFT remains. Calibration/base adaptation/noise,
+comparison-mask double resize and public-API/generalization work also remain.
+
+The updated suite accepts -BaseFFTShader alongside -MapShader and records
+both shader hashes and selected backends. It compares the native base spectrum
+and first-max index in each fresh export. Its separate latest-path pointers
+are quality_gpu_base_fft_suite_latest_path.txt and
+quality_hdr_gpu_base_fft_suite_latest_path.txt under validation/.
+An enabled base FFT adds128 scalar spectrum comparisons per pair to the
+ABI8 --maps checks:71 comparisons /227984 values, plus exact index/frequency
+assertions. Map ABI8 and base FFT ABI81 reject swapped or obsolete binaries.
+
+Generate the two shaders in fresh directories and compile/validate separately:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/generate_power_shaders.ps1 -OutputDirectory '<new map directory>'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/generate_base_fft_shader.ps1 -OutputDirectory '<new base directory>'
+glslc -fshader-stage=compute --target-env=vulkan1.2 '<new map directory>/map.comp' -o '<map.spv>'
+glslc -fshader-stage=compute --target-env=vulkan1.2 '<new base directory>/base_fft.comp' -o '<base_fft.spv>'
+spirv-val --target-env vulkan1.2 '<map.spv>'
+spirv-val --target-env vulkan1.2 '<base_fft.spv>'
+# Run the existing quality suite with both -MapShader and -BaseFFTShader.
+```
+
+### Completed ABI8 + ABI81 integration
+
+Accepted artifacts are in validation/map_gpu_abi8_639278691970167183/;
+COMPLETED.json and PASS.txt record the checkpoint. Current local pointers are
+map_gpu_final_shader_path.txt, map_gpu_base_fft_shader_path.txt and
+map_gpu_completed_path.txt under validation/.
+
+All ten freshly executed pairs pass with GPU DC/differences/mask and native
+base FFT enabled, including full native preprocessing/JND, all maps and direct
+official Q/Q_JOD equality:
+
+- validation/quality_gpu_base_fft_suite_639278697831326240/PASS.txt (six pairs).
+- validation/quality_hdr_gpu_base_fft_suite_639278700680928595/PASS.txt (four HDR pairs).
+
+Each fresh export passes71 comparisons /227984 values, plus exact base index
+and double-frequency assertions:2279840 compared scalar values and zero
+differences across ten pairs. The localized scores remain exactly
+Q=9.1295385360717773 and Q_JOD=9.5646781921386719. Source/binary hashes and
+per-case native base spectra/selections are retained in the fresh directories.
+
+The final host also passes preparation/resize/CSF/pool/bounds/knot fixtures.
+Old ABI7 maps, a swapped map shader supplied as a base FFT, and DC inputs
+outside the guarded exponent domain are deliberately rejected (exit2), not
+counted as numerical passes. The map shader has182 NoContraction decorations;
+base FFT has55 and no native FMA instruction. Neither requires shaderFloat64.
+No Vulkan validation errors or VUIDs occur in the final pipeline logs.
+CPU_DEFAULT_PASS.txt confirms localized CPU maps/default CPU DFT still match
+official scores; SOURCE_REPRODUCIBILITY_PASS.txt confirms both generators
+reproduce identical sources. Earlier ABI8 tests with CPU base DFT retain their
+separate checkpoint and pre_base_source_hashes.json records.
+
+Remaining CPU work is calibration/plans, base hypot/index/frequency and
+geometric adaptation/noise/scalar double power, and double comparison-mask
+resize. Parameter/dimension/color generalization, real HDR validation, other
+required outputs and a usable metric API are still outstanding. Preparation
+ports do not expand the existing full-metric validation beyond the stated
+64x64/30ppd/age24/D65 scope.
+
+## Short pre-publication checks (2026-10-17)
+
+Using the unchanged accepted binaries (SHA256 checked), three fresh sequential
+runs enabled Vulkan maps ABI8 and the native-matching base FFT ABI81: two
+asymmetric/localized runs and one asymmetric/identical run. Each localized run
+matched the previous accepted export in all53 selected numeric text files by
+SHA256 (106 file comparisons). This verifies repeatability on this device and
+configuration; it is not a concurrent-process test or a cross-device guarantee.
+
+Fresh direct official Octave comparisons passed exactly for localized
+Q=9.1295385360717773, Q_JOD=9.5646781921386719 and identical Q=10, Q_JOD=10.
+The identity export has all five band errors and total error exactly zero.
+The three pipeline logs contain no Vulkan validation errors or VUIDs.
+
+Three deliberately incompatible configurations were rejected with exit2:
+ABI7 map as ABI8 map, ABI81 base shader as map, and ABI8 map as ABI81 base shader.
+These are host ABI-guard checks, not numerical passes.
+
+Local evidence: validation/abi8_quick_checks_639278706524535142/ contains
+PASS.txt, RESULT.json, exports.txt, binary_hashes.json, repeatability_hashes.json
+and full run/official/rejection logs. Full artifacts and implementation remain
+local/uncommitted; this publication contains documentation only.
