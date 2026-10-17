@@ -1,0 +1,169 @@
+{
+    "publication":  "Documentation checkpoint; implementation, test tools and full evidence remain local/uncommitted",
+    "reference":  "Official HDR-VDP-3 v3.0.7",
+    "date":  "2026-10-17",
+    "branch":  "feature/hdr-vdp3",
+    "implementation_baseline_commit":  "b46666df138c5b2770f004ad59603a2d0eaf28ab",
+    "scope":  "64x64, 30ppd, age24, D65 luminance, 10 synthetic quality pairs",
+    "map_shader_abi":  7,
+    "shader_sha256":  "E6FD1618437A9E086FE7DB22E471B4CD11EE48662AF3F33E6A3499C099B2B31D",
+    "fresh_gpu_compared_values":  2140960,
+    "fresh_gpu_mismatches":  0,
+    "knot_compared_values":  258048,
+    "knot_mismatches":  0,
+    "no_float64_capability":  true,
+    "public_api_complete":  false,
+    "cases":  [
+                  {
+                      "name":  "asymmetric_localized",
+                      "Q":  9.1295385360717773,
+                      "Q_JOD":  9.5646781921386719,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922716505299710"
+                  },
+                  {
+                      "name":  "asymmetric_stronger",
+                      "Q":  9.9965181350708,
+                      "Q_JOD":  9.99963092803955,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922716845880223"
+                  },
+                  {
+                      "name":  "asymmetric_brighter",
+                      "Q":  9.9999570846557617,
+                      "Q_JOD":  9.9999990463256836,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922717143292694"
+                  },
+                  {
+                      "name":  "diagonal_brighter",
+                      "Q":  9.9999551773071289,
+                      "Q_JOD":  9.9999990463256836,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922717414659071"
+                  },
+                  {
+                      "name":  "impulse_brighter",
+                      "Q":  10,
+                      "Q_JOD":  10,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922717744617787"
+                  },
+                  {
+                      "name":  "asymmetric_identical",
+                      "Q":  10,
+                      "Q_JOD":  10,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922718041667217"
+                  },
+                  {
+                      "name":  "hdr_ramp_localized",
+                      "Q":  9.9997100830078125,
+                      "Q_JOD":  9.9999847412109375,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922718344754990"
+                  },
+                  {
+                      "name":  "hdr_edges_localized",
+                      "Q":  9.99980354309082,
+                      "Q_JOD":  9.9999904632568359,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922718688197158"
+                  },
+                  {
+                      "name":  "hdr_ramp_brighter",
+                      "Q":  9.9993886947631836,
+                      "Q_JOD":  9.9999599456787109,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922719099879670"
+                  },
+                  {
+                      "name":  "hdr_edges_stronger",
+                      "Q":  9.9999618530273438,
+                      "Q_JOD":  9.9999990463256836,
+                      "official_equality":  true,
+                      "gpu_intermediate_values":  214096,
+                      "gpu_intermediate_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17922719422795315"
+                  }
+              ],
+    "local_source_hashes":  [
+                                {
+                                    "path":  "include/IQM/hdrvdp3/map_gpu.h",
+                                    "sha256":  "02872D1A3918F35EBBC7FB7E47CFA8EDBCF0263E254E2B1BD6203C479A658D34"
+                                },
+                                {
+                                    "path":  "src/hdrvdp3/map_gpu.cpp",
+                                    "sha256":  "DA356194619B5FCDCF1C01DFB4F602035AC3149E88A7708441E3408BBEC38251"
+                                },
+                                {
+                                    "path":  "bin/shared/wrappers/hdrvdp3.cpp",
+                                    "sha256":  "48559BB84BC7E14686A628CC0A4AAD1C7E56FCCB371E12E38786E40140B5F4D2"
+                                },
+                                {
+                                    "path":  "shaders/hdrvdp3/hdrvdp3_map_reference.glsl",
+                                    "sha256":  "AD9F7E3961311F2D8A1CEC11B8DFDD04F775B6691808B5C280D7E6C76A260247"
+                                },
+                                {
+                                    "path":  "tests/generate_power_shaders.ps1",
+                                    "sha256":  "104807525B45FEC3F76D8E6410ADA4E23FB5B42398CD1B0F039A0BBF72D18BB2"
+                                },
+                                {
+                                    "path":  "tests/math_reference/power_reference.glsl",
+                                    "sha256":  "DAF124E0DF0FB8418E5FC7BF6B30E06DC9D7665BA69E0DBA6D18F7163C7EE327"
+                                },
+                                {
+                                    "path":  "tests/math_reference/log10_reference.glsl",
+                                    "sha256":  "FE20D941EA10A874C698A77FB6813D7C7D8B915D40659CF6E4B164BC4BB0CE4E"
+                                },
+                                {
+                                    "path":  "tests/math_reference/SOURCES.json",
+                                    "sha256":  "6AC5128B787AA1359771055D6F9BDC98A1E81219F18CA2295CBE6343D2432AE6"
+                                },
+                                {
+                                    "path":  "tests/verify_map_gpu.cpp",
+                                    "sha256":  "ED0D21470C7CD8B9ACECF02E21F654CDF6846C90B0D92138E7393EE63B0B2F87"
+                                },
+                                {
+                                    "path":  "tests/run_quality_validation.ps1",
+                                    "sha256":  "E53D72E4F984E3ADADC11428C860BAEA494752607E4E5BC66B5D46E62ED6CC04"
+                                },
+                                {
+                                    "path":  "tests/generate_float_power_reference.m",
+                                    "sha256":  "117BCD4523CFCE6DB63C88325AE97A2F39348C4C407C013C5447AC64C3B7BE1A"
+                                },
+                                {
+                                    "path":  "tests/generate_power_boundary_reference.m",
+                                    "sha256":  "8C5F14CCBB5BCA1E0F2F0CF3421B9BD360CCC3693278617EC9F7F0BACDE6AE1A"
+                                },
+                                {
+                                    "path":  "tests/generate_log10_reference.m",
+                                    "sha256":  "0136FC8F4A892706CDB25ADDA724389FBD14E2B3B84B291F22FF5A66C762A55B"
+                                }
+                            ],
+    "remaining_cpu":  [
+                          "Calibration LUT/resize plans",
+                          "Residual DC and normalized band difference preparation",
+                          "Base-frequency/geometric adaptation/noise preparation",
+                          "Original comparison-mask construction and double resize",
+                          "Diagnostic sums and readbacks"
+                      ]
+}
