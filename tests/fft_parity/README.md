@@ -28,6 +28,8 @@ $exe='build-fft-parity/Release'
 & "$exe/IQM-fft-codelet-test.exe" 'build-fft-parity/new-leaf-reference' build-fft-parity/fft_codelet_test.spv
 & "$exe/IQM-fftw-plan-test.exe" --inverse2d 'build-fft-parity/new-inverse-reference'
 & "$exe/IQM-fft-codelet-test.exe" 'build-fft-parity/new-inverse-reference' build-fft-parity/fft_codelet_test.spv --inverse2d
+& "$exe/IQM-fftw-plan-test.exe" --forward2d 'build-fft-parity/new-forward-reference'
+& "$exe/IQM-fft-codelet-test.exe" 'build-fft-parity/new-forward-reference' build-fft-parity/fft_codelet_test.spv --forward2d
 & "$exe/IQM-fftw-plan-test.exe" --r2c 'build-fft-parity/new-r2c-reference'
 & "$exe/IQM-fft-codelet-test.exe" 'build-fft-parity/new-r2c-reference' build-fft-parity/fft_codelet_test.spv --r2c
 & "$exe/IQM-fftw-plan-test.exe" --forward-second 'build-fft-parity/new-main-reference' 3
@@ -38,8 +40,9 @@ $exe='build-fft-parity/Release'
 
 The main forward second-axis graph differs from its final two-frequency tail.
 Reference plan assertions reject unexpected codelets; strict comparison fails
-on any unequal finite float component. Full 128x128 forward composition,
-production integration, log/exp/subnormal parity and full metric validation
+on any unequal finite float component. Full 128x128 forward and inverse now
+match the native Octave reference on the documented fixtures. Production
+integration, log/exp/subnormal parity and full metric validation
 remain outstanding. See [detailed results](../fftw_reference/README.md) and
 [reference plan inspection](../FFTW_PLAN_VALIDATION.md). Historical `validation/`
 paths in those documents describe local artifacts; generate fresh synthetic

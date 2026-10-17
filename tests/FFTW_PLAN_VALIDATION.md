@@ -117,9 +117,11 @@ Forward SIMD n2fv_16/t3fv_8 now matches groups65/3; the final group2 uses
 **n1fv_128_avx2_128** and has a separately validated graph. Across all three
 groups, 197760 complex outputs match the DLL oracle exactly. This tail differs
 from the composite main path; preserve it when assembling the full transform.
-Next compose full128x128 forward R2C, including correct tail selection and
-2D Hermitian completion, and validate native Octave fft2. Then integrate and rerun full-chain
-preprocessing comparisons rather than claiming whole-metric parity here.
-Compare intermediates before production integration. Then address forward
-R2C/tail codelet choices.
+Full128x128 forward composition now also passes:19 matrices, 311296
+full-spectrum complex values including conjugates, zero error. CPU expected
+matrices independently match native single Octave fft2 (22 threads). This
+includes real MTF/adaptation stage0 snapshots for all3 spatial patterns.
+Next integrate the proven forward/inverse routines into an explicit experimental
+path and rerun strict full-chain preprocessing comparisons. Compare intermediate
+stages before claiming whole-metric parity.
 Existing GPU log/exp/subnormal differences and full metric validation remain.

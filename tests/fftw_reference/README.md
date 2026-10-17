@@ -288,9 +288,62 @@ Rejected initial group2: `fft_forward_second2_639277453829417292`.
 & './build-vs2026/bin/Release/IQM-fft-codelet-test.exe' '<group2 directory>' '<shader.spv>' --forward-tail
 ```
 
-Next compose the full forward 128x128 R2C path with graph6 for frequencies0..62
-and graph7 for63..64, then exact 2D Hermitian completion. Validate native fft2
-on synthetic and existing MTF/adaptation snapshots before production integration.
+## Complete forward128x128 (2026-10-17)
+
+Graph8 applies real128 to each input column and stores65 frequency vectors
+transposed in an intermediate SSBO (65*128 values within each16384-value matrix
+allocation). A compute write/read barrier precedes graph9: frequencies0..62 use
+the composite forward16/twiddle8 graph, while63..64 use forwardTail128. The
+result is stored column-major. For0<k<64 the same invocation writes the partner
+`F((-x) mod128,128-k)=conj(F(x,k))`; both frequency axes are reflected. DC and
+Nyquist planes are written directly. No normalization or DC removal is applied.
+All output locations are owned by exactly one invocation; a fence precedes
+host readback. Real modes reject nonzero imaginary input instead of dropping it.
+
+CPU `--forward2d` uses actual single FFTW,22-thread estimate/unaligned R2C2D,
+including Octave's compact output offset8064 inside a full16384-complex buffer.
+It asserts the presence of real128, forward main SIMD and distinct tail graphs.
+`validate_forward2d_reference.m` independently compares every expected matrix
+against native single `fft2` and the native probe (actual thread count22).
+
+| Set | Matrices | Full complex values | MaxAbsErr | RMSE | Mismatches |
+|---|---:|---:|---:|---:|---:|
+| Constant, off-center impulse, asymmetric ramp, random four scales | 7 | 114688 | 0 | 0 | 0 |
+| Asymmetric ref/test MTF/adaptation stage0 | 4 | 65536 | 0 | 0 | 0 |
+| Diagonal ref/test MTF/adaptation stage0 | 4 | 65536 | 0 | 0 | 0 |
+| Impulse ref/test MTF/adaptation stage0 | 4 | 65536 | 0 | 0 | 0 |
+
+Total19 matrices /311296 full complex values /622592 float components,
+including Hermitian reconstruction;158080 compact bins computed independently.
+Both components compared at zero tolerance. No Vulkan validation errors found.
+Full synthetic inverse2d, R2C, composite forward main and distinct tail
+regressions also pass with final rebuilt tools. Production code is unchanged.
+
+Evidence under validation/:
+
+- `fft_forward2d_build.log`, `fft_forward2d_final_build.log` (completed exit0).
+- Shader `fft_forward2d_initial.spv`.
+- GPU logs `fft_forward2d_initial_comparison.log`,
+  `fft_forward2d_{asymmetric,diagonal,impulse}_comparison.log`.
+- Oracle directories `fft_forward2d_reference_639278561661925639`,
+  `fft_forward2d_asymmetric_639278562033305292`,
+  `fft_forward2d_diagonal_639278562208629720`,
+  `fft_forward2d_impulse_639278562273635020`.
+- Each contains forward2d_plan.txt, input128.txt/forward128.txt, source.txt,
+  and octave_reference_check.log with explicit PASS and zero mismatches.
+- `fft_forward2d_final_639278562885963009` contains the final fresh forward/
+  inverse oracle fixtures and five passing GPU regression logs.
+
+```powershell
+& './build-fft-parity/Release/IQM-fftw-plan-test.exe' --forward2d '<new directory>' # optional final GPU export directory
+& './build-fft-parity/Release/IQM-fft-codelet-test.exe' '<directory>' '<shader.spv>' --forward2d
+& 'C:/Program Files/GNU Octave/Octave-11.3.0/mingw64/bin/octave-cli.exe' --quiet --no-gui tests/validate_forward2d_reference.m '<directory>' '<native probe directory>'
+```
+
+Next integrate proven transforms into an explicit experimental preprocessing
+path, preserving default settings and layout traces, then compare every stage
+against official HDR-VDP. Same-input FFT equality does not prove filter
+construction, log/exp/subnormal behavior, adaptation or whole-metric parity.
 
 ```powershell
 # Build/generate/compile as above, then use new output directories:

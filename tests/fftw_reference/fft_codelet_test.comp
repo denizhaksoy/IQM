@@ -4964,6 +4964,17 @@ Ci[0]=0.0; Ci[64]=0.0;
 	       }
 	  
 }
+vec2 loadForward(uint batch,uint i) {
+    uint index=p.graph==9?(batch/65)*16384+(batch%65)*128+i:batch*128+i;
+    return src.value[index];
+}
+void storeForward(uint batch,uint i,vec2 v) {
+    if(p.graph!=9) { dst.value[batch*128+i]=v; return; }
+    uint matrixBase=(batch/65)*16384,k=batch%65;
+    dst.value[matrixBase+i*128+k]=v;
+    // Two-dimensional Hermitian symmetry conjugates both frequency axes.
+    if(k>0 && k<64) dst.value[matrixBase+((128-i)%128)*128+128-k]=vec2(v.x,-v.y);
+}
 void main() {
     uint batch=gl_GlobalInvocationID.x; if(batch>=p.batches) return;
     if(p.n==8) {
@@ -4977,18 +4988,18 @@ void main() {
         if(p.graph==0) graph16_0(ri,ii,ro,io); else graph16_1(ri,ii,ro,io);
         for(uint i=0;i<16;++i) dst.value[batch*16+i]=vec2(io[i],ro[i]);
     } else if(p.n==128) {
-        if(p.graph==7) {
+        if(p.graph==7 || (p.graph==9 && batch%65>=63)) {
             vec2 x[128],y[128];
-            for(uint i=0;i<128;++i) x[i]=src.value[batch*128+i];
+            for(uint i=0;i<128;++i) x[i]=loadForward(batch,i);
             forwardTail128(x,y);
-            for(uint i=0;i<128;++i) dst.value[batch*128+i]=y[i];
+            for(uint i=0;i<128;++i) storeForward(batch,i,y[i]);
             return;
         }
-        if(p.graph==6) {
+        if(p.graph==6 || p.graph==9) {
             vec2 intermediate[128];
             for(uint j=0;j<8;++j) {
                 vec2 x[16],y[16];
-                for(uint l=0;l<16;++l) x[l]=src.value[batch*128+j+8*l];
+                for(uint l=0;l<16;++l) x[l]=loadForward(batch,j+8*l);
                 forward16(x,y);
                 for(uint k=0;k<16;++k) intermediate[j+8*k]=y[k];
             }
@@ -4997,14 +5008,18 @@ void main() {
                 for(uint j=0;j<8;++j) x[j]=intermediate[j+8*k];
                 for(uint w=0;w<3;++w) W[w]=vec2(twiddles[k*6+2*w],twiddles[k*6+2*w+1]);
                 forwardTwiddle8(x,W);
-                for(uint j=0;j<8;++j) dst.value[batch*128+k+16*j]=x[j];
+                for(uint j=0;j<8;++j) storeForward(batch,k+16*j,x[j]);
             }
             return;
         }
-        if(p.graph==5) {
+        if(p.graph==5 || p.graph==8) {
             float samples[128],Cr[65],Ci[65];
             for(uint i=0;i<128;++i) samples[i]=src.value[batch*128+i].x;
             real128(samples,Cr,Ci);
+            if(p.graph==8) {
+                for(uint k=0;k<65;++k) dst.value[(batch/128)*16384+k*128+batch%128]=vec2(Cr[k],Ci[k]);
+                return;
+            }
             for(uint i=0;i<128;++i) {
                 uint k=i<=64?i:128-i;
                 dst.value[batch*128+i]=vec2(Cr[k],i<=64?Ci[k]:-Ci[k]);

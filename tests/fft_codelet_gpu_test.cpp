@@ -32,14 +32,16 @@ static std::vector<float> read(const std::filesystem::path& path,unsigned& batch
     return values;
 }
 int main(int argc,char** argv) {
-    if(argc!=3 && argc!=4) { std::cerr<<"Usage: IQM-fft-codelet-test <reference dir> <shader.spv> [--second-axis|--inverse2d|--r2c|--forward-second|--forward-tail]\n"; return 2; }
+    if(argc!=3 && argc!=4) { std::cerr<<"Usage: IQM-fft-codelet-test <reference dir> <shader.spv> [--second-axis|--inverse2d|--r2c|--forward-second|--forward-tail|--forward2d]\n"; return 2; }
     const bool second=argc==4 && std::string(argv[3])=="--second-axis";
     const bool full=argc==4 && std::string(argv[3])=="--inverse2d";
     const bool realForward=argc==4 && std::string(argv[3])=="--r2c";
     const bool forwardSecond=argc==4 && std::string(argv[3])=="--forward-second";
     const bool forwardTail=argc==4 && std::string(argv[3])=="--forward-tail";
-    if(argc==4 && !second && !full && !realForward && !forwardSecond && !forwardTail) return 2;
-    const unsigned selectedGraph=forwardTail?7:forwardSecond?6:realForward?5:full?3:second?2:1;
+    const bool forwardFull=argc==4 && std::string(argv[3])=="--forward2d";
+    if(argc==4 && !second && !full && !realForward && !forwardSecond && !forwardTail && !forwardFull) return 2;
+    const bool twoPass=full||forwardFull;
+    const unsigned selectedGraph=forwardFull?8:forwardTail?7:forwardSecond?6:realForward?5:full?3:second?2:1;
     try {
         IQM::Bin::VulkanInstance instance(true);
         const auto& device=*instance.device();
@@ -63,12 +65,14 @@ int main(int argc,char** argv) {
             auto input=read(std::filesystem::path(argv[1])/("input"+std::to_string(size)+".txt"),batches,n);
             const auto expected=read(std::filesystem::path(argv[1])/((selectedGraph>=5?"forward":"inverse")+std::to_string(size)+".txt"),refBatches,refN);
             if(n!=size || refN!=n || refBatches!=batches) throw std::runtime_error("Reference shape mismatch");
-            if(full && batches%128) throw std::runtime_error("2D fixtures must contain complete 128x128 matrices");
+            if(twoPass && batches%128) throw std::runtime_error("2D fixtures must contain complete 128x128 matrices");
+            if(realForward || forwardFull) for(size_t i=1;i<input.size();i+=2)
+                if(input[i]!=0) throw std::runtime_error("Real forward FFT requires zero imaginary input");
             const unsigned bufferBytes=static_cast<unsigned>(input.size()*sizeof(float));
             auto in=buffer(instance,bufferBytes),out=buffer(instance,bufferBytes),temp=buffer(instance,bufferBytes);
             void* mapped=in.memory.mapMemory(0,bufferBytes); std::memcpy(mapped,input.data(),bufferBytes); in.memory.unmapMemory();
             std::vector<vk::DescriptorBufferInfo> inputInfo{{*in.handle,0,bufferBytes}},outputInfo{{*out.handle,0,bufferBytes}},tempInfo{{*temp.handle,0,bufferBytes}};
-            device.updateDescriptorSets({VulkanRuntime::createWriteSet(*sets[0],0,inputInfo),VulkanRuntime::createWriteSet(*sets[0],1,full?tempInfo:outputInfo),VulkanRuntime::createWriteSet(*sets[1],0,tempInfo),VulkanRuntime::createWriteSet(*sets[1],1,outputInfo)},{});
+            device.updateDescriptorSets({VulkanRuntime::createWriteSet(*sets[0],0,inputInfo),VulkanRuntime::createWriteSet(*sets[0],1,twoPass?tempInfo:outputInfo),VulkanRuntime::createWriteSet(*sets[1],0,tempInfo),VulkanRuntime::createWriteSet(*sets[1],1,outputInfo)},{});
             bool selectedSizeMatches=false;
             for(unsigned graph=selectedGraph==1?0:selectedGraph;graph<(selectedGraph==1?2u:selectedGraph+1);++graph) for(unsigned fused=0;fused<(selectedGraph==1?3u:1u);++fused) {
                 instance.cmdBuf()->reset();
@@ -80,13 +84,14 @@ int main(int argc,char** argv) {
                 struct Push {uint32_t n,batches,graph,fused;} push{n,batches,graph,fused};
                 instance.cmdBuf()->pushConstants<Push>(*layout,vk::ShaderStageFlagBits::eCompute,0,push);
                 instance.cmdBuf()->dispatch((batches+31)/32,1,1);
-                if(full) {
+                if(twoPass) {
                     vk::MemoryBarrier between{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eShaderRead};
                     instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eComputeShader,{}, {between},{},{});
                     instance.cmdBuf()->bindDescriptorSets(vk::PipelineBindPoint::eCompute,*layout,0,{*sets[1]},{});
-                    push.graph=4;
+                    push.graph=forwardFull?9:4;
+                    if(forwardFull) push.batches=(batches/128)*65;
                     instance.cmdBuf()->pushConstants<Push>(*layout,vk::ShaderStageFlagBits::eCompute,0,push);
-                    instance.cmdBuf()->dispatch((batches+31)/32,1,1);
+                    instance.cmdBuf()->dispatch((push.batches+31)/32,1,1);
                 }
                 vk::MemoryBarrier after{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead};
                 instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eHost,{}, {after},{},{});

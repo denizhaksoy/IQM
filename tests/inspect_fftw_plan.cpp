@@ -117,23 +117,27 @@ static int codelets(const std::filesystem::path& output,bool second=false,unsign
     }
     std::cout<<"FFTW "<<(forward?"forward":"inverse")<<" references saved to "<<output.string()<<'\n'; return 0;
 }
-static int inverse2d(const std::filesystem::path& output,const std::string& source) {
+static int transform2d(const std::filesystem::path& output,const std::string& source,bool forward=false) {
     if(!std::filesystem::create_directory(output)) throw std::runtime_error("Output directory must be new");
     FFTW api; api.threads(22);
     constexpr unsigned N=128,Count=N*N;
     Allocation in_mem(api,Count*sizeof(Complex)),out_mem(api,Count*sizeof(Complex));
+    Allocation real_mem(api,Count*sizeof(float));
     auto* in=static_cast<Complex*>(in_mem.data); auto* out=static_cast<Complex*>(out_mem.data);
-    Plan p{api,api.complex_plan(N,N,in,out,1,64u|2u)};
-    if(!p.data) throw std::runtime_error("Cannot create native inverse2d plan");
+    auto* real=static_cast<float*>(real_mem.data);
+    auto* half=out+N*((N-1)/2); const int dims[2]={N,N};
+    Plan p{api,forward?api.real_many_plan(2,dims,1,real,nullptr,1,Count,half,nullptr,1,Count,64u|2u):api.complex_plan(N,N,in,out,1,64u|2u)};
+    if(!p.data) throw std::runtime_error("Cannot create native 2D transform plan");
     char* text=api.print(p.data); const std::string planText=text; std::free(text);
-    std::ofstream(output/"inverse2d_plan.txt")<<planText<<'\n';
-    if(planText.find("t2_8")==std::string::npos || planText.find("t3bv_16_avx2_128")==std::string::npos)
-        throw std::runtime_error("Unexpected native 2D inverse decomposition");
+    std::ofstream(output/(forward?"forward2d_plan.txt":"inverse2d_plan.txt"))<<planText<<'\n';
+    if(forward?(planText.find("r2cf_128")==std::string::npos || planText.find("t3fv_8_avx2_128")==std::string::npos || planText.find("n2fv_16_avx2_128")==std::string::npos || planText.find("n1fv_128_avx2_128")==std::string::npos):
+        (planText.find("t2_8")==std::string::npos || planText.find("t3bv_16_avx2_128")==std::string::npos))
+        throw std::runtime_error("Unexpected native 2D transform decomposition");
     const unsigned matrices=source.empty()?7:4;
-    std::ofstream input(output/"input128.txt"),expected(output/"inverse128.txt"),metadata(output/"source.txt");
+    std::ofstream input(output/"input128.txt"),expected(output/(forward?"forward128.txt":"inverse128.txt")),metadata(output/"source.txt");
     input<<matrices*N<<" 256\n"<<std::setprecision(9);
     expected<<matrices*N<<" 256\n"<<std::setprecision(9);
-    metadata<<"column-major complex float32; inverse normalized by 16384 after both axes; threads=22\n";
+    metadata<<"column-major complex float32; threads=22; "<<(forward?"real forward, unnormalized":"inverse normalized by 16384 after both axes")<<'\n';
     uint32_t rng=0x7143a9u;
     for(unsigned m=0;m<matrices;++m) {
         if(source.empty()) {
@@ -148,7 +152,7 @@ static int inverse2d(const std::filesystem::path& output,const std::string& sour
             }
             metadata<<"fixture "<<m<<'\n';
         } else {
-            const auto filename=std::string(m%2?"test":"ref")+(m<2?"_mtf_stage2.txt":"_la_stage2.txt");
+            const auto filename=std::string(m%2?"test":"ref")+(m<2?"_mtf_stage":"_la_stage")+(forward?"0.txt":"2.txt");
             const auto data=read(std::filesystem::path(source)/filename,N,N*2);
             std::ifstream axis(std::filesystem::path(source)/"fft_axis_order.txt"); std::string order; axis>>order;
             if(order!="column" && order!="row") throw std::runtime_error("Missing axis order metadata");
@@ -156,11 +160,20 @@ static int inverse2d(const std::filesystem::path& output,const std::string& sour
                 in[x*N+y][c]=data[(order=="column"?x*N+y:y*N+x)*2+c];
             metadata<<std::filesystem::absolute(source).string()<<'/'<<filename<<" original="<<order<<'\n';
         }
-        for(unsigned i=0;i<Count;++i) input<<in[i][0]<<'\n'<<in[i][1]<<'\n';
+        for(unsigned i=0;i<Count;++i) {
+            if(forward) { in[i][1]=0; real[i]=in[i][0]; }
+            input<<in[i][0]<<'\n'<<in[i][1]<<'\n';
+        }
         api.execute(p.data);
-        for(unsigned i=0;i<Count;++i) expected<<out[i][0]/float(Count)<<'\n'<<out[i][1]/float(Count)<<'\n';
+        for(unsigned i=0;i<Count;++i) {
+            if(forward) {
+                const unsigned x=i/N,y=i%N; const bool conjugate=y>64;
+                const auto index=conjugate?((N-x)%N)*65+N-y:x*65+y;
+                expected<<half[index][0]<<'\n'<<(conjugate?-half[index][1]:half[index][1])<<'\n';
+            } else expected<<out[i][0]/float(Count)<<'\n'<<out[i][1]/float(Count)<<'\n';
+        }
     }
-    std::cout<<"Native inverse2d fixtures: "<<matrices<<" matrices in "<<output.string()<<'\n';
+    std::cout<<"Native "<<(forward?"forward2d":"inverse2d")<<" fixtures: "<<matrices<<" matrices in "<<output.string()<<'\n';
     return 0;
 }
 static int r2c(const std::filesystem::path& output,const std::string& source) {
@@ -206,6 +219,9 @@ static int r2c(const std::filesystem::path& output,const std::string& source) {
     std::cout<<"R2C references saved to "<<output.string()<<'\n'; return 0;
 }
 int main(int argc,char** argv) {
+    if((argc==3 || argc==4) && std::string(argv[1])=="--forward2d") {
+        try { return transform2d(argv[2],argc==4?argv[3]:"",true); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
+    }
     if((argc==3 || argc==4) && std::string(argv[1])=="--forward-second") {
         try { return codelets(argv[2],true,argc==4?std::stoul(argv[3]):65,true); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
     }
@@ -213,7 +229,7 @@ int main(int argc,char** argv) {
         try { return r2c(argv[2],argc==4?argv[3]:""); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
     }
     if((argc==3 || argc==4) && std::string(argv[1])=="--inverse2d") {
-        try { return inverse2d(argv[2],argc==4?argv[3]:""); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
+        try { return transform2d(argv[2],argc==4?argv[3]:""); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
     }
     if((argc==3 || argc==4) && (std::string(argv[1])=="--codelets" || std::string(argv[1])=="--second-axis")) {
         try { return codelets(argv[2],std::string(argv[1])=="--second-axis",argc==4?std::stoul(argv[3]):128); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }

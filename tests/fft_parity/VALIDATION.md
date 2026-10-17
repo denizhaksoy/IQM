@@ -36,8 +36,26 @@ see [build and run instructions](README.md). Earlier native Octave checks,
 spatial snapshot comparisons and provenance are in
 [the detailed validation record](../fftw_reference/README.md).
 
-Remaining: full forward128x128 composition, the distinct final two-frequency
-graph, two-axis Hermitian completion, experimental production integration,
-strict full-chain preprocessing, log/exp/subnormal behavior, and full metric
-validation. The tail graph itself is verified; its placement in the complete
-forward transform is still pending.
+At this checkpoint full forward composition remained pending. The subsequent
+verification below completes that isolated test scope.
+
+## Complete forward128x128 validation, 2026-10-17
+
+The standalone Release tools now compose R2C, main/tail SIMD routines and
+two-axis Hermitian completion. All19 real matrices (7 synthetic and12 existing
+MTF/adaptation stage0 snapshots across3 patterns) match exactly: 311296
+full-spectrum complex values, max error0, RMSE0, mismatches0. This includes
+Hermitian reconstruction; 158080 compact bins are independently computed.
+Every CPU expected matrix independently matches native single Octave fft2,
+with actual native single thread count22 verified through the extension.
+No Vulkan validation errors found.
+
+Final rebuilt tools also pass fresh synthetic forward2d and inverse2d fixtures,
+plus existing R2C, forward main and distinct tail regressions. Evidence:
+`validation/fft_forward2d_final_build.log` and
+`validation/fft_forward2d_final_639278562885963009/`. Detailed19-matrix artifacts
+and commands are documented in `../fftw_reference/README.md`.
+
+Production integration, strict full-chain preprocessing, log/exp/subnormal
+behavior and full metric validation remain outstanding. These isolated FFT
+passes do not establish full HDR-VDP-3 parity.
