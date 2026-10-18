@@ -1,6 +1,28 @@
 # Direct nCSF reference validation
 
-> Publication scope: this document describes locally validated work. The implementation, new test tools and full artifacts are not included in this documentation checkpoint. See SESSION_HANDOFF.md at the repository root for current status; earlier measurements below retain their historical scope.
+> Current scope: scalar CSF/resize code and isolated reference checks are committed locally in `51525e0` and `7ce32a0`. GPU integration and full evidence remain local. No push was performed in this session. Earlier measurements below retain their historical scope.
+
+## Exact scalar checkpoint (2026-10-18)
+
+The standalone [scalar validation project](hdrvdp3_scalar/README.md) builds
+without Vulkan. An export of the actual final Git commit passes8/8 CTest
+checks,including strict double direct CSF,base noise,LUT and resize checks.
+Direct equation division order now follows the official reference;all15675
+sampled base CSF/noise double comparisons match.
+
+The LUT grid previously produced539 differing double nodes and3194 differing
+double queries despite exact single outputs. Symmetric construction of the
+fixed256 logarithmic nodes removes these differences:3840 nodes and22530
+queries now match in double and single. A separate fixture includes42300
+queries at knots,nextafter neighbors,clipped endpoints and random positions;
+the committed executable reports zero differences for all query modes.
+
+Evidence is under `validation/scalar_checkpoint_639279508489310995`.
+Eighteen fresh full-pipeline pairs after this change also match official
+Q/Q_JOD exactly,using one common application/checker binary set. Evidence:
+`validation/lut_grid_regression_639279511058157010/COMPLETED.json`.
+These results supersede historical double-LUT mismatch counts below only
+within the recorded fixtures;they do not establish arbitrary-parameter parity.
 
 
 The isolated IQM-csf-reference-test target compares the C++ direct nCSF API

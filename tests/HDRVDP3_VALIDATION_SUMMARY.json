@@ -1,180 +1,391 @@
 {
-    "publication":  "Documentation checkpoint; implementation, test tools and full evidence remain local/uncommitted",
+    "publication":  "Scalar CSF/resize implementation and isolated checks committed locally in51525e0 and7ce32a0. GPU integration and full artifacts remain local/uncommitted; no push performed in this session.",
     "reference":  "Official HDR-VDP-3 v3.0.7",
-    "date":  "2026-10-17",
+    "date":  "2026-10-18",
     "branch":  "feature/hdr-vdp3",
     "implementation_baseline_commit":  "b46666df138c5b2770f004ad59603a2d0eaf28ab",
-    "scope":  "64x64, 30ppd, age24, D65 luminance, 10 synthetic quality pairs",
-    "map_shader_abi":  8,
-    "shader_sha256":  "CD553B061F91554954B6B4C0230936D53C6C89EF947BF2BDF78FFF4AF449C54E",
-    "fresh_gpu_compared_values":  2279840,
-    "fresh_gpu_mismatches":  0,
-    "knot_compared_values":  258048,
-    "knot_mismatches":  0,
+    "scope":  "18 fresh pairs using the same application/checker binaries;64x64,30ppd,age24,D65 positive synthetic luminance",
+    "map_shader_abi":  12,
+    "shader_sha256":  "16CE90C5E22997F7DB7E7286F71AAE963F5EAA15A1E715BA19022DAEB36E23A1",
+    "base_fft_abi":  81,
+    "base_fft_shader_sha256":  "60447964152BB3B90222E470C0996AC503942E75257DB4CDCE479237AAD16E14",
+    "gpu_float_compared_values":  4104990,
+    "gpu_float_mismatches":  0,
+    "gpu_double_mask_compared_values":  171648,
+    "gpu_double_bit_mismatches":  0,
+    "binary_mask_fixture_values":  348160,
+    "binary_mask_fixture_bit_mismatches":  0,
+    "strict_base_csf_cases":  15675,
+    "strict_base_csf_double_mismatches":  0,
+    "strict_base_noise_double_mismatches":  0,
     "no_float64_capability":  true,
+    "no_int64_capability":  true,
     "public_api_complete":  false,
+    "local_core_checkpoint":  "validation/mask_resize_gpu_639279174670035352/COMPLETED.json",
+    "local_stress_checkpoint":  "validation/quality_stress_639279178899870989/COMPLETED.json",
+    "canonical_control_numeric_files":  58,
+    "canonical_control_sha256_equal":  true,
     "cases":  [
                   {
                       "name":  "asymmetric_localized",
+                      "group":  "original_10",
                       "Q":  9.1295385360717773,
                       "Q_JOD":  9.5646781921386719,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922729886606896"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543119652533"
                   },
                   {
                       "name":  "asymmetric_stronger",
+                      "group":  "original_10",
                       "Q":  9.9965181350708,
                       "Q_JOD":  9.99963092803955,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922730337675688"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543637755337"
                   },
                   {
                       "name":  "asymmetric_brighter",
+                      "group":  "original_10",
                       "Q":  9.9999570846557617,
                       "Q_JOD":  9.9999990463256836,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922730728957577"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923544332246528"
                   },
                   {
                       "name":  "diagonal_brighter",
+                      "group":  "original_10",
                       "Q":  9.9999551773071289,
                       "Q_JOD":  9.9999990463256836,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922731173300390"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923544799181258"
                   },
                   {
                       "name":  "impulse_brighter",
+                      "group":  "original_10",
                       "Q":  10,
                       "Q_JOD":  10,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922731634312800"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923545277752494"
                   },
                   {
                       "name":  "asymmetric_identical",
+                      "group":  "original_10",
                       "Q":  10,
                       "Q_JOD":  10,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922732268431799"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923545623042205"
                   },
                   {
                       "name":  "hdr_ramp_localized",
+                      "group":  "original_10",
                       "Q":  9.9997100830078125,
                       "Q_JOD":  9.9999847412109375,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922732710895924"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543119652409"
                   },
                   {
                       "name":  "hdr_edges_localized",
+                      "group":  "original_10",
                       "Q":  9.99980354309082,
                       "Q_JOD":  9.9999904632568359,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922733142702464"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543637760044"
                   },
                   {
                       "name":  "hdr_ramp_brighter",
+                      "group":  "original_10",
                       "Q":  9.9993886947631836,
                       "Q_JOD":  9.9999599456787109,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922733571338457"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923544332248463"
                   },
                   {
                       "name":  "hdr_edges_stronger",
+                      "group":  "original_10",
                       "Q":  9.9999618530273438,
                       "Q_JOD":  9.9999990463256836,
                       "official_equality":  true,
-                      "gpu_intermediate_values":  227984,
-                      "gpu_intermediate_mismatches":  0,
-                      "local_export":  "validation/spyr_spatial_17922733999243227"
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923544799990761"
+                  },
+                  {
+                      "name":  "sinusoidal_x_phase_shift",
+                      "group":  "stress_8",
+                      "Q":  5.3645796775817871,
+                      "Q_JOD":  6.2898049354553223,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543119659959"
+                  },
+                  {
+                      "name":  "sinusoidal_y_phase_shift",
+                      "group":  "stress_8",
+                      "Q":  5.3645696640014648,
+                      "Q_JOD":  6.2897944450378418,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543637752853"
+                  },
+                  {
+                      "name":  "asymmetric_localized_stronger",
+                      "group":  "stress_8",
+                      "Q":  3.6115429401397705,
+                      "Q_JOD":  4.4040126800537109,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923544332836902"
+                  },
+                  {
+                      "name":  "asymmetric_threshold_below",
+                      "group":  "stress_8",
+                      "Q":  10,
+                      "Q_JOD":  10,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923544799990951"
+                  },
+                  {
+                      "name":  "asymmetric_threshold_nominal",
+                      "group":  "stress_8",
+                      "Q":  10,
+                      "Q_JOD":  10,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923545277779655"
+                  },
+                  {
+                      "name":  "asymmetric_threshold_above",
+                      "group":  "stress_8",
+                      "Q":  10,
+                      "Q_JOD":  10,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923545622448477"
+                  },
+                  {
+                      "name":  "hdr_edges_phase_shift",
+                      "group":  "stress_8",
+                      "Q":  3.4347231388092041,
+                      "Q_JOD":  4.204805850982666,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543119652666"
+                  },
+                  {
+                      "name":  "hdr_ramp_localized_stronger",
+                      "group":  "stress_8",
+                      "Q":  9.8378696441650391,
+                      "Q_JOD":  9.9494543075561523,
+                      "official_equality":  true,
+                      "gpu_float_values":  228055,
+                      "gpu_float_mismatches":  0,
+                      "gpu_double_mask_values":  9536,
+                      "gpu_double_bit_mismatches":  0,
+                      "local_export":  "validation/spyr_spatial_17923543637758571"
                   }
               ],
     "local_source_hashes":  [
                                 {
-                                    "path":  [
-                                                 "include/IQM/hdrvdp3/map_gpu.h",
-                                                 "include/IQM/hdrvdp3/quality.h",
-                                                 "src/hdrvdp3/map_gpu.cpp",
-                                                 "src/hdrvdp3/quality.cpp",
-                                                 "bin/shared/wrappers/hdrvdp3.cpp",
-                                                 "shaders/hdrvdp3/hdrvdp3_map_reference.glsl",
-                                                 "tests/verify_map_gpu.cpp",
-                                                 "tests/generate_preparation_reference.m",
-                                                 "tests/generate_base_fft_reference.m",
-                                                 "tests/generate_base_fft_shader.ps1",
-                                                 "tests/generate_power_shaders.ps1",
-                                                 "tests/validate_difference_maps.m",
-                                                 "tests/run_quality_validation.ps1",
-                                                 "tests/fft_parity/CMakeLists.txt"
-                                             ],
-                                    "sha256":  [
-                                                   "5F693B0341AD26A042A427035B5636C5B1A9CDD3AAD1A59F42C7043100500F13",
-                                                   "8C410BF73F3740386B9788761159CD3779803C23D769BBC20A8CCCCF02A2E83B",
-                                                   "868F05DA4B258DD0342A098C086D3EE4B57078DBE2F78A30194F2A98BC0672D0",
-                                                   "98EBA9C4FDE8274FD75A3C1D3965F2CEE90D9FB437DE07FCE8D6CC339697B6C4",
-                                                   "6D82102681CEE537A58C78A92CDE217367E06C92E382213A24F41CDDE4EC45FC",
-                                                   "4CD785258D452C2A84FF97722A192C1953911F69B5FB4D19531D014B3C7EB662",
-                                                   "A919FA96D3D45CF4345B9BFCE508322FDC626D0DFFB638D0EE556F5B2F08C452",
-                                                   "7F29050B40CBCABE945781CD80964F2DEB7EAD3DD56FDF5039C87B36AD80B781",
-                                                   "BCB658BC60684C81B55E48530764398C34443EDC1098F35BC581735391DFB135",
-                                                   "2AF690E7F9DC51FD2785C0C10A95621E998F34DC86B900B6CED5912CCE2EDD20",
-                                                   "104807525B45FEC3F76D8E6410ADA4E23FB5B42398CD1B0F039A0BBF72D18BB2",
-                                                   "AC91112B347367665660DD590CBC8E4865E8B122B253F0325742D4446C1921EE",
-                                                   "5C913CE4B1A6C088B1CFD76D12F87B769763E2C5DB3C3EE480390853FF018BD7",
-                                                   "8034263222DF503D63D4CF9EAC5881DFE6F7EC08C12CC2B6802E628969522098"
-                                               ]
+                                    "path":  "include/IQM/hdrvdp3/map_gpu.h",
+                                    "sha256":  "D9DBAFFE40E2584F5EB5BFAAADDA46B01DD1526401E7F768E0D20B35955FB08B"
+                                },
+                                {
+                                    "path":  "include/IQM/hdrvdp3/quality.h",
+                                    "sha256":  "9579177E001AD3C2693565002AF45E0CBF0EB46727C04126814C600518FB0977"
+                                },
+                                {
+                                    "path":  "src/hdrvdp3/map_gpu.cpp",
+                                    "sha256":  "5B850D1788637637F7420DB9BAD1438D3E58385AC5E46EA74E66252646BDE1A4"
+                                },
+                                {
+                                    "path":  "src/hdrvdp3/quality.cpp",
+                                    "sha256":  "B0974ED821198DFFBFA505F74407F86DB16326E081C948C4F2F0FCF4E707C7A3"
+                                },
+                                {
+                                    "path":  "bin/shared/wrappers/hdrvdp3.cpp",
+                                    "sha256":  "6E1C9AAC8CB78683A85193DFC52A93AA6D549E7853A8A03DFA101F2FEC82307F"
+                                },
+                                {
+                                    "path":  "shaders/hdrvdp3/hdrvdp3_map_reference.glsl",
+                                    "sha256":  "1156A7A9F2F01803F129E9D773B3BAF9E2DF58C71ABF60BA95725AF2CE8DFE45"
+                                },
+                                {
+                                    "path":  "tests/verify_map_gpu.cpp",
+                                    "sha256":  "67B17126947FFDABFE42BBD2201AFA1AFDB08B0F57D4B6FF1C09EFFCE4E1C8E3"
+                                },
+                                {
+                                    "path":  "tests/generate_preparation_reference.m",
+                                    "sha256":  "7F29050B40CBCABE945781CD80964F2DEB7EAD3DD56FDF5039C87B36AD80B781"
+                                },
+                                {
+                                    "path":  "tests/generate_base_fft_reference.m",
+                                    "sha256":  "BCB658BC60684C81B55E48530764398C34443EDC1098F35BC581735391DFB135"
+                                },
+                                {
+                                    "path":  "tests/generate_base_fft_shader.ps1",
+                                    "sha256":  "2AF690E7F9DC51FD2785C0C10A95621E998F34DC86B900B6CED5912CCE2EDD20"
+                                },
+                                {
+                                    "path":  "tests/generate_power_shaders.ps1",
+                                    "sha256":  "DC47BFA10C3A62520BC98FAA19FBBE2695C3D38123C3B93DDE7AE9D402C3C0A5"
+                                },
+                                {
+                                    "path":  "tests/validate_difference_maps.m",
+                                    "sha256":  "061EE69F03EA48A7A6FA3AEB0FC8C01B4ED04D98EB078E8C92E3993F3EE0D986"
+                                },
+                                {
+                                    "path":  "tests/run_quality_validation.ps1",
+                                    "sha256":  "3BD2C6F8E5F00F2861B40639C8BC440A655EBF28575592F73F88A56A38A22242"
+                                },
+                                {
+                                    "path":  "tests/fft_parity/CMakeLists.txt",
+                                    "sha256":  "DC40F876957A23FE6BCD652CF1B377566ED60631FCB530733FD166CD43820063"
+                                },
+                                {
+                                    "path":  "tests/generate_base_adaptation_reference.m",
+                                    "sha256":  "73E5833977845EEEB14D971E81BAF74CCB34F7D762FE470DF1F4B87137E43ECB"
+                                },
+                                {
+                                    "path":  "tests/generate_base_selection_reference.m",
+                                    "sha256":  "1AF5552864C17E33CE5B56E6FAD93B7FB3EB9C63357D51846A5E586B610485E9"
+                                },
+                                {
+                                    "path":  "tests/math_reference/hypot_reference.glsl",
+                                    "sha256":  "D300AC31020A31BA7400A4475895C1EDEA9BDC33205082EA7020FAEB833B987A"
+                                },
+                                {
+                                    "path":  "tests/generate_base_csf_reference.m",
+                                    "sha256":  "959481681B30D64517C91F41F927D2B1D2EC2728F554974F6DB690E165349190"
+                                },
+                                {
+                                    "path":  "tests/verify_base_noise.cpp",
+                                    "sha256":  "5D8B302FDED037669DEB8CA3EB35224C8CF9B55AF6C2F2E9B642AA6A1FF8A6D3"
+                                },
+                                {
+                                    "path":  "tests/generate_binary_mask_resize_reference.m",
+                                    "sha256":  "44ED15C8791D5F65EE2A9F53958A08D45601025FFE67151AF8FC1B173F4AF706"
+                                },
+                                {
+                                    "path":  "tests/summarize_quality_stress.m",
+                                    "sha256":  "2D1832959D152761132CF85189FB1E0A5AAA904858F5A365E4CAFC35CCEBA15B"
                                 }
                             ],
     "remaining_cpu":  [
                           "Calibration LUTs and filter/resize plans",
-                          "Base single hypot, first-max selection and physical frequency",
-                          "Base geometric adaptation, CSF/noise and scalar double power",
-                          "Double bicubic resize of the GPU-computed binary comparison mask",
-                          "Diagnostic sums and readbacks"
+                          "Physical double frequency from GPU-selected index",
+                          "Double nCSF/MTF/AESL evaluation, noise reciprocal and scalar double neural power",
+                          "Diagnostics/readbacks"
                       ],
-    "base_fft_abi":  81,
-    "base_fft_shader_sha256":  "60447964152BB3B90222E470C0996AC503942E75257DB4CDCE479237AAD16E14",
-    "dc_domain":  {
-                      "samples":  64,
-                      "nonzero_exponent_bounds":  [
-                                                      -90,
-                                                      100
-                                                  ],
-                      "max_exponent_span":  16,
-                      "zeros_allowed":  true
-                  },
-    "base_fft_fixture":  {
-                             "inputs":  64,
-                             "spectral_values":  8192,
-                             "selection_mismatches":  0
-                         },
-    "quick_validation":  {
-                             "sequential_runs":  3,
-                             "repeated_localized_runs":  2,
-                             "exact_export_files_per_run":  53,
-                             "comparison":  "SHA256 of numeric text exports, both repeats against accepted localized export",
-                             "identity_Q":  10,
-                             "identity_Q_JOD":  10,
-                             "identity_band_and_total_errors":  0,
-                             "fresh_official_checks":  2,
-                             "shader_abi_rejections":  3,
-                             "vulkan_validation_errors":  0
-                         },
-    "quick_validation_local_artifact":  "validation/abi8_quick_checks_639278706524535142"
+    "remaining_metric_work":  [
+                                  "General dimensions and viewing parameters",
+                                  "Real HDR/color input validation",
+                                  "Usable public metric API",
+                                  "Other required output modes"
+                              ],
+    "current_regression_checkpoint":  "validation/lut_grid_regression_639279511058157010/COMPLETED.json",
+    "scalar_checkpoint":  {
+                              "commits":  [
+                                              "51525e01f1f4230ba8f6e6b7d0e323f8d4fdf4b6",
+                                              "7ce32a01f814c3f925f5f85314aedaf7333161e6"
+                                          ],
+                              "isolated_ctest_passed":  8,
+                              "lut_nodes":  3840,
+                              "lut_queries":  22530,
+                              "lut_boundary_queries":  42300,
+                              "double_mismatches":  0,
+                              "evidence":  "validation/scalar_checkpoint_639279508489310995"
+                          },
+    "current_suite_binary_hashes":  [
+                                        {
+                                            "path":  "build-vs2026/bin/Release/IQM.exe",
+                                            "sha256":  "2C29083B30489642F6A0004FED1B3CE4A418ACA5479F464873AB9492FC42B508"
+                                        },
+                                        {
+                                            "path":  "validation/fft_forward2d_initial.spv",
+                                            "sha256":  "2776758E2F4E6FD51EF2F3098CAF0E6B5CA02ADA695A23860767F9F1AAC293E1"
+                                        },
+                                        {
+                                            "path":  "validation/mask_resize_gpu_639279174670035352/map.spv",
+                                            "sha256":  "16CE90C5E22997F7DB7E7286F71AAE963F5EAA15A1E715BA19022DAEB36E23A1"
+                                        },
+                                        {
+                                            "path":  "validation/fft_publish_build/Release/IQM-map-gpu-test.exe",
+                                            "sha256":  "701AFA713125EF8E9063777432F06BC5C69C6B1A5FDACF13A16CC02E2A5F4DD6"
+                                        },
+                                        {
+                                            "path":  "validation/map_gpu_abi8_639278691970167183/base_fft_abi81/base_fft.spv",
+                                            "sha256":  "60447964152BB3B90222E470C0996AC503942E75257DB4CDCE479237AAD16E14"
+                                        },
+                                        {
+                                            "path":  "validation/source_math_exact_division_639278581939061846/prepare.spv",
+                                            "sha256":  "9C84458F3ECAB56D1D4A3910662C6741E640D4DFBF2D960516E39237BAF34C56"
+                                        },
+                                        {
+                                            "path":  "validation/source_math_exact_division_639278581939061846/finish.spv",
+                                            "sha256":  "A5FB1EB5091CEC5740B77AEBD316A7D2F47D064DEB835B36C1D9F38A5EF0400A"
+                                        },
+                                        {
+                                            "path":  "validation/source_math_exact_division_639278581939061846/multiply.spv",
+                                            "sha256":  "47CA8933118C0C46029F77203FCD89A8601B6454DEB66CA3C4C8A40042AAF7B0"
+                                        }
+                                    ]
 }

@@ -1,6 +1,19 @@
 # Vulkan CSF, resize and masking maps
 
-> Publication scope: this document describes locally validated work. The implementation, new test tools and full artifacts are not included in this documentation checkpoint. See SESSION_HANDOFF.md at the repository root for current status; earlier measurements below retain their historical scope.
+> Current scope: scalar CSF/resize code and isolated checks are committed locally in `51525e0` and `7ce32a0`;GPU integration and full evidence remain local/uncommitted. No push was performed in this session. Earlier measurements below retain their historical scope.
+
+## Fresh common-binary regression (2026-10-18)
+
+After the exact double CSF LUT grid correction,eighteen fresh synthetic pairs
+pass all strict pipeline checks and direct official Q/Q_JOD comparison.
+All four suites share identical application/checker/shader binary manifests.
+Independent GPU checks compare4104990 float values and171648 binary64 mask
+values with zero mismatches;no Vulkan errors/VUIDs appear in run/checker logs.
+Map ABI12 and base FFT ABI81 binaries are unchanged. Evidence and all suite
+paths: `validation/lut_grid_regression_639279511058157010/COMPLETED.json`.
+The older ten/eight pair groups below are retained as historical checkpoints.
+Current full-pipeline scope remains64x64/30ppd/age24/D65 positive synthetic
+luminance. CPU double preparation and generalized dimensions remain open.
 
 
 `MapGPU` is an opt-in, synchronous numerical-parity backend. It executes
@@ -122,9 +135,11 @@ Q/Q_JOD comparisons. Preserve failed/incomplete batches.
 
 ## Remaining CPU work and scope
 
-Calibration LUT construction, resize plans, base-frequency hypot/selection,
-base adaptation/noise and double diff-mask resize still include CPU work.
-The default base route retains CPU DFT; the opt-in ABI81 shader replaces it
+Calibration LUT construction,resize plans,physical double frequency and
+double nCSF/MTF/AESL/noise/neural-power evaluation still include CPU work.
+ABI10 moved rounded base magnitudes/selection to GPU,ABI11 moved parameter
+interpolation,and ABI12 moves the guarded binary comparison-mask double resize.
+The default base route retains CPU DFT;the opt-in ABI81 shader replaces it
 with native-matching GPU FFT. CPU diagnostic sums/readback also remain. Reconstruction
 and visibility/detection outputs have not been ported/validated here.
 
@@ -455,3 +470,297 @@ Local evidence: validation/abi8_quick_checks_639278706524535142/ contains
 PASS.txt, RESULT.json, exports.txt, binary_hashes.json, repeatability_hashes.json
 and full run/official/rejection logs. Full artifacts and implementation remain
 local/uncommitted; this publication contains documentation only.
+
+## ABI9 base geometric adaptation (2026-10-18)
+
+Map ABI9 adds mode20 and MapGPU::base_adaptation:64 single log-luminance
+samples produce the once-rounded single mean and native single power10.
+The integrated Vulkan path no longer computes this mean/power on CPU.
+The default CPU path is retained. Base FFT shader ABI81 is unchanged;
+ABI8 map shaders are deliberately rejected by the updated host.
+
+Supported logs are finite in[-5,5], with nonzero exponent span<=16 and
+minimum exponent>=-90; zeros are allowed. A sum requires at most46 bits
+(24+16+6), so the compensated float pair preserves the double-accumulated
+native mean within this domain. Divide by64 is exact scaling before single
+rounding. The source-backed nativePower helper evaluates10^mean without
+shaderFloat64. Do not extrapolate this guarded operation to arbitrary sizes
+or exceptional inputs. The shader has183 NoContraction decorations.
+
+Independent native fixture tests/generate_base_adaptation_reference.m covers
+512 constant/adjacent-float/cancellation/small/random signed fields. Both
+outputs match exactly:1024 scalar values, zero differences. Three invalid
+input fields (range, exponent span, minimum exponent) and an obsolete ABI8
+shader reject with exit2, separately from numerical checks. An initial
+fixture's outward float neighbor at +/-5 correctly triggered the range guard;
+the corrected fixture uses inward neighbors. Initial logs are preserved.
+
+The independent --maps checker now reads native mean/power outputs written
+by validate_difference_maps.m and checks both. With base FFT enabled this
+adds one comparison/two scalars:72 comparisons /227986 values per pair.
+Local work/evidence directory: validation/map_gpu_abi9_639279140029974208/.
+COMMANDS.txt records regeneration/build/validation commands; source_hashes.json
+and shader_metadata.json identify the current local sources and shader.
+Full-metric suite completion is recorded by COMPLETED.json/PASS.txt in that
+directory; absent markers mean this section alone does not establish a full
+pipeline pass. Publication scope remains documentation of local work.
+
+Completed ABI9 integrated checkpoint: all ten fresh synthetic pairs pass strict
+preprocessing/native JND, CSF, masking, raw/final D, direct official Q/Q_JOD and
+independent GPU checks. Total2279860 GPU scalar comparisons, zero differences.
+Baseline: validation/quality_gpu_base_fft_suite_639279141141654008/PASS.txt.
+HDR: validation/quality_hdr_gpu_base_fft_suite_639279141707759061/PASS.txt.
+No Vulkan validation errors or VUIDs occur in these ten run logs. A fresh CPU
+maps/default DFT localized run also matches official scores exactly.
+COMPLETED.json and PASS.txt are now present in the ABI9 evidence directory;
+current map shader/completion pointers under validation/ select this checkpoint.
+Base CSF/noise/scalar double power and base spectral selection remain CPU work;
+this does not extend full-metric validation beyond the existing64x64 scope.
+
+## ABI10 rounded base magnitudes and first maximum (2026-10-18)
+
+Map ABI10 adds GPU base_selection (mode21). With the opt-in ABI81 base FFT,
+the integrated path now computes native-style single rounded magnitudes and
+selects the first maximum entirely on GPU. The frequency grid's final double
+coordinate/sqrt calculation remains CPU parameter work. Default CPU DFT/maps
+remain available. Host/shader ABI guards reject obsolete ABI9 maps.
+
+The original finite_hypot implementation in
+ tests/math_reference/hypot_reference.glsl uses unsigned32-bit limbs for exact
+96-bit integer arithmetic. It squares binary32 significands and searches
+binary32 rounding midpoints, comparing their squares with the exact squared
+norm. Equality chooses the even significand. A component exponent gap>=14
+cannot cross the first midpoint and returns the larger magnitude directly.
+At most78 bits are needed for shifted midpoint squares. No floating sqrt,
+Float64 or Int64 capability is used by this operation. The generator injects
+this source; it does not load native DLLs or reference answers.
+
+Supported spectra are exactly8x8, with each component zero or finite normal
+binary32 of unbiased exponent[-90,100]. Signed zeros are accepted. Out-of-domain
+components throw, including at DC. DC magnitude is explicitly zeroed; first-max
+traversal is column-major although spectrum/magnitude storage is row-major.
+The selected zero-based column-major index is a raw uint at output word64,
+read back by bitcast (not numeric float conversion). Allzero selection is0,
+corresponding to native one-based index1. Comparing unrounded squared norms
+instead would change rounded ties and is deliberately avoided.
+
+Independent native fixture tests/generate_base_selection_reference.m covers
+1024 arbitrary complex spectra/65536 output magnitudes and1024 first indices:
+zeros/DC-only, exact equal magnitudes, unequal exact norms that round equally,
+adjacent floats, broad exponents/signs and exact Pythagorean midpoint cases.
+The final fixture_midpoints run matches every magnitude and index exactly.
+These measurements compare the mathematical rounding implementation with the
+local native Octave behavior; they are not a cross-platform library guarantee.
+The64-input native FFT fixture also passes8192 spectral values and all64
+GPU-selected index/frequency checks. ABI9 and exponents-91/101 reject with
+exit2, separately from numerical pass counts. The512-case base adaptation
+fixture remains exact (1024 values). Shader metadata:183 NoContraction,
+no Float64 or Int64 capability.
+
+Native --maps evidence now includes abs(spectrum) and independently checks
+both the recomputed GPU index and the index exported by the actual pipeline.
+The runner requires base_selection_backend.txt=vulkan for the GPU FFT route.
+With GPU base FFT enabled, per-pair checks are73 comparisons/228050 scalars,
+plus index and double physical-frequency assertions. Native spectra/means/
+magnitudes are generated by validate_difference_maps.m in each fresh export.
+
+Local work directory: validation/map_gpu_abi10_639279156150953405/.
+COMMANDS.txt,source_hashes.json,shader_metadata.json and individual logs identify
+the evidence. Only COMPLETED.json/PASS.txt establish full-suite completion;
+this section's standalone fixture results alone do not establish that pass.
+All implementation/tools remain local/uncommitted; no publication is implied.
+
+Completed ABI10 integration: all ten fresh pairs pass strict preprocessing/
+native JND, CSF, masking, raw/final D, direct official Q/Q_JOD and independent
+GPU checks:2280500 scalar comparisons,zero differences. Baseline:
+validation/quality_gpu_base_fft_suite_639279157199426535/PASS.txt; HDR:
+validation/quality_hdr_gpu_base_fft_suite_639279157317562109/PASS.txt.
+No Vulkan validation errors/VUIDs occur in the ten pipeline run logs. Fresh
+localized CPU maps/default DFT also match official scores exactly.
+
+Additional CPU preparation precision audit uses15 native8x8 frequencies at
+effective ppd3.75 and1045 single luminances (logspace plus adjacent CSF knots),
+age24:15675 cases. Single CSF outputs have0 differences,while5146 double CSF
+outputs differ (max6.6613381477509392e-16). The direct noise/neural audit has
+4933 double noise differences (max finite1.3322676295501878e-15),but0 final
+single neural coefficient differences. Double noise equality is NOT achieved;
+this is an explicitly recorded remaining issue,not a tolerance pass. At zero
+frequency,the expected infinite noise/neural coefficient is compared directly.
+Native fixtures are generated by tests/generate_base_csf_reference.m; the
+neural checker tests/verify_base_noise.cpp uses the production CPU CSF routine
+and the same double power expression before conversion to float. Logs:
+base_csf_precision.log,base_noise_precision.log under the ABI10 directory.
+
+The numerical application/checker sources remained unchanged during the full
+suites. Afterward,a standalone IQM-base-noise-test CMake target was added;
+source_hashes_pre_diagnostic_target.json preserves the earlier hash snapshot,
+source_hashes.json records current sources including the new diagnostic.
+COMPLETED.json/PASS.txt now record completion,and final shader/completion
+pointers select ABI10. Physical frequency,base CSF/noise/double power,plans,
+double mask resize and diagnostics remain CPU work. General dimensions,
+viewing/color/real HDR,public API and other required outputs remain unfinished.
+
+## ABI11 CSF parameter interpolation and reference-order double fix (2026-10-18)
+
+The previously reported double base-CSF/noise discrepancy was an operation
+ordering error. The official expression divides term1 by term2^p3, then divides
+p4 by the square-root denominator. The C++ implementation instead multiplied
+by reciprocal powers and by a reciprocal denominator. Restoring the two
+divisions in evaluate_ncsf removes the double differences on the measured grids.
+No tolerance or float-only comparison is used to accept this fix.
+
+On the same native15-frequency x1045-luminance fixture (15675 cases), the
+preserved previous binaries report5146 double CSF and4933 double noise
+mismatches. Corrected binaries report0 double CSF,0 double noise and0 final
+single neural coefficient mismatches. verify_csf_reference.cpp now supports
+--single-luminance-strict and verify_base_noise.cpp --strict-double: each
+returns failure on any double mismatch. The existing age24/45/70,AESL on/off
+coarse fixtures also pass1152 double-luminance and1152 single-luminance queries
+with exact double outputs. This does not generalize the full-metric scope.
+
+Map ABI11 adds base_csf_parameters/mode22. CPU prepares the fixed7-node grid,
+28 parameter coefficients and24 slopes; GPU computes native single log10,
+clamps the query,performs native upper-bound lookup and evaluates all four
+interpolated parameters with separate multiply/add rounding. A trace contains
+five floats per query (clamped log and four parameters). Queries are finite
+single luminances in[1e-5,1e5]. Empty queries,unsupported luminances and obsolete
+ABI10 shaders are rejected. These guards are separate from numerical passes.
+
+The independent GPU fixture passes5225 trace values (1045 queries) exactly.
+Using these GPU parameters with the corrected CPU double evaluation also
+passes all15675 exact double noise and single neural coefficient checks.
+GPU mode22 is used by the integrated base-band path; its backend and five
+exported trace values are checked. validate_difference_maps.m now asserts
+exact base double noise equality,including expected infinity at zero frequency.
+With ABI81 base FFT,the --maps count is74 comparisons/228055 scalar values per
+pair,plus index/frequency/double-noise and exported-parameter assertions.
+
+Shader metadata:200 NoContraction decorations,no Float64/Int64 capability.
+Double nCSF/MTF/AESL evaluation,noise reciprocal and scalar double power remain
+CPU work; only single query/lookup/interpolation moved in this step. Physical
+frequency,calibration/plans,double mask resize and diagnostics remain CPU work.
+The full64x64/30ppd/age24/D65 scope has not expanded. Sources,old executables,
+strict logs and regeneration commands are retained under
+validation/base_csf_order_639279166321142223/; full integration acceptance
+requires COMPLETED.json/PASS.txt there. No commit or publication is implied.
+
+Completed ABI11 integration: all ten fresh full chains pass strict native
+preprocessing/JND,CSF,masking,raw/final D,exact base double noise,official Q/Q_JOD
+and independent GPU checks. Total2280550 compared GPU scalar values,zero
+differences. Baseline:
+validation/quality_gpu_base_fft_suite_639279167705195338/PASS.txt. HDR:
+validation/quality_hdr_gpu_base_fft_suite_639279167713649747/PASS.txt.
+No Vulkan validation errors/VUIDs occur in the ten pipeline run logs. A fresh
+CPU maps/default DFT localized run passes raw/final D,exact double noise and
+official scores. The former ABI10 double discrepancy is resolved on the tested
+grids and fresh pairs; its historical failure evidence remains preserved.
+COMPLETED.json/PASS.txt now record completion,and final pointers select ABI11.
+Double CSF/noise evaluation is still on CPU; double equality does not imply
+that this part was ported to GPU. All changes remain local/uncommitted.
+
+## ABI12 exact binary comparison-mask resize (2026-10-18)
+
+Map ABI12 adds resize_comparison_mask/modes23(horizontal) and24(vertical).
+The supported case is the production comparison mask:64x64 binary0/1 input,
+square outputs64,32,16,8. The general double resize function remains CPU code
+for other data/shapes. The integrated Vulkan quality path now uses the new
+GPU operation; default CPU maps retain the original double resize.
+
+CPU prepares the existing symmetric/antialiasing bicubic plans,then verifies
+unit normalization,exact Q16 weights and per-destination sum(abs(weights))<=2.
+Horizontal integer sums are Q16 with magnitude<=2*2^16; vertical signed64-bit
+sums (stored as two32-bit words) are Q32 with magnitude<=4*2^32=2^34. Thus all
+native double products and sums in this guarded binary case are exact:the
+largest required integer precision is below53 bits. No approximate float
+pair,intermediate float cast or tolerance is substituted for native doubles.
+The GPU encodes Q32 results directly as IEEE binary64 low/high words. Negative
+bicubic lobes/overshoots are retained. Host readback bitcasts these words to
+double; it does not perform the convolution. No Float64/Int64 capability or
+feature enablement is needed. Nonbinary/unsupported shapes/plans throw.
+
+State::execute_words handles raw uint readbacks. The pre-existing float path
+is a memcpy wrapper around it,so integer/double words never transit floating
+arithmetic. Export save_reference is templated:float exports retain9 digits,
+new double masks use17 digits. Backend metadata and per-band quality_mask files
+are checked. validate_quality_scores.m compares every exported double mask
+with native imresize before pooling and writes native17-digit mask fixtures.
+The independent --maps checker verifies recomputed GPU masks bit-for-bit and
+checks the actual pipeline exports separately. It retains74 float comparisons/
+228055 values and adds5 double comparisons/9536 values per pair (bands0/1 are
+both64x64). Float and double mismatch counts are reported separately.
+
+Independent native fixture tests/generate_binary_mask_resize_reference.m uses
+64 binary fields and four targets:256 cases/348160 binary64 outputs. The final
+bitwise checker passes with0 double bit differences. Fields include zero/one,
+four corner impulses,central impulse,checkerboard,horizontal/vertical steps,
+stripes and varied random densities. The initial log used the old generic
+float label despite comparing doubles; mask_resize_bitwise.log is the explicit
+final evidence. Unsupported output sizes,nonsquare outputs,nonbinary inputs
+and obsolete ABI11 shader are rejected with exit2,separately from passes.
+
+Local evidence:validation/mask_resize_gpu_639279174670035352/ contains native
+fixtures,old ABI11 executables,generated shader,source/binary hashes and logs.
+Shader metadata:200 NoContraction,no Float64 or Int64 capability. Full-suite
+completion requires COMPLETED.json/PASS.txt in that directory. Double nCSF/
+MTF/AESL evaluation,noise reciprocal/double neural power,physical frequency,
+calibration/plans and diagnostics remain CPU work. Full-metric dimensions/
+viewing/color scope remains unchanged;this is not general double resize.
+
+Completed ABI12 integration:ten fresh full chains pass strict native
+preprocessing/JND,CSF,masking,raw/final D,double noise,double masks and official
+Q/Q_JOD. Independent GPU checks pass2280550 single scalar values and95360
+binary64 mask bit patterns with0 differences. Baseline:
+validation/quality_gpu_base_fft_suite_639279175960765914/PASS.txt; HDR:
+validation/quality_hdr_gpu_base_fft_suite_639279175961596220/PASS.txt.
+No Vulkan validation errors/VUIDs occur in the ten application or GPU-checker
+logs. Fresh CPU fallback also passes native double masks and official scores.
+COMPLETED.json/PASS.txt now record completion; final pointers select ABI12.
+The256-case standalone fixture additionally passes348160 binary64 bit patterns.
+All implementation remains local/uncommitted. Public/dimension/color/viewing
+scope is unchanged,and general nonbinary double resize still runs on CPU.
+
+## Additional stress comparisons (2026-10-18)
+
+Eight additional fresh pairs pass the official full pipeline and independent
+GPU intermediates with unchanged map ABI12/base FFT ABI81. Only validation
+input branches,Stress runner cases and the native summary tool were added.
+The exported single luminances are the authoritative common input; native
+Octave is not asked to reproduce C++ trigonometric input generation.
+
+| Pair | Q | Q_JOD | Active mask pixels | Native index | Base frequency |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| sinusoidal_x_phase_shift | 5.3645796775817871 | 6.2898049354553223 | 4064/4096 | 17 | 0.9375 |
+| sinusoidal_y_phase_shift | 5.3645696640014648 | 6.2897944450378418 | 4064/4096 | 3 | 0.9375 |
+| asymmetric_localized_stronger | 3.6115429401397705 | 4.4040126800537109 | 64/4096 | 9 | 0.46875 |
+| asymmetric_threshold_below | 10 | 10 | 0/4096 | 33 | 1.875 |
+| asymmetric_threshold_nominal | 10 | 10 | 4056/4096 | 33 | 1.875 |
+| asymmetric_threshold_above | 10 | 10 | 4096/4096 | 33 | 1.875 |
+| hdr_edges_phase_shift | 3.4347231388092041 | 4.204805850982666 | 4096/4096 | 10 | 0.66291260736238833 |
+| hdr_ramp_localized_stronger | 9.8378696441650408 | 9.9494543075561523 | 64/4096 | 2 | 0.46875 |
+
+Every Q/Q_JOD above equals the direct official v3.0.7 result exactly. Periodic
+x/y inputs select distinct column-major indices17/3 at0.9375 cyc/deg. The
+threshold cases use the adjacent float gains below/at/above1.001f; the nominal
+gain is not a promise that every per-pixel rounded ratio equals0.001. Native
+mask counts are0/4056/4096 and all masks/stages match. The stronger localized
+case and HDR phase case extend accepted scores down toQ3.43/3.61.
+
+New evidence:1824440 single GPU scalar comparisons and76288 double mask bit
+patterns,zero differences. A fresh canonical localized control matches58
+selected numeric text exports against the previous ABI12 checkpoint by SHA256.
+No Vulkan errors/VUIDs occur in eight application or independent GPU logs.
+
+Local evidence:validation/quality_stress_639279178899870989/COMPLETED.json,
+PASS.txt,case_summary.json/log,CONTROL_PASS.txt,COMMANDS.txt and hashes. Suites:
+validation/quality_stress_gpu_base_fft_suite_639279179397567819/PASS.txt and
+validation/quality_stress_hdr_gpu_base_fft_suite_639279179398732111/PASS.txt.
+The existing ten-case core checkpoint remains separate. Across the two groups,
+18 synthetic pairs pass4104990 single values and171648 double mask bit patterns.
+This is not18 fresh runs of one binary:each group retains its source/binary
+hashes;the new executable adds input-only branches. Neither group generalizes
+64x64/30ppd/age24/D65 to real HDR/color/arbitrary viewing conditions.
+
+tests/HDRVDP3_VALIDATION_SUMMARY.json now reflects this local ABI12 checkpoint,
+with relative artifact paths and separate original_10/stress_8 case groups.
+It is not yet published;the old published ABI8 JSON is preserved in the local
+stress directory. Metric implementation and tools remain local/uncommitted.

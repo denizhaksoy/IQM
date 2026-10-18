@@ -1,6 +1,16 @@
 # Masking and quality validation
 
-> Publication scope: this document describes locally validated work. The implementation, new test tools and full artifacts are not included in this documentation checkpoint. See SESSION_HANDOFF.md at the repository root for current status; earlier measurements below retain their historical scope.
+> Current scope: scalar CSF/resize code and isolated checks are committed locally in `51525e0` and `7ce32a0`;GPU integration and full evidence remain local/uncommitted. No push was performed in this session. Earlier measurements below retain their historical scope.
+
+2026-10-18 fresh regression:all18 synthetic pairs pass strict preprocessing,
+CSF,masking,raw/final D,native noise and direct official Q/Q_JOD checks using
+the same application/checker binaries after the CSF LUT correction. GPU
+intermediate comparisons include4104990 float values and171648 double mask
+values with zero differences. This includes low-quality phase/strong-localized
+cases and below/nominal/above comparison-mask threshold cases. Evidence:
+`validation/lut_grid_regression_639279511058157010/COMPLETED.json`.
+The scope is64x64/30ppd/age24/D65 positive synthetic luminance;broader metric
+coverage remains unfinished. Historical checkpoints below are preserved.
 
 
 The C++/Vulkan validation wrapper now exports the CSF, masking, raw masked
@@ -184,3 +194,19 @@ Double comparison-mask resize, base-band double noise, frequency/DC and
 difference preparation remain CPU work. See [GPU validation](MAP_GPU_VALIDATION.md)
 for the exact scope and per-stage/full-chain evidence; the earlier CPU and
 rejected GPU-math measurements remain historical.
+
+## Local ABI12 stress-validation continuation (2026-10-18)
+
+The latest local summary is tests/HDRVDP3_VALIDATION_SUMMARY.json; details and
+an eight-case score/mask/frequency table are in tests/MAP_GPU_VALIDATION.md.
+Eight fresh periodic/phase-shift,stronger localized and threshold-gain pairs
+match official Q/Q_JOD exactly,including Q=3.4347231388092041 and
+Q=3.6115429401397705. Native active comparison-mask counts around gain1.001f
+are0,4056,4096 out of4096. Single raw/final D,masks,double base noise and
+bitwise double mask resizing pass,not just the rounded final score.
+
+The original ten cases and additional eight retain separate evidence/hashes.
+Combined:4104990 single GPU values and171648 binary64 mask values,zero
+differences. This publication notice remains applicable:these latest changes
+have not been committed/pushed and do not expose a completed public metric API.
+Full scope is still64x64/30ppd/age24/D65 positive luminance,synthetic inputs.
