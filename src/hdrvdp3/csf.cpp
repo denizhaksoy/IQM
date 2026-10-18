@@ -27,6 +27,14 @@ constexpr std::array<std::array<double, 4>, 7> csf_params = {{
     {0.312626, 4.15264, 0.952367, 3.22389}
 }};
 
+// Symmetric logarithmic sampling: measure each node from its nearest endpoint.
+// This preserves the two-endpoint rounding used by native logspace(-5,5,256).
+double csf_grid_exponent(std::size_t i) {
+    const std::size_t distance=std::min(i,std::size_t(255)-i);
+    const double magnitude=5.0-static_cast<double>(distance)*(10.0/255.0);
+    return i<128?-magnitude:magnitude;
+}
+
 std::array<double, 4> interpolate_parameters(double luminance) {
     const double log_lum = std::log10(
         std::clamp(luminance, csf_lums.front(), csf_lums.back())
@@ -171,15 +179,8 @@ CSFLUT create_csf_lut(
 ) {
     CSFLUT lut{};
 
-    constexpr double log_min = -5.0;
-    constexpr double log_max = 5.0;
-
     for (std::size_t i = 0; i < lut.size(); ++i) {
-        const double t =
-            static_cast<double>(i) / (lut.size() - 1);
-
-        const double luminance =
-            std::pow(10.0, log_min + t * (log_max - log_min));
+        const double luminance = std::pow(10.0, csf_grid_exponent(i));
 
         lut[i] = compute_ncsf(
             band_frequency, luminance, params
@@ -206,8 +207,7 @@ static const std::array<double,256>& csf_log_grid() {
     static const auto grid = [] {
         std::array<double, 256> result{};
         for (std::size_t i = 0; i < result.size(); ++i) {
-            const double t = static_cast<double>(i) / (result.size() - 1);
-            result[i] = std::log10(std::pow(10.0, -5.0 + t * 10.0));
+            result[i] = std::log10(std::pow(10.0, csf_grid_exponent(i)));
         }
         return result;
     }();

@@ -5,7 +5,8 @@
 #include <iostream>
 #include <algorithm>
 int main(int argc,char**argv) {
-    if(argc!=2) return 2;
+    const bool strict=argc==3 && std::string(argv[2])=="--strict-double";
+    if(argc!=2 && !strict) return 2;
     std::ifstream in(std::filesystem::path(argv[1])/"csf_lut.txt");
     size_t nodes=0,nodeFloat=0,queries=0,queryFloat=0,nodeDouble=0,queryDouble=0;
     double age,rho,maxError=0; size_t singleMismatches=0;
@@ -29,5 +30,5 @@ int main(int argc,char**argv) {
     }
     std::cout<<"nodes="<<nodes<<" node_double_mismatches="<<nodeDouble<<" node_float_mismatches="<<nodeFloat
         <<" queries="<<queries<<" query_double_mismatches="<<queryDouble<<" query_float_mismatches="<<queryFloat<<" single_query_mismatches="<<singleMismatches<<" max="<<maxError<<'\n';
-    return !in.eof()||!nodes?2:nodeFloat||queryFloat||singleMismatches?1:0;
+    return !in.eof()||!nodes?2:(nodeFloat||queryFloat||singleMismatches||(strict&&(nodeDouble||queryDouble)))?1:0;
 }
