@@ -37,14 +37,11 @@ std::array<double, 4> interpolate_parameters(double luminance) {
         const double x1 = std::log10(csf_lums[i + 1]);
 
         if (log_lum <= x1) {
-            const double t = (log_lum - x0) / (x1 - x0);
-
             std::array<double, 4> result{};
 
             for (std::size_t k = 0; k < 4; ++k) {
-                result[k] =
-                    csf_params[i][k] * (1.0 - t) +
-                    csf_params[i + 1][k] * t;
+                const double slope=(csf_params[i+1][k]-csf_params[i][k])/(x1-x0);
+                result[k]=slope*(log_lum-x0)+csf_params[i][k];
             }
 
             return result;
@@ -63,10 +60,7 @@ double compute_aesl(double rho, double age) {
 
     return std::pow(
         10.0,
-        -std::pow(
-            10.0,
-            aesl_slope_freq * std::log2(rho + gamma)
-        ) * age_difference
+        -(std::pow(10.0,aesl_slope_freq)*std::log2(rho+gamma))*age_difference
     );
 }
 
@@ -96,16 +90,14 @@ double compute_mtf(double rho) {
     return mtf;
 }
 
-double compute_ncsf(
+static double evaluate_ncsf(
     double rho,
-    double luminance,
+    const std::array<double,4>& p,
     const CSFParameters& params
 ) {
     if (rho <= 1e-4) {
         return 0.0;
     }
-
-    const auto p = interpolate_parameters(luminance);
 
     const double term1 =
         1.0 + std::pow(p[0] * rho, p[1]);
@@ -113,10 +105,12 @@ double compute_ncsf(
     const double term2 =
         1.0 - std::exp(-std::pow(rho / 7.0, 2.0));
 
-    const double denominator = std::sqrt(
-        term1 * std::pow(term2, -p[2])
+    const double denominator = std::pow(
+        term1 / std::pow(term2, p[2]),0.5
     );
 
+    // Preserve the reference's divisions: reciprocal/multiply rewrites change
+    // double rounding even when their final single outputs happen to agree.
     double sensitivity = p[3] / denominator;
 
     sensitivity /= compute_mtf(rho);
@@ -126,6 +120,42 @@ double compute_ncsf(
     }
 
     return sensitivity;
+}
+
+CSFParameterSingleLUT create_csf_parameter_single_lut() {
+    CSFParameterSingleLUT lut;
+    for(std::size_t i=0;i<7;++i) {
+        lut.log_luminance[i]=static_cast<float>(std::log10(csf_lums[i]));
+        for(std::size_t k=0;k<4;++k) {
+            lut.values[4*i+k]=static_cast<float>(csf_params[i][k]);
+            if(i<6) lut.slopes[4*i+k]=static_cast<float>((csf_params[i+1][k]-csf_params[i][k])/(std::log10(csf_lums[i+1])-std::log10(csf_lums[i])));
+        }
+    }
+    return lut;
+}
+double evaluate_ncsf_parameters(double rho,const std::array<float,4>& parameters,const CSFParameters& params) {
+    return evaluate_ncsf(rho,{parameters[0],parameters[1],parameters[2],parameters[3]},params);
+}
+double compute_ncsf(double rho,double luminance,const CSFParameters& params) {
+    return evaluate_ncsf(rho,interpolate_parameters(luminance),params);
+}
+
+double compute_ncsf_single_luminance(double rho,float luminance,const CSFParameters& params) {
+    std::array<double,7> grid{};
+    for(std::size_t i=0;i<grid.size();++i) grid[i]=std::log10(csf_lums[i]);
+    const float q=std::clamp(std::log10(luminance),static_cast<float>(grid.front()),static_cast<float>(grid.back()));
+    const auto next=std::upper_bound(grid.begin(),grid.end(),q,
+        [](float query,double node){return query<static_cast<float>(node);});
+    const auto upper=std::clamp<std::size_t>(next-grid.begin(),1,grid.size()-1);
+    const auto lower=upper-1;
+    std::array<double,4> p{};
+    for(std::size_t k=0;k<p.size();++k) {
+        const float slope=static_cast<float>((csf_params[upper][k]-csf_params[lower][k])/(grid[upper]-grid[lower]));
+        const float offset=q-static_cast<float>(grid[lower]);
+        const float product=slope*offset;
+        p[k]=product+static_cast<float>(csf_params[lower][k]);
+    }
+    return evaluate_ncsf(rho,p,params);
 }
 
 double compute_band_frequency(
@@ -167,18 +197,55 @@ double sample_csf_lut(
         std::clamp(luminance, 1e-5, 1e5)
     );
 
-    const double position =
-        (log_luminance + 5.0) / 10.0 * (lut.size() - 1);
+    return sample_csf_lut_log(lut, log_luminance);
+}
 
-    const std::size_t lower =
-        static_cast<std::size_t>(position);
+static const std::array<double,256>& csf_log_grid() {
+    // Interpolate on log10 of the actual luminances used to build the LUT.
+    // They are only approximately uniformly spaced after pow/log rounding.
+    static const auto grid = [] {
+        std::array<double, 256> result{};
+        for (std::size_t i = 0; i < result.size(); ++i) {
+            const double t = static_cast<double>(i) / (result.size() - 1);
+            result[i] = std::log10(std::pow(10.0, -5.0 + t * 10.0));
+        }
+        return result;
+    }();
+    return grid;
+}
 
-    const std::size_t upper =
-        std::min(lower + 1, lut.size() - 1);
+double sample_csf_lut_log(const CSFLUT& lut, double log_luminance) {
+    const auto& grid=csf_log_grid();
+    const double query = std::clamp(log_luminance, grid.front(), grid.back());
+    const auto next = std::upper_bound(grid.begin(), grid.end(), query);
+    const std::size_t upper = std::min(static_cast<std::size_t>(next-grid.begin()), grid.size()-1);
+    const std::size_t lower = upper-1;
+    const double slope = (lut[upper]-lut[lower])/(grid[upper]-grid[lower]);
+    return slope*(query-grid[lower])+lut[lower];
+}
 
-    const double t = position - lower;
+float sample_csf_lut_log_single(const CSFLUT& lut, float log_luminance) {
+    const auto& grid=csf_log_grid();
+    const float query=std::clamp(log_luminance,static_cast<float>(grid.front()),static_cast<float>(grid.back()));
+    // Octave lookup converts the grid to single when the query is single.
+    const auto next=std::upper_bound(grid.begin(),grid.end(),query,
+        [](float q,double node) { return q<static_cast<float>(node); });
+    const std::size_t upper=std::min(static_cast<std::size_t>(next-grid.begin()),grid.size()-1);
+    const std::size_t lower=upper-1;
+    const double slope=(lut[upper]-lut[lower])/(grid[upper]-grid[lower]);
+    const float offset=query-static_cast<float>(grid[lower]);
+    const float product=static_cast<float>(slope)*offset;
+    return product+static_cast<float>(lut[lower]);
+}
 
-    return lut[lower] * (1.0 - t) + lut[upper] * t;
+CSFSingleLUT create_csf_single_lut(const CSFLUT& lut) {
+    const auto& grid=csf_log_grid(); CSFSingleLUT result;
+    for(std::size_t i=0;i<lut.size();++i) {
+        result.log_luminance[i]=static_cast<float>(grid[i]);
+        result.sensitivity[i]=static_cast<float>(lut[i]);
+        if(i+1<lut.size()) result.slope[i]=static_cast<float>((lut[i+1]-lut[i])/(grid[i+1]-grid[i]));
+    }
+    return result;
 }
 
 } // namespace IQM::HDRVDP3

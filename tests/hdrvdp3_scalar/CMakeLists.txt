@@ -1,0 +1,38 @@
+cmake_minimum_required(VERSION 3.20)
+project(IQMHDRVDP3ScalarValidation LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+get_filename_component(IQM_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+
+function(strict_math target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /fp:strict /EHsc)
+    else()
+        target_compile_options(${target} PRIVATE -ffp-contract=off)
+    endif()
+endfunction()
+
+add_library(iqm_hdrvdp3_scalar STATIC
+    "${IQM_ROOT}/src/hdrvdp3/csf.cpp"
+    "${IQM_ROOT}/src/hdrvdp3/resize.cpp")
+target_include_directories(iqm_hdrvdp3_scalar PUBLIC "${IQM_ROOT}/include")
+strict_math(iqm_hdrvdp3_scalar)
+
+foreach(check IN ITEMS csf_reference csf_lut_reference base_noise resize_reference)
+    add_executable(${check}_test "${IQM_ROOT}/tests/verify_${check}.cpp")
+    target_link_libraries(${check}_test PRIVATE iqm_hdrvdp3_scalar)
+    strict_math(${check}_test)
+endforeach()
+
+include(CTest)
+set(IQM_HDRVDP3_FIXTURE_ROOT "" CACHE PATH "Fresh native fixture directory containing csf,base,lut,resize subdirectories")
+if(BUILD_TESTING AND IQM_HDRVDP3_FIXTURE_ROOT)
+    add_test(NAME csf_double COMMAND csf_reference_test "${IQM_HDRVDP3_FIXTURE_ROOT}/csf")
+    add_test(NAME csf_single_query_double COMMAND csf_reference_test "${IQM_HDRVDP3_FIXTURE_ROOT}/csf" --single-luminance-strict)
+    add_test(NAME base_csf_double COMMAND csf_reference_test "${IQM_HDRVDP3_FIXTURE_ROOT}/base" --single-luminance-strict)
+    add_test(NAME base_noise_double COMMAND base_noise_test "${IQM_HDRVDP3_FIXTURE_ROOT}/base" --strict-double)
+    add_test(NAME csf_lut_single COMMAND csf_lut_reference_test "${IQM_HDRVDP3_FIXTURE_ROOT}/lut")
+    add_test(NAME resize_single COMMAND resize_reference_test "${IQM_HDRVDP3_FIXTURE_ROOT}/resize")
+    add_test(NAME resize_double COMMAND resize_reference_test "${IQM_HDRVDP3_FIXTURE_ROOT}/resize" --double)
+endif()
