@@ -1,5 +1,10 @@
 # SPYR numerical validation
 
+Current extension:see [dimension validation](SPYR_DIMENSION_VALIDATION.md)
+for27 raw-single cases across nine shapes,exact tail arithmetic and the
+separate32x32 comparison-mask checkpoint. The original64x64 measurements
+below retain their historical scope.
+
 > Publication scope: this document describes locally validated work. The implementation, new test tools and full artifacts are not included in this documentation checkpoint. See SESSION_HANDOFF.md at the repository root for current status; earlier measurements below retain their historical scope.
 
 

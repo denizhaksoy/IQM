@@ -1,5 +1,12 @@
 # Masking and quality validation
 
+2026-10-19 follow-up:after generalized raw SPYR arithmetic,eight fresh64x64
+pairs (original6,HDRstress2) still match official Q/Q_JOD and all strict
+intermediates. The new32x32 mask-resize checker independently rechecks those
+eight exports with zero differences. Full32x32 quality is not yet implemented.
+See [dimension checkpoint](SPYR_DIMENSION_VALIDATION.md);the eighteen-pair
+checkpoint below retains its previous binaries and historical scope.
+
 > Current scope: scalar CSF/resize code and isolated checks are committed locally in `51525e0` and `7ce32a0`;GPU integration and full evidence remain local/uncommitted. No push was performed in this session. Earlier measurements below retain their historical scope.
 
 2026-10-18 fresh regression:all18 synthetic pairs pass strict preprocessing,

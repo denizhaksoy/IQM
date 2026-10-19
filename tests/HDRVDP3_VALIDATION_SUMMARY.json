@@ -387,5 +387,20 @@
                                             "path":  "validation/source_math_exact_division_639278581939061846/multiply.spv",
                                             "sha256":  "47CA8933118C0C46029F77203FCD89A8601B6454DEB66CA3C4C8A40042AAF7B0"
                                         }
-                                    ]
+                                    ],
+    "dimension_checkpoint":  {
+                                 "date":  "2026-10-19",
+                                 "path":  "validation/spyr_dimension_checkpoint_639280047991477467/COMPLETED.json",
+                                 "raw_cases":  27,
+                                 "raw_float_values":  360816,
+                                 "raw_mismatches":  0,
+                                 "centered_values":  3918,
+                                 "centered_mismatches":  0,
+                                 "mask_cases":  448,
+                                 "mask_double_values":  434176,
+                                 "mask_bit_mismatches":  0,
+                                 "new_full64_regression_pairs":  8,
+                                 "new_checker_rechecks":  8,
+                                 "full_metric32_complete":  false
+                             }
 }

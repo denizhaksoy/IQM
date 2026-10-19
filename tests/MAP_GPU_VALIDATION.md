@@ -1,5 +1,13 @@
 # Vulkan CSF, resize and masking maps
 
+2026-10-19 extension:the local comparison-mask backend now accepts32x32 binary
+inputs with32/16/8 outputs. Fresh192 cases/86016 binary64 outputs match native
+imresize bitwise;64x64 regression adds256 cases/348160 exact outputs. Map ABI12
+is unchanged. A separate checker also rechecks eight fresh64x64 metric exports
+after the SPYR dimension change. See [dimension checkpoint](SPYR_DIMENSION_VALIDATION.md).
+This does not establish full32x32 metric support;MTF/local-adaptation remains
+fixed to64x64 input/128x128 FFT in the current reference backend.
+
 > Current scope: scalar CSF/resize code and isolated checks are committed locally in `51525e0` and `7ce32a0`;GPU integration and full evidence remain local/uncommitted. No push was performed in this session. Earlier measurements below retain their historical scope.
 
 ## Fresh common-binary regression (2026-10-18)

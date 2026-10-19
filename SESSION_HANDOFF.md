@@ -1,8 +1,91 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-10-18 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-10-19 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Current checkpoint: committed scalar parity and eighteen fresh pipeline pairs
+## Current local checkpoint: generalized raw SPYR and32x32 comparison masks
+
+- Continued without requesting approval. Existing local commits51525e0,
+  7ce32a0 andf0ce345 are preserved;no push in this continuation. New verified
+  documentation/standalone test tools are scoped separately from mixed GPU
+  integration. Do not commit whole wrapper/CMake/map sources without reviewing
+  their dependencies;the committed wrapper still has the old callback API.
+- Nine raw-SPYR shapes at30ppd:32x32,48x48,64x64,96x96,128x128,49x65,64x96,
+  65x49,96x64. Three inputs:asymmetric modulo,edge/off-center impulses and
+  deterministic random. All27 cases/360816 raw float values match official
+  Octave numerically exactly;3918 separately DC-centered residual values also
+  match. Float signed-zero bits are not checked. No Vulkan errors/VUIDs.
+- Important findings:official pyramid height is min(ceil(log2(ppd))-2,
+  maxPyrHt(...)),not solely maxPyrHt. Add optional maximum_height to Spyr::compute;
+  probe explicitly passes3 at30ppd. Raw128x128 now produces five bands,not six.
+  At32x32/48x48 there are four bands;at49x65 residual is13x17.
+- Native installed single conv2 traverses the longer image axis inside the
+  tap loop. FMA applies to32-element vector blocks;the remaining coordinates
+  use separate product/add rounding. Prior level2-only non-FMA logic was valid
+  only for64x64. Diagnostics measure these paths independently of GPU output.
+- Keep FMA/non-FMA in SEPARATE compiled pipelines. Three mixed/dual-accumulator
+  shader candidates broke even64x64 despite explicit fma/precise;their failed
+  exports/SPIR-V are retained. Accepted common shader compiles normally and
+  with-DIQM_CORRDN_NON_FMA. New generated include:
+  shaders_out/hdrvdp3/hdrvdp3_corrdn_native_tail.inc. Existing test shader source,
+  its index blob and prior generated test include are preserved. Source CorrDn
+  now includes native_tail.inc. Use tests/compile_corrdn_reference.ps1 with a
+  fresh OutputDirectory,then explicitly install the two includes after keeping
+  prior binaries. The blanket shader script does not generate this new include
+  and deletes shaders_out;do not run it.
+- Wrapper run_corrdn_gpu runs a second GPU pass for vector tails and selects
+  already-rounded outputs on the host by pre-subsampling coordinate. No CPU
+  convolution arithmetic. Staging buffers now size to actual dimensions with
+  unsigned-allocation bound checks. Full metric remains64x64;only the isolated
+  IQM_SPYR_DIMENSION_PROBE=1 branch exercises these nine shapes. Set
+  IQM_SPYR_PROBE_PATTERN=asymmetric/impulse/random and unset probe for metric runs.
+- Raw evidence:validation/spyr_dimensions_17923555764323481,
+  spyr_dimensions_17923555832003632,spyr_dimensions_17923555942649684.
+  compare with tests/validate_spyr_dimensions.m;arithmetic probes are
+  tests/diagnose_spyr_dimensions.m and diagnose_spyr_rectangular_order.m.
+- After accepted SPYR pipelines,eight fresh full64x64 metric pairs pass
+  preprocessing,JND,CSF,masking,D,noise and direct official Q/Q_JOD:original6
+  plusHDRstress2. Independent checks:1824440 float values,76288 binary64 mask
+  values,zero differences. Suites under validation/:
+  quality_gpu_base_fft_suite_639279523931956826 and
+  quality_stress_hdr_gpu_base_fft_suite_639279524032176925. Same application/
+  original checker binaries;no Vulkan errors/VUIDs. Earlier18-pair evidence
+  remains historical and separate;do not claim18 new pairs after this change.
+- Next bounded component completed:MapGPU comparison-mask resize accepts
+  square32x32 binary input ->32/16/8,retains64->64/32/16/8. Replace fixed4096
+  plan offset with actual h*w. Unit normalization,Q16,L1<=2 and signedQ32
+  guards remain. Unchanged map ABI12 shader. A separate checker build passes
+  192 cases/86016 binary64 outputs at32 and256 cases/348160 at64,all bitwise
+  equal. New checker also independently rechecks all eight full-case exports:
+  again74/228055 float and5/9536 double per pair,zero differences.
+- Mask evidence:validation/mask32_639279525250877995. Application used for eight
+  full regressions predates mask32 host change;new checker is separate under
+  this evidence directory. Do not confuse it with validation/fft_publish_build
+  checker or claim a32x32 full-metric result. Original IQM/checker binaries
+  and source-before-mask32 hashes are preserved;main IQM has NOT been rebuilt
+  to link mask32 support yet. Next build must preserve accepted executables.
+- Aggregate evidence:validation/spyr_dimension_checkpoint_639280047991477467/
+  COMPLETED.json and PASS.txt;spyr_dimension_completed_path.txt selects it.
+  Includes source snapshot/hashes and accepted IQM/new checker executables.
+  validation/finalize_dimension_checkpoint.ps1 validates all counts/logs and
+  binary manifests. Cast Get-Content strings before nested ConvertTo-Json:
+  otherwise PS5 serializes extended path/drive metadata very slowly. The first
+  metadata attempt was interrupted;its partial directory is retained.
+- Updated tests/SPYR_DIMENSION_VALIDATION.md and portable validation summary
+  with a separate dimension_checkpoint,retaining previous18-case scope/hashes.
+- Exact next step:implement32x32 MTF/local-adaptation with64x64 FFT. Current
+  LocalAdaptFFTInput lacks dimensions;local_adapt.cpp fixes128 FFT and64 crop/
+  preparation. Capture native64 FFT plans/codelets and intermediate maps first;
+  parameterize dimensions with explicit guards,update reference math shaders,
+  then make validators/checker discover four bands instead of fixed five.
+  Existing8x8 base FFT/DC remains applicable to32x32/30ppd. General rectangular
+  masking and non-8x8 residual FFT/DC remain unsupported. Raw SPYR success
+  alone does not validate their full metric. Other pending work:real HDR/color,
+  viewing parameters,CPU double preparation,public API and other outputs.
+  Overall approximately75/100 remains an engineering estimate,not coverage.
+- Preserve staged shader blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,
+  its working-tree edits,all untracked artifacts and dirty lib/VkFFT.
+
+## Historical checkpoint: committed scalar parity and eighteen fresh pipeline pairs
 
 2026-10-18: user authorized scoped commits of verified work. Two local code
 commits now exist; neither was pushed in this session:
