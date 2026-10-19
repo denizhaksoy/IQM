@@ -26,6 +26,13 @@ foreach(check IN ITEMS csf_reference csf_lut_reference base_noise resize_referen
 endforeach()
 
 include(CTest)
+add_executable(spectral_age_test "${IQM_ROOT}/tests/verify_spectral_age.cpp" "${IQM_ROOT}/src/hdrvdp3/spectral.cpp")
+target_include_directories(spectral_age_test PRIVATE "${IQM_ROOT}/include")
+strict_math(spectral_age_test)
+set(IQM_HDRVDP3_SPECTRAL_FIXTURE "" CACHE PATH "Fresh native spectral age fixture directory")
+if(BUILD_TESTING AND IQM_HDRVDP3_SPECTRAL_FIXTURE)
+    add_test(NAME spectral_age_double COMMAND spectral_age_test "${IQM_HDRVDP3_SPECTRAL_FIXTURE}")
+endif()
 set(IQM_HDRVDP3_FIXTURE_ROOT "" CACHE PATH "Fresh native fixture directory containing csf,base,lut,resize subdirectories")
 if(BUILD_TESTING AND IQM_HDRVDP3_FIXTURE_ROOT)
     add_test(NAME csf_double COMMAND csf_reference_test "${IQM_HDRVDP3_FIXTURE_ROOT}/csf")

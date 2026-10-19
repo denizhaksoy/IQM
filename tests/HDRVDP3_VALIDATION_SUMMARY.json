@@ -469,5 +469,15 @@
                                                "csf_double_values":  9984,
                                                "mismatches":  0,
                                                "full_age_metric_verified":  false
-                                           }
+                                           },
+    "spectral_age_checkpoint":  {
+                                    "date":  "2026-10-19",
+                                    "path":  "validation/spectral_age_639280297796803042/COMPLETED.json",
+                                    "ages":  13,
+                                    "double_values":  16822,
+                                    "double_mismatches":  0,
+                                    "legacy_age24_exact":  true,
+                                    "raw_spectral_resampling_ported":  false,
+                                    "full_age_metric_verified":  false
+                                }
 }

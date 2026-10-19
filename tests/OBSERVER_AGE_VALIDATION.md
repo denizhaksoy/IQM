@@ -57,8 +57,10 @@ the normalized LMSR matrix. The current C++ single JND path and Vulkan map
 shader retain age-24 D65 coefficients. Default CSF parameters also select age
 24 unless explicitly supplied.
 
-Next implement and independently compare the age-dependent spectral matrix,
-including 60/60.001 and the age-24 regression. Then pass observer age and the
+The subsequent [spectral calibration checkpoint](SPECTRAL_AGE_VALIDATION.md)
+now matches 16,822 double values across 13 ages, including 60/60.001 and the
+age-24 legacy coefficients. It consumes native resampled spectral inputs;
+raw spectral file loading/resampling is not yet ported. Next pass observer age and the
 matrix consistently through pupil, JND, CSF/AESL and all native validators;
 run fresh full metric pairs. Merely exposing an age environment variable
 would give inconsistent processing and is not an accepted implementation.

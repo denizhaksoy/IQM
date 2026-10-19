@@ -2,7 +2,48 @@
 
 Last updated: 2026-10-19 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Latest continuation: ordinary HDR60 and isolated age components
+## Latest continuation: exact age-dependent spectral calibration
+
+- New independent C++ component:include/IQM/hdrvdp3/spectral.h and
+  src/hdrvdp3/spectral.cpp. Input is native-resampled double wavelength,
+  D65 emission and LMSR sensitivity. Computes optical-density nodes,pchip,
+  transmission,filtered emission,trapz integrals and normalized LMSR matrix.
+  Not connected to the main metric yet;no production defaults/shaders changed.
+- All six stages match native v3.0.7 numerically in double across13 ages
+  (15,19.999,20,24,28,32,45,60,60.001,75,83,83.001,100):16,822 compared
+  values,zero differences. Includes the age60 lens branch and age32 zero
+  correction. Age24 L/M/R coefficients equal the old constants exactly.
+  Strict non-FMA standalone target spectral_age_test passes CTest.
+- Evidence:validation/spectral_age_639280297796803042/COMPLETED.json;
+  pointer validation/spectral_age_completed_path.txt. hashes.json pins code,
+  native visual/loader/data files,reference samples and final executable.
+  Initial/final stage logs,ctest_final.log and official_integration.log kept.
+- Official loader actually emits420 wavelengths over360..780,not421 at1nm.
+  Preserve the exact linspace grid. Raw spectral file interpolation has NOT
+  been ported;new API consumes the official resampled fixture. Do not claim
+  independent raw spectral loading or full observer-age metric parity.
+- Native-only official hdrvdp3 quality calls at13 ages check26 printed LMSR
+  matrices at15 decimal places and104 single coefficients;identical-image
+  Q/Q_JOD are10. This is an oracle consistency check,not C++ full-age parity
+  or full-double validation. The separate16822-value trace is the exact proof.
+- Tools:generate_spectral_age_reference.m,verify_spectral_age.cpp,
+  validate_spectral_age_official.m;independent tests/hdrvdp3_scalar target.
+  Configure IQM_HDRVDP3_SPECTRAL_FIXTURE to the absolute fresh fixture path,
+  build spectral_age_test and run CTest -R '^spectral_age_double$'.
+  Details and source attribution:tests/SPECTRAL_AGE_VALIDATION.md.
+- Preserve staged shader blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,
+  dirty lib/VkFFT and all mixed changes. Only verified new component/tools/docs
+  are eligible for this scoped commit;no push and no blanket shader rebuild.
+
+Exact next step:pass calibrated L/M/R coefficients into CPU JND and GPU
+adaptation_input/JND operations (currently fixed age24);retain exact default
+regression. Propagate age into pupil and CSF/AESL plus validators,then run
+fresh full metric cases at24,60,60.001 before broadening. A pinned native
+resampled spectral fixture can bootstrap integration,but raw spectral data
+loading/resampling remains an explicit separate task. Use fresh shader/export
+directories and preserve ABI12 and all prior binaries if shader inputs change.
+
+## Previous continuation: ordinary HDR60 and isolated age components
 
 - Eight fresh ordinary HDR60 pairs are complete at32/64: ramp localized,
   edges localized, ramp brighter and edges stronger. All strict native
@@ -45,12 +86,9 @@ Last updated: 2026-10-19 (Europe/Prague). Branch: `feature/hdr-vdp3`.
   1cf7baedb1d54be0ca8ad02d14485e510b0434e7. Scoped commits cover only verified
   reference tools/docs;main integration and GPU checker remain local. No push.
 
-Exact next step:implement an independent age-dependent D65/LMSR calibration
-oracle and C++ path (lens optical density,pchip,transmission,trapz,normalization).
-Compare age24 and60/60.001 first,then the expanded ages. Propagate validated
-coefficients and age consistently into pupil,JND,CSF/AESL and native validators
-before exposing an age option or claiming full age support. Continue real
-HDR/color loading,public API and arbitrary full-pipeline dimensions afterward.
+The spectral calibration next step from this checkpoint is completed above
+for native-resampled inputs. Full age integration,raw spectral loading,real
+HDR/color,public API and arbitrary full-pipeline dimensions remain unfinished.
 
 ## Previous continuation: 32x32 stress/HDR and 60 ppd
 
