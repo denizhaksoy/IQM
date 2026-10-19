@@ -1,5 +1,10 @@
 # SPYR dimension and32x32 mask validation
 
+Subsequent2026-10-19 progress:[full32 metric checkpoint](FFT32_VALIDATION.md)
+now validates six32x32 pairs andsix64x64 regressions. This supersedes the
+pending32 preprocessing/band-count work described at the end of this earlier
+dimension checkpoint;other raw-SPYR shapes still lack full-metric validation.
+
 Checkpoint updated2026-10-19 (Europe/Prague). These measurements describe
 local GPU/integration work;they do not establish a generalized public metric.
 Scalar CSF/resize checkpoints remain committed in51525e0 and7ce32a0.

@@ -1,5 +1,11 @@
 # Masking and quality validation
 
+Current2026-10-19 extension:six32x32 full-metric pairs now match official
+Q/Q_JOD and strict intermediates;the four-band GPU checker compares342276
+float values and14208 double masks with zero differences. Six64x64 regressions
+also pass. See [full32 checkpoint](FFT32_VALIDATION.md). This supersedes the
+earlier pending32x32 implementation notes below within this specific scope.
+
 2026-10-19 follow-up:after generalized raw SPYR arithmetic,eight fresh64x64
 pairs (original6,HDRstress2) still match official Q/Q_JOD and all strict
 intermediates. The new32x32 mask-resize checker independently rechecks those

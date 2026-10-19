@@ -1,5 +1,11 @@
 # Vulkan CSF, resize and masking maps
 
+Current2026-10-19 extension:the32x32 opt-in full pipeline now passes six pairs,
+with four bands and native8x8 base FFT at7.5ppd base sampling. Six64 regressions
+pass after dimension parameterization. Map ABI12 and base FFT ABI81 are
+unchanged;new preprocessing FFT64 is ABI6401. See [full32 checkpoint](FFT32_VALIDATION.md).
+Earlier notes about fixed64 input below retain their historical scope.
+
 2026-10-19 extension:the local comparison-mask backend now accepts32x32 binary
 inputs with32/16/8 outputs. Fresh192 cases/86016 binary64 outputs match native
 imresize bitwise;64x64 regression adds256 cases/348160 exact outputs. Map ABI12

@@ -67,9 +67,9 @@ static std::vector<float> read(const std::filesystem::path& path,unsigned expect
     std::vector<float> values(h*w); for(auto& value:values) if(!(f>>value)) throw std::runtime_error("Truncated input");
     return values;
 }
-static void save(const std::filesystem::path& path,const std::vector<std::array<float,2>>& values) {
+static void save(const std::filesystem::path& path,const std::vector<std::array<float,2>>& values,unsigned n) {
     std::ofstream f(path); if(!f) throw std::runtime_error("Cannot write diagnostic output");
-    f<<"128 256\n"<<std::setprecision(9);
+    f<<n<<' '<<2*n<<'\n'<<std::setprecision(9);
     for(const auto& z:values) f<<z[0]<<'\n'<<z[1]<<'\n';
 }
 static int codelets(const std::filesystem::path& output,bool second=false,unsigned group=128,bool forward=false) {
@@ -234,16 +234,18 @@ int main(int argc,char** argv) {
     if((argc==3 || argc==4) && (std::string(argv[1])=="--codelets" || std::string(argv[1])=="--second-axis")) {
         try { return codelets(argv[2],std::string(argv[1])=="--second-axis",argc==4?std::stoul(argv[3]):128); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
     }
-    if(argc!=4 && argc!=5) { std::cerr<<"Usage: IQM-fftw-plan-test <GPU export dir> <new output dir> <native single threads> [native wisdom]\n"; return 2; }
+    if(argc!=4 && argc!=5 && argc!=6) { std::cerr<<"Usage: IQM-fftw-plan-test <export dir> <new output dir> <native single threads> [native wisdom] [FFT side64 or128]\n"; return 2; }
     try {
-        constexpr unsigned N=128, Half=65; constexpr size_t Count=N*N;
+        const unsigned N=argc==6?std::stoul(argv[5]):128;
+        if(N!=64&&N!=128) throw std::runtime_error("Unvalidated FFT inspection size");
+        const unsigned Half=N/2+1; const size_t Count=size_t(N)*N;
         const std::filesystem::path source(argv[1]), output(argv[2]);
         const int native_threads=std::stoi(argv[3]);
         if(native_threads<=0) throw std::runtime_error("Thread count must be positive");
         if(!std::filesystem::create_directory(output)) throw std::runtime_error("Output directory must be new");
         FFTW api;
         std::string wisdom;
-        if(argc==5) { std::ifstream f(argv[4]); wisdom.assign(std::istreambuf_iterator<char>(f),{});
+        if(argc>=5 && std::string(argv[4])!="-") { std::ifstream f(argv[4]); wisdom.assign(std::istreambuf_iterator<char>(f),{});
             if(wisdom.empty()) throw std::runtime_error("Cannot read native wisdom"); }
         std::ofstream summary(output/"plans.txt");
         std::ofstream(output/"single_threads.txt")<<native_threads<<'\n';
@@ -256,9 +258,17 @@ int main(int argc,char** argv) {
             std::sort(thread_counts.begin(),thread_counts.end());
             thread_counts.erase(std::unique(thread_counts.begin(),thread_counts.end()),thread_counts.end());
             for(int thread_count:thread_counts) for(bool unaligned:{false,true}) {
+                api.threads(thread_count);
                 api.forget_wisdom();
                 if(!wisdom.empty() && !api.import_wisdom(wisdom.c_str()))
-                    throw std::runtime_error("Native FFTW wisdom import failed");
+                {
+                    auto export_wisdom=api.symbol<char* (*)()>("fftwf_export_wisdom_to_string");
+                    char* diagnostic=export_wisdom();
+                    std::ofstream(output/"wisdom_import_diagnostic.txt")<<diagnostic;
+                    std::free(diagnostic);
+                    const auto version=reinterpret_cast<const char*>(GetProcAddress(api.dll,"fftwf_version"));
+                    throw std::runtime_error(std::string("Native FFTW wisdom import failed; DLL version=")+(version?version:"unknown"));
+                }
                 const unsigned flags=64u | (unaligned ? 2u : 0u); // FFTW_ESTIMATE, FFTW_UNALIGNED
                 api.threads(thread_count);
                 Allocation real_mem(api,Count*sizeof(float)), half_mem(api,Count*sizeof(Complex));
@@ -274,7 +284,7 @@ int main(int argc,char** argv) {
                     ci[x*N+y][0]=filtered[raw*2]; ci[x*N+y][1]=filtered[raw*2+1];
                 }
                 const std::string tag=std::string(label)+"_threads"+std::to_string(thread_count)+(unaligned?"_unaligned":"_aligned");
-                const int dims[2]={N,N};
+                const int dims[2]={static_cast<int>(N),static_cast<int>(N)};
                 const unsigned planning_flags=flags | (wisdom.empty() ? 0u : (1u<<21)); // FFTW_WISDOM_ONLY
                 Plan forward{api,api.real_many_plan(2,dims,1,real,nullptr,1,Count,
                     half,nullptr,1,Count,planning_flags)};
@@ -304,7 +314,7 @@ int main(int argc,char** argv) {
                     f[y*N+x]={half[idx][0],conjugate?-half[idx][1]:half[idx][1]};
                     inv[y*N+x]={co[x*N+y][0]/static_cast<float>(Count),co[x*N+y][1]/static_cast<float>(Count)};
                 }
-                save(output/(tag+"_forward.txt"),f); save(output/(tag+"_inverse.txt"),inv);
+                save(output/(tag+"_forward.txt"),f,N); save(output/(tag+"_inverse.txt"),inv,N);
             }
         }
         std::cout<<"FFTW plan inspection saved to "<<output.string()<<'\n'; return 0;

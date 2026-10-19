@@ -2,7 +2,82 @@
 
 Last updated: 2026-10-19 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Current local checkpoint: generalized raw SPYR and32x32 comparison masks
+## Current local checkpoint: six full32x32 pairs plus64x64 regressions
+
+-2026-10-19:implemented and validated32x32 MTF/local adaptation using64x64
+  reference FFT,then extended the full test pipeline to four bands. Six32
+  pairs andsix64 regressions pass direct official Q/Q_JOD and strict stages.
+  No push. Mixed GPU/application integration remains local/uncommitted;
+  reference tools/docs are eligible for a separate scoped checkpoint.
+-32 pair Q/Q_JOD:asymmetric_localized8.3328084945678711/8.9990530014038086;
+  stronger9.9952077865600586/9.9994449615478516;brighter
+  9.9999408721923828/9.9999980926513672;diagonal9.9999361038208008/
+  9.9999980926513672;impulse andidentical10/10. All equal official outputs.
+  Independent32 GPU checks:6*57046=342276 float values,6*2368=14208 double
+  masks,zero differences.64 regressions:1368330 float,57216 double,zero.
+  Raw/native SPYR and centered residual logs also explicitly checked.
+- Isolated native scalar FFT64 shader ABI6401:four forward/inverse transforms,
+  32768 float components exact. Graphs r2cf_64/n1_64 from pinned FFTW3.3.10
+  GPL sources;original C files and COPYING retained in artifact shader folder.
+  SHA256=8F339ADF6FF03BB5E1D44EF1D767682ABDF136C7E82EF1C9FD30C719CAAD5460.
+  Only Shader SPIR-V capability;no float64/int64. Same graph selectors8/9 and
+  3/4 as reference128,with64 dimensions and inverse division by4096 once.
+- Native DLL inspection accepts optional FFT side64/128,default128. '-' wisdom
+  argument means fresh estimate. Native scalar/unaligned one/three-thread
+  plans match eight comparisons;aligned AVX2 plans differ in eight. Native
+  wisdom import failed with registry-header checksum mismatch,even after
+  initializing thread count first. Loaded DLL path/version verified against
+  the running Octave process. No wisdom rewrite/forced import. Root cause
+  remains unresolved;direct scalar numerical comparisons establish the path.
+- LocalAdaptFFTInput width/height default64,explicit32/64 square guards;
+  32 requires reference backend. Scratch/dispatch/crop/trace/kernel sizes now
+  use dimensions. Main test compute_fft_filter_gpu infers32/64 square input.
+  IQM_FFT_REFERENCE_SHADER64 is separate from original128 shader path.
+- Isolated MTF+local adaptation now exact for asymmetric/impulse/HDR ramp at32
+  and asymmetric64:1075200 float comparisons total,zero differences. Shared
+  binary32 luminance,MTF symmetric post padding,LA replicate post padding,
+  native L+M/log/exp,sigma10^-0.781367*30 and column-major interleaved FFT.
+  Full input32 uses area1024/900 and residual8x8 with7.5ppd base sampling.
+- Full wrapper IQM_SPYR_SIZE=32/64;localized patch x=width/2..width/2+7,
+  retaining y13..20. band_count.txt records4/5. Validators/checker discover
+  this count;old exports default5. Quality score indexing/pooling and physical
+  base frequency are dynamic. Runner adds-InputSize/-GPUChecker,32 prefixes,
+  and clears isolated probe flags. Default64 behavior passed six regressions.
+- First32 application matched official Q but checker retained literal band4
+  filename;fixed to dynamic b. Preserved failure,then fresh checker build and
+  fresh six-case32 suite. Concurrent64 checker was not overwritten. New32
+  suite:quality_gpu_base_fft_suite_32_639280130799228493;64:
+  quality_gpu_base_fft_suite_639280129214275004 under validation/.
+- Evidence:validation/fft32_native_639280099461894780/COMPLETED.json,PASS.txt,
+  full_suite_paths.json,final_source_and_binary_hashes.json,all failed/success
+  logs and prior/accepted binaries. validation/fft32_completed_path.txt selects
+  it. finalize_fft32_checkpoint.ps1 checks all counts,raw/DC SPYR logs,score
+  equality,source/binary hashes and Vulkan logs before completion. Updated
+  portable JSON retains older18-pair/dimension checkpoints separately.
+- New tools:generate_fft_size_reference.m,prepare_fft_size_gpu_reference.m,
+  generate_fft64_reference_shader.ps1,validate_fft_size_plans.m,
+  validate_fft_size_pipeline.m,hdrvdp_validation_band_count.m;native inspector
+  and codelet checker add64 support. Root artifacts include exact commands and
+  metadata;generation requires fresh folders. See tests/FFT32_VALIDATION.md.
+- Added independently publishable tests/hdrvdp3_fft64 CMake project and
+  verify_fft64_reference.cpp (one64x64 matrix,strict equality). A clean HEAD
+  archive plus only these selected sources and updated native inspector builds
+  both tools and passes all four GPU transforms/eight native scalar comparisons.
+  CANDIDATE_PASS.txt and fft64_candidate_* folders retain that proof. This
+  avoids committing the pre-existing mixed changes in fft_codelet_gpu_test.cpp,
+  the main wrapper,LocalAdaptFFT and the general test CMake project. Published
+  tools do not require those uncommitted integration changes.
+- Exact next step:add32 phase_shift/localized_stronger/threshold comparisons
+  using the new runner,keeping fresh exports. Before full-HDR32/three-impulse
+  metric coverage,fix main wrapper's315 HDR ramp denominator and64-specific
+  impulse coordinates;separate preprocessing generators already scale bysize.
+  Then viewing parameters,real HDR/color,public API/other modes and CPU double
+  preparation remain.32 VkFFT and arbitrary rectangles remain unsupported.
+- Preserve staged shader1cf7baedb1d54be0ca8ad02d14485e510b0434e7,all pre-existing
+  changes/untracked artifacts and dirty lib/VkFFT. Existing scalar commits and
+  e65799b docs/tools remain local;no push in this continuation.
+
+## Historical local checkpoint: generalized raw SPYR and32x32 comparison masks
 
 - Continued without requesting approval. Existing local commits51525e0,
   7ce32a0 andf0ce345 are preserved;no push in this continuation. New verified
