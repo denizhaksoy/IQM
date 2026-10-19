@@ -2,7 +2,57 @@
 
 Last updated: 2026-10-19 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Latest continuation: 32x32 stress/HDR and 60 ppd
+## Latest continuation: ordinary HDR60 and isolated age components
+
+- Eight fresh ordinary HDR60 pairs are complete at32/64: ramp localized,
+  edges localized, ramp brighter and edges stronger. All strict native
+  stages, raw/centered SPYR, official Q/Q_JOD and GPU intermediate comparisons
+  are exact. New comparisons:1,140,404 float values and47,616 binary64 mask
+  words, zero differences. Eight actual exported input geometry checks pass.
+  Root:validation/ppd60_hdr_standard_639280292107529786/COMPLETED.json;
+  pointer:validation/ppd60_hdr_standard_completed_path.txt. Run the local
+  validation/finalize_ppd60_checkpoint.ps1 -HDRStandard to recheck.
+- All three viewing checkpoints now cover22 fresh pairs (20 at60ppd,two
+  controls at30ppd),2,623,084 floats and109,440 double mask words. This is
+  distinct from the older stress32 checkpoint. Do not count reruns as unique
+  cases. tests/PPD60_VALIDATION.md and portable JSON retain separate records.
+- Application and original checker hashes match the prior verified viewing
+  checkpoint throughout HDR runs; neither executable was rebuilt. New pupil
+  checker was built separately under the new age root. No shaders changed.
+- Isolated pupil ages:0,15,19.999,20,24,28,45,60,60.001,75,83,83.001,100;
+  sizes32/64,ppd30/60,five constant/ramp/random adaptation maps. Official
+  geomean/pupil_d_unified vs GPU:260 cases,1,040 single trace values exact.
+  Out-of-range ages exercise the pupil20..83 clamp,not full observer support.
+- Scalar CSF/AESL across the same13 ages,on/off,12 frequencies,16 luminances:
+  4,992 double-luminance plus4,992 single-luminance queries;both compared in
+  double,all9,984 exact. Default24/45/70 generator regressions also pass
+  1,152+1,152 double comparisons;these repeats are not new coverage.
+- Age evidence:validation/pupil_age_639280292892783820/COMPLETED.json;
+  pointer:validation/pupil_age_completed_path.txt. Saved source snapshots,
+  final_hashes.json,build/configure logs,reference metadata and GPU/CSF logs
+  pin the implementation and native sources. Accepted CSF fixture is
+  csf_precise_age;first csf fixture retained,not counted twice. The generator
+  now accepts optional comma-separated ages and exports ages at17 digits.
+  Default historical age list remains unchanged. New generator is
+  tests/generate_pupil_age_reference.m;local GPU checker adds --pupil-age.
+- Read tests/OBSERVER_AGE_VALIDATION.md before extending full age support.
+  Native quality enables do_aod/do_aesl/do_slum and disables do_aslw. The
+  lens-density formula branches at60,then pchip/transmission/trapz/normalizing
+  produces an age-dependent LMSR matrix. Existing C++ single JND and GPU
+  shader still hardcode age24 D65 coefficients. CSF defaults also remain24.
+  Full metric observer-age parity is NOT established by these component tests.
+- Preserve existing mixed changes,dirty lib/VkFFT and staged shader blob
+  1cf7baedb1d54be0ca8ad02d14485e510b0434e7. Scoped commits cover only verified
+  reference tools/docs;main integration and GPU checker remain local. No push.
+
+Exact next step:implement an independent age-dependent D65/LMSR calibration
+oracle and C++ path (lens optical density,pchip,transmission,trapz,normalization).
+Compare age24 and60/60.001 first,then the expanded ages. Propagate validated
+coefficients and age consistently into pupil,JND,CSF/AESL and native validators
+before exposing an age option or claiming full age support. Continue real
+HDR/color loading,public API and arbitrary full-pipeline dimensions afterward.
+
+## Previous continuation: 32x32 stress/HDR and 60 ppd
 
 This section supersedes older remaining-work statements below. Historical
 measurements and failures are retained; do not treat old tolerance passes as
@@ -63,15 +113,11 @@ exact parity or combine repeated runs into unique case coverage.
   clean, blanket shader rebuild or push. Only scoped verified tools/docs
   should be committed; earlier user authorization permits those commits.
 
-Exact next step after the 60ppd checkpoint: add the four ordinary HDR
-transforms at both sizes using -HDR -PixelsPerDegree 60 (without -Stress).
-The two HDR stress transforms at both sizes already pass; do not repeat them.
-Keep the present executable pinned while suites run. Then review observer-age
-support across pupil, AESL/CSF and lens/spectral calibration together; pupil
-age alone is insufficient (JND single calibration is explicitly age24/D65).
-Real HDR/color loading, arbitrary full-pipeline dimensions, public API and
-remaining CPU double preparation remain unfinished. No measured percentage
-of total implementation completion is available.
+The next-step statement from this checkpoint is superseded above:ordinary
+HDR60 transforms and isolated pupil/CSF age checks are now complete. Full age,
+real HDR/color loading,arbitrary full-pipeline dimensions,public API and
+remaining CPU preparation remain unfinished. No measured total completion
+percentage is available.
 
 ## Current local checkpoint: six full32x32 pairs plus64x64 regressions
 

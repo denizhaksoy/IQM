@@ -4,7 +4,7 @@
     "date":  "2026-10-19",
     "branch":  "feature/hdr-vdp3",
     "implementation_baseline_commit":  "b46666df138c5b2770f004ad59603a2d0eaf28ab",
-    "scope":  "Historical18-case64x64 matrix retained in top-level counts/cases. Later fft32_checkpoint,stress32_checkpoint,ppd60_checkpoint and ppd60_hdr_checkpoint retain distinct evidence:32/64 square,30/60ppd,age24,D65 positive synthetic luminance. Canonical32 has18 labels across two accepted binary groups;not a single-binary18-case run.",
+    "scope":  "Historical18-case64x64 matrix remains in top-level counts/cases. Named checkpoints retain later32/64 square,30/60ppd,age24,D65 positive synthetic luminance evidence. Viewing checkpoints cover22 fresh pairs;observer_age_components_checkpoint covers isolated pupil and CSF only,not full age parity. Canonical32 labels span two accepted binary groups.",
     "map_shader_abi":  12,
     "shader_sha256":  "16CE90C5E22997F7DB7E7286F71AAE963F5EAA15A1E715BA19022DAEB36E23A1",
     "base_fft_abi":  81,
@@ -449,5 +449,25 @@
                                  "double_mask_values":  23808,
                                  "float_mismatches":  0,
                                  "double_bit_mismatches":  0
-                             }
+                             },
+    "ppd60_hdr_standard_checkpoint":  {
+                                          "date":  "2026-10-19",
+                                          "path":  "validation/ppd60_hdr_standard_639280292107529786/COMPLETED.json",
+                                          "pairs":  8,
+                                          "ppd60_pairs":  8,
+                                          "ppd30_controls":  0,
+                                          "float_values":  1140404,
+                                          "double_mask_values":  47616,
+                                          "float_mismatches":  0,
+                                          "double_bit_mismatches":  0
+                                      },
+    "observer_age_components_checkpoint":  {
+                                               "date":  "2026-10-19",
+                                               "path":  "validation/pupil_age_639280292892783820/COMPLETED.json",
+                                               "pupil_cases":  260,
+                                               "pupil_single_values":  1040,
+                                               "csf_double_values":  9984,
+                                               "mismatches":  0,
+                                               "full_age_metric_verified":  false
+                                           }
 }

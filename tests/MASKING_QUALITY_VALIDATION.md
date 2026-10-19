@@ -230,7 +230,9 @@ The scope statements above describe historical checkpoints. Subsequent
 [32x32 validation](FFT32_VALIDATION.md) adds stress, HDR and corrected
 three-impulse coverage, with 17 fresh pairs and zero numeric differences.
 The canonical 32x32 matrix has 18 labels across two accepted binary groups.
-[Viewing-parameter validation](PPD60_VALIDATION.md) records ten fresh
-30/60 ppd pairs with exact intermediate and official Q/Q_JOD comparisons.
+[Viewing-parameter validation](PPD60_VALIDATION.md) records 22 fresh
+30/60 ppd pairs, including both HDR transform groups, with exact intermediate
+and official Q/Q_JOD comparisons. [Observer-age component checks](OBSERVER_AGE_VALIDATION.md)
+add isolated pupil and double CSF/AESL validation; full scores remain age24.
 The portable JSON retains these checkpoints separately; mixed application
 integration remains local, and the public metric API remains incomplete.

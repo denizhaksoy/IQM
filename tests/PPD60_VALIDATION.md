@@ -58,6 +58,21 @@ pairs, 1,482,680 float values and 61,824 double mask words without differences.
 | HDR edge phase shift | 64 | 60 | 3.7124395370483398 | 4.5169939994812012 |
 | HDR ramp stronger localized | 64 | 60 | 9.9616508483886719 | 9.9920291900634766 |
 
+## Ordinary HDR transforms completed
+
+`validation/ppd60_hdr_standard_completed_path.txt` selects eight additional
+pairs: HDR ramp/edges with localized distortion, ramp with global brightening,
+and edges with stronger global brightening, each at 32x32 and 64x64. These
+use the same verified application/checker hashes as the viewing checkpoints
+above. All native stages, raw/centered SPYR bands and official scores match.
+Independent GPU comparisons add **1,140,404 floats and 47,616 binary64 mask
+values, zero differences**. All eight exported input geometry checks pass.
+
+The three viewing checkpoints together contain 22 fresh pairs: 20 at 60 ppd
+and two 30 ppd controls. They total 2,623,084 float comparisons and 109,440
+double mask comparisons. Repeated runs are not unique input-case coverage.
+The full score table and hashes are in the individual checkpoint records.
+
 ## Equivalence and limits
 
 Official comparisons consume the actual exported single-precision luminance,
@@ -74,8 +89,7 @@ and use a fresh export for each rerun.
 
 The prior [32x32 HDR/stress checkpoint](FFT32_VALIDATION.md) remains separate:
 its canonical 18 labels span two accepted binary groups at 30 ppd. Do not add
-repeated regression runs to unique case coverage. The four ordinary HDR
-transforms at 60 ppd, observer-age changes, real HDR/color input, arbitrary
-dimensions, other devices and public
+repeated regression runs to unique case coverage. Observer-age changes,
+real HDR/color input, arbitrary dimensions, other devices and public
 API behavior remain to be validated. Observer age requires consistent pupil,
 AESL/CSF and spectral/lens handling; changing only the pupil is insufficient.
