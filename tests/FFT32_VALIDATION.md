@@ -91,10 +91,29 @@ separate checker build,without changing the concurrent64 regression binary.
 
 ## Remaining scope
 
-This proves six synthetic32 pairs at30ppd/age24/D65,not arbitrary dimensions,
-viewing parameters,color inputs,devices or output modes. The main32 test
-wrapper still has64-specific HDR ramp scaling/impulse coordinates;correct
-those before claiming equivalent full-HDR32 or three-impulse metric coverage.
-The separate preprocessing HDR/impulse generator already uses size-aware
-coordinates/range. Add32 low-quality/threshold comparisons next,then continue
-viewing parameters,real HDR/color,public API and remaining CPU preparation.
+The original six-pair checkpoint above is historical. The subsequent input
+geometry and stress checkpoint below expands its scope. Arbitrary dimensions,
+color inputs,devices,observer ages and output modes remain unvalidated.
+
+## Subsequent 32x32 stress and HDR checkpoint (2026-10-19)
+
+`validation/stress32_639280137550795829/COMPLETED.json` records 17 fresh pairs:
+six 32x32 stress pairs, four 32x32 HDR pairs, two 32x32 HDR stress pairs,
+one corrected three-impulse 32x32 pair and four 64x64 HDR controls. Official
+Q/Q_JOD, strict preprocessing, raw and centered SPYR bands and independent
+GPU intermediates all match. There are 1,653,818 numeric float comparisons
+and 68,928 binary64 mask comparisons, with zero differences.
+
+The test input generator now scales HDR ramps over the complete image,
+preserves eight HDR edge levels at either size and places all three impulses
+inside the image. The independent `validate_input_geometry.m` checks 11
+exported inputs. Eight 64x64 luminance file hashes match the earlier HDR
+checkpoint, confirming unchanged control inputs.
+
+The canonical 32x32 matrix contains 18 labels: five earlier core cases plus
+six stress cases on the baseline binary, and six HDR cases plus the corrected
+impulse case on the shape-aware binary. This is accepted coverage across two
+binary groups, not an 18-case run of one binary. The old single-impulse 32x32
+case is replaced rather than counted twice. Saved binaries and manifests
+preserve both scopes. The implementation remains local; these records do
+not imply that mixed application integration has been published.

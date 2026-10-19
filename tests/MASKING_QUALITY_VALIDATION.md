@@ -223,3 +223,14 @@ Combined:4104990 single GPU values and171648 binary64 mask values,zero
 differences. This publication notice remains applicable:these latest changes
 have not been committed/pushed and do not expose a completed public metric API.
 Full scope is still64x64/30ppd/age24/D65 positive luminance,synthetic inputs.
+
+## Later size, HDR and viewing-parameter checkpoints (2026-10-19)
+
+The scope statements above describe historical checkpoints. Subsequent
+[32x32 validation](FFT32_VALIDATION.md) adds stress, HDR and corrected
+three-impulse coverage, with 17 fresh pairs and zero numeric differences.
+The canonical 32x32 matrix has 18 labels across two accepted binary groups.
+[Viewing-parameter validation](PPD60_VALIDATION.md) records ten fresh
+30/60 ppd pairs with exact intermediate and official Q/Q_JOD comparisons.
+The portable JSON retains these checkpoints separately; mixed application
+integration remains local, and the public metric API remains incomplete.

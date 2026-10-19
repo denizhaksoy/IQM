@@ -2,6 +2,77 @@
 
 Last updated: 2026-10-19 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation: 32x32 stress/HDR and 60 ppd
+
+This section supersedes older remaining-work statements below. Historical
+measurements and failures are retained; do not treat old tolerance passes as
+exact parity or combine repeated runs into unique case coverage.
+
+- The 32x32 stress/HDR checkpoint is complete:
+  `validation/stress32_639280137550795829/COMPLETED.json` (selected by
+  `validation/stress32_completed_path.txt`). Seventeen fresh pairs cover six
+  stress32, four HDR32, two HDR stress32, one corrected impulse32 and four
+  HDR64 controls. All strict native stages, raw/centered SPYR and official
+  scores match. Independent GPU comparisons: 1,653,818 floats and 68,928
+  binary64 mask words, zero differences.
+- Shape-aware test input generation fixes HDR ramp normalization, eight-level
+  HDR edge tiling and off-center/right-edge impulse coordinates at 32x32.
+  Eleven exported input geometry checks pass; eight 64x64 HDR luminance file
+  hashes equal the earlier accepted controls. Canonical32 coverage is now
+  18 labels across baseline/shape-aware binary groups, not one 18-case run.
+  The obsolete one-impulse32 case is replaced. See tests/FFT32_VALIDATION.md.
+- The new full-metric parameter path accepts IQM_PIX_PER_DEGREE=30/60;
+  runner option -PixelsPerDegree sets it. It updates MTF, local adaptation,
+  CSF and physical residual frequencies, and visual area=width*height/ppd^2.
+  pixels_per_degree.txt is exported; the shared helper defaults old exports
+  to30. Age24/D65 remain fixed. Size caps still produce four/five bands.
+  60ppd requires FFT preprocessing and Vulkan maps; other values are rejected.
+- Evidence root: `validation/ppd60_639280267907904462`, selected by
+  validation/ppd60_work_path.txt. suite_paths.json records four localized
+  size32/64 x ppd30/60 controls plus the six-case stress32/60ppd suite.
+  PASS.txt and COMPLETED.json were issued by
+  validation/finalize_ppd60_checkpoint.ps1: ten pairs, 912,478 float values,
+  38,016 double mask words, zero differences. Both 30ppd controls retain
+  the earlier scores exactly. tests/PPD60_VALIDATION.md records parameters,
+  scores, layout, precision and DC equivalence.
+- Commands: build IQM and the separate checker32_build target successfully,
+  then tests/run_quality_validation.ps1 -InputSize 32/64 -PixelsPerDegree
+  30/60 -CaseName asymmetric_localized, plus -Stress at32/60 (no CaseName).
+  Use the same pinned math/map/base shaders as the earlier32 checkpoint and
+  fft32_native_639280099461894780/shader64/fft64.spv for32. For64 use
+  validation/fft_forward2d_initial.spv. Full commands and output logs remain
+  in the root; saved candidate executables/source snapshots/hashes preserve
+  this build. Do not rerun older binary-hash finalizers against overwritten
+  executable paths; stress32 finalizer already maps to its saved binaries.
+- Tests/summarize_quality_stress.m now records actual dimensions, band count,
+  ppd and actual mask denominator. tests/validate_input_geometry.m independently
+  checks HDR endpoints/levels and three impulse positions. These are reference
+  tools; mixed application/GPU integration still remains local/uncommitted.
+- Additional 60ppd HDR stress checkpoint is complete:
+  validation/ppd60_hdr_639280272206510764/COMPLETED.json, selected by
+  validation/ppd60_hdr_completed_path.txt. HDR edges/phase shift and HDR
+  ramp/stronger localized distortion pass at both sizes (four pairs), adding
+  570,202 exact float comparisons and 23,808 bitwise double mask comparisons.
+  Four exported input geometry checks pass. Combined viewing checkpoints:
+  14 fresh pairs, 1,482,680 floats, 61,824 double mask words, zero differences.
+  Run validation/finalize_ppd60_checkpoint.ps1 -HDRCheckpoint to recheck.
+  Actual scores, selected physical frequencies and commands are recorded in
+  per-suite logs, all_cases.json and tests/PPD60_VALIDATION.md.
+- Preserve staged corrdn_test shader index blob
+  1cf7baedb1d54be0ca8ad02d14485e510b0434e7 and dirty lib/VkFFT. No reset,
+  clean, blanket shader rebuild or push. Only scoped verified tools/docs
+  should be committed; earlier user authorization permits those commits.
+
+Exact next step after the 60ppd checkpoint: add the four ordinary HDR
+transforms at both sizes using -HDR -PixelsPerDegree 60 (without -Stress).
+The two HDR stress transforms at both sizes already pass; do not repeat them.
+Keep the present executable pinned while suites run. Then review observer-age
+support across pupil, AESL/CSF and lens/spectral calibration together; pupil
+age alone is insufficient (JND single calibration is explicitly age24/D65).
+Real HDR/color loading, arbitrary full-pipeline dimensions, public API and
+remaining CPU double preparation remain unfinished. No measured percentage
+of total implementation completion is available.
+
 ## Current local checkpoint: six full32x32 pairs plus64x64 regressions
 
 -2026-10-19:implemented and validated32x32 MTF/local adaptation using64x64
