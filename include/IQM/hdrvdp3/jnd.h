@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstddef>
+#include <vector>
 
 namespace IQM::HDRVDP3 {
 
@@ -41,6 +42,25 @@ double luminance_to_jnd_response(
     const JNDLUT& lut,
     double luminance
 );
+
+double pupil_luminance_reduction(
+    double adapted_luminance,
+    double area,
+    double age
+);
+
+inline constexpr std::array<double,3> D65_AGE24_LMR{0.65293140835027819,0.34706859164972181,1.0171300679539299};
+// Native single pathway with explicitly calibrated spectral coefficients.
+struct JNDResponseSingle {
+    std::array<float, 3> lmr_before{}, lmr_after{}, log_query{}, channels{};
+    float response = 0.0f;
+};
+JNDResponseSingle luminance_to_jnd_response_single(
+    const JNDLUT& lut, float luminance, float pupil_reduction,
+    const std::array<double,3>& matrix = D65_AGE24_LMR);
+float pupil_luminance_reduction_single(
+    const std::vector<float>& adaptation, unsigned width, unsigned height,
+    double area, double age);
 
 } // namespace IQM::HDRVDP3
 

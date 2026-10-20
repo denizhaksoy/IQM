@@ -4,6 +4,7 @@
  */
 
 #version 450
+#extension GL_GOOGLE_include_directive : require
 #pragma shader_stage(compute)
 
 #include "hdrvdp3_shared.glsl"
@@ -50,8 +51,14 @@ void main() {
     // The filter coefficients in filter_coeffs are stored in row-major order
     // (fy * filter_size + fx) for correlation kernel at (fy, fx)
     
-    for (int fy = 0; fy < push_consts.filter_size; ++fy) {
-        for (int fx = 0; fx < push_consts.filter_size; ++fx) {
+    // Match Octave conv2's convolution traversal after corrDn flips the filter:
+    // descending taps, with a single rounding per multiply-add.
+    // Installed native conv2 traverses along the longer image dimension.
+    bool transpose_path = in_size.x > in_size.y;
+    for (int outer = push_consts.filter_size - 1; outer >= 0; --outer) {
+        for (int inner = push_consts.filter_size - 1; inner >= 0; --inner) {
+            int fx = transpose_path ? inner : outer;
+            int fy = transpose_path ? outer : inner;
             int sample_x = center_x - filter_radius + fx;
             int sample_y = center_y - filter_radius + fy;
             
@@ -84,7 +91,15 @@ void main() {
             
             float val = imageLoad(input_img, ivec2(idx_x, idx_y)).r;
             float coeff = filter_coeffs[fy * push_consts.filter_size + fx];
-            acc += val * coeff;
+            // Compile distinct arithmetic pipelines: mixing precise multiply
+            // with explicit FMA in one shader changed the native FMA results
+            // on the validation device. The harness selects vector/tail rows.
+#ifdef IQM_CORRDN_NON_FMA
+            precise float product = val * coeff;
+            acc += product;
+#else
+            acc = fma(val, coeff, acc);
+#endif
         }
     }
     

@@ -11,6 +11,10 @@ static std::vector<uint32_t> src =
 #include <hdrvdp3/hdrvdp3_corrdn.inc>
 ;
 
+static std::vector<uint32_t> srcNonFma =
+#include <hdrvdp3/hdrvdp3_corrdn_native_tail.inc>
+;
+
 using IQM::GPU::VulkanRuntime;
 
 namespace IQM {
@@ -25,6 +29,8 @@ CorrDn::CorrDn(const vk::raii::Device& device):
     }))
 {
     const auto sm = VulkanRuntime::createShaderModule(device, src);
+    const auto smNonFma =
+    VulkanRuntime::createShaderModule(device, srcNonFma);
 
     this->descSetLayout = std::move(VulkanRuntime::createDescLayout(device, {
         {vk::DescriptorType::eStorageImage, 1},
@@ -47,6 +53,8 @@ CorrDn::CorrDn(const vk::raii::Device& device):
     const auto pushConstantRanges = VulkanRuntime::createPushConstantRange(sizeof(int) * 5);
     this->layout = VulkanRuntime::createPipelineLayout(device, descLayouts, pushConstantRanges);
     this->pipeline = VulkanRuntime::createComputePipeline(device, sm, this->layout);
+    this->pipelineNonFma =
+    VulkanRuntime::createComputePipeline(device, smNonFma, this->layout);
 }
 
 void CorrDn::compute(const CorrDnInput& input) const {
@@ -83,7 +91,10 @@ void CorrDn::compute(const CorrDnInput& input) const {
         writeSetIn, writeSetOut, writeSetFilter,
     }, nullptr);
 
-    input.cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->pipeline);
+    input.cmdBuf->bindPipeline(
+    vk::PipelineBindPoint::eCompute,
+    input.use_non_fma ? this->pipelineNonFma : this->pipeline
+);
     input.cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->layout, 0, {this->descSet}, {});
 
     struct PushConstants {

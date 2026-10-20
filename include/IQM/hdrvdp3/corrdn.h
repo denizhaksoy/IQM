@@ -24,6 +24,7 @@ struct CorrDnInput {
     int step_y;
     int start_x;
     int start_y;
+    bool use_non_fma = false;
 };
 
 class CorrDn {
@@ -35,6 +36,7 @@ private:
     vk::raii::DescriptorPool descPool;
     vk::raii::PipelineLayout layout = VK_NULL_HANDLE;
     vk::raii::Pipeline pipeline = VK_NULL_HANDLE;
+    vk::raii::Pipeline pipelineNonFma = VK_NULL_HANDLE;
     vk::raii::DescriptorSetLayout descSetLayout = VK_NULL_HANDLE;
     vk::raii::DescriptorSet descSet = VK_NULL_HANDLE;
 };

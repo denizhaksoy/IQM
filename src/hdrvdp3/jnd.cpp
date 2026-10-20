@@ -93,19 +93,19 @@ JNDLUT create_jnd_lut(const JNDParameters& params) {
         ) * rod_scale;
     }
 
+    std::vector<double> cone_source(JND_LUT_SIZE);
+
+    for (std::size_t j = 0; j < JND_LUT_SIZE; ++j) {
+        cone_source[j] = std::max(
+            combined[j] - rods[j], 1e-3
+        );
+    }
+
     for (std::size_t i = 0; i < JND_LUT_SIZE; ++i) {
         const double query = std::min(
             luminance[i] * 2.0,
             luminance.back()
         );
-
-        std::vector<double> cone_source(JND_LUT_SIZE);
-
-        for (std::size_t j = 0; j < JND_LUT_SIZE; ++j) {
-            cone_source[j] = std::max(
-                combined[j] - rods[j], 1e-3
-            );
-        }
 
         cones[i] = 0.5 * interpolate(
             luminance, cone_source, query
@@ -167,9 +167,9 @@ double luminance_to_jnd_response(
     const JNDLUT& lut,
     double luminance
 ) {
-    constexpr double L_COEFF = 0.655210476047497;
-    constexpr double M_COEFF = 0.344789523952503;
-    constexpr double R_COEFF = 0.984884098986881;
+    constexpr double L_COEFF = 0.652931408350278;
+    constexpr double M_COEFF = 0.347068591649722;
+    constexpr double R_COEFF = 1.017130067953930;
 
     const double L = sample_jnd(
         lut, std::clamp(luminance * L_COEFF, 1e-8, 1e10), false
@@ -184,6 +184,40 @@ double luminance_to_jnd_response(
     );
 
     return L + M + R;
+}
+
+double pupil_d_stanley_davies(double luminance, double area)
+{
+    const double x = std::pow(
+        luminance * area / 846.0, 0.41
+    );
+
+    return 7.75 - 5.75 * (x / (x + 2.0));
+}
+
+double pupil_d_unified(double luminance, double area, double age)
+{
+    const double y = std::clamp(age, 20.0, 83.0);
+
+    const double d_sd =
+        pupil_d_stanley_davies(luminance, area);
+
+    return d_sd
+        + (y - 28.58) * (0.02132 - 0.009562 * d_sd);
+}
+
+double pupil_luminance_reduction(
+    double adapted_luminance,
+    double area,
+    double age)
+{
+    const double d_ref =
+        pupil_d_unified(adapted_luminance, area, 28.0);
+
+    const double d_age =
+        pupil_d_unified(adapted_luminance, area, age);
+
+    return (d_age * d_age) / (d_ref * d_ref);
 }
 
 } // namespace IQM::HDRVDP3

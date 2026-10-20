@@ -15,6 +15,7 @@
 #include <string>
 
 #include <IQM/hdrvdp3/local_adapt.h>
+#include <IQM/hdrvdp3/mtf.h>
 
 #include <IQM/base/vulkan_runtime.h>
 
@@ -62,7 +63,7 @@ static int computeKernelSize(float sigma) {
 
 }
 
-static std::vector<float> generateGaussianKernel2D(float sigma, unsigned width, unsigned height) {
+static std::vector<float> generateGaussianKernel2D(double sigma, unsigned width, unsigned height) {
 
     // Generate 2D frequency-domain Gaussian kernel matching fast_gauss.m exactly
 
@@ -82,25 +83,25 @@ static std::vector<float> generateGaussianKernel2D(float sigma, unsigned width, 
 
     // DC component is at index (0, 0)
 
-    const float two_pi = 2.0f * 3.14159265358979323846f;
+    const double two_pi = 2.0 * 3.14159265358979323846;
 
-    const float sigma2 = sigma * sigma;
+    const double sigma2 = sigma * sigma;
 
     std::vector<float> kernel(width * height);
 
     for (unsigned y = 0; y < height; ++y) {
 
-        float ky0 = std::fmod(0.5f + static_cast<float>(y) / static_cast<float>(height), 1.0f) - 0.5f;
+        double ky0 = std::fmod(0.5 + static_cast<double>(y) / height, 1.0) - 0.5;
 
-        float ky1 = ky0 * two_pi;
+        double ky1 = ky0 * two_pi;
 
         for (unsigned x = 0; x < width; ++x) {
 
-            float kx0 = std::fmod(0.5f + static_cast<float>(x) / static_cast<float>(width), 1.0f) - 0.5f;
+            double kx0 = std::fmod(0.5 + static_cast<double>(x) / width, 1.0) - 0.5;
 
-            float kx1 = kx0 * two_pi;
+            double kx1 = kx0 * two_pi;
 
-            float val = std::exp(-0.5f * (kx1 * kx1 + ky1 * ky1) * sigma2);
+            float val = static_cast<float>(std::exp(-0.5 * (kx1 * kx1 + ky1 * ky1) * sigma2));
 
             kernel[y * width + x] = val;
 
@@ -584,7 +585,63 @@ void LocalAdapt::compute(const LocalAdaptInput& input) const {
 
 struct LocalAdaptFFT::Impl {
 
-void recordPrepare(const vk::raii::CommandBuffer& commandBuffer) {
+    vk::raii::DeviceMemory parityScratchMemory = nullptr;
+    vk::raii::Buffer parityScratch = nullptr;
+    vk::raii::DescriptorSetLayout paritySetLayout = nullptr;
+    vk::raii::DescriptorPool parityPool = nullptr;
+    vk::raii::PipelineLayout parityLayout = nullptr;
+    vk::raii::Pipeline parityPipeline = nullptr;
+    std::vector<vk::raii::DescriptorSet> paritySets;
+    std::string parityShaderPath;
+    std::string parityMathDirectory;
+
+    void initializeParity(const std::string& path) {
+        const unsigned bytes=fftWidth*fftHeight*2*sizeof(float);
+        createBuffer(bytes,vk::BufferUsageFlagBits::eStorageBuffer,
+            vk::MemoryPropertyFlagBits::eDeviceLocal,parityScratch,parityScratchMemory);
+        std::ifstream file(path,std::ios::binary|std::ios::ate);
+        const auto size=file.tellg();
+        if(size<=0 || size%4) throw std::runtime_error("Invalid reference FFT shader: "+path);
+        std::vector<uint32_t> code(static_cast<size_t>(size)/4); file.seekg(0);
+        if(!file.read(reinterpret_cast<char*>(code.data()),size)) throw std::runtime_error("Truncated reference FFT shader");
+        auto module=IQM::GPU::VulkanRuntime::createShaderModule(device,code);
+        paritySetLayout=IQM::GPU::VulkanRuntime::createDescLayout(device,
+            {{vk::DescriptorType::eStorageBuffer,1},{vk::DescriptorType::eStorageBuffer,1}});
+        parityPool=IQM::GPU::VulkanRuntime::createDescPool(device,4,{{vk::DescriptorType::eStorageBuffer,8}});
+        parityLayout=IQM::GPU::VulkanRuntime::createPipelineLayout(device,{*paritySetLayout},
+            IQM::GPU::VulkanRuntime::createPushConstantRange(16));
+        parityPipeline=IQM::GPU::VulkanRuntime::createComputePipeline(device,module,parityLayout);
+        const std::array<vk::DescriptorSetLayout,4> layouts{*paritySetLayout,*paritySetLayout,*paritySetLayout,*paritySetLayout};
+        auto sets=vk::raii::DescriptorSets(device,vk::DescriptorSetAllocateInfo{
+            .descriptorPool=*parityPool,.descriptorSetCount=4,.pSetLayouts=layouts.data()});
+        for(auto& set:sets) paritySets.push_back(std::move(set));
+        const std::array<vk::Buffer,4> sources{*workBuffer,*parityScratch,*outputBuffer,*parityScratch};
+        const std::array<vk::Buffer,4> destinations{*parityScratch,*workBuffer,*parityScratch,*workBuffer};
+        for(unsigned i=0;i<4;++i) {
+            const std::vector<vk::DescriptorBufferInfo> src{{sources[i],0,bytes}},dst{{destinations[i],0,bytes}};
+            device.updateDescriptorSets({IQM::GPU::VulkanRuntime::createWriteSet(*paritySets[i],0,src),
+                IQM::GPU::VulkanRuntime::createWriteSet(*paritySets[i],1,dst)},{});
+        }
+        parityShaderPath=path;
+    }
+
+    void recordParity(vk::CommandBuffer cmd,bool inverse) const {
+        cmd.bindPipeline(vk::PipelineBindPoint::eCompute,*parityPipeline);
+        for(unsigned axis=0;axis<2;++axis) {
+            const unsigned set=(inverse?2:0)+axis;
+            cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute,*parityLayout,0,{*paritySets[set]},{});
+            const std::array<uint32_t,4> push{fftWidth,(!inverse && axis==1)?fftWidth/2+1:fftWidth,
+                inverse?(axis==0?3u:4u):(axis==0?8u:9u),0};
+            cmd.pushConstants(*parityLayout,vk::ShaderStageFlagBits::eCompute,0,16,push.data());
+            cmd.dispatch((push[1]+31)/32,1,1);
+            vk::MemoryBarrier barrier{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,
+                .dstAccessMask=vk::AccessFlagBits::eShaderRead|vk::AccessFlagBits::eShaderWrite};
+            cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
+                vk::PipelineStageFlagBits::eComputeShader,{}, {barrier},{},{});
+        }
+    }
+
+void recordPrepare(const vk::raii::CommandBuffer& commandBuffer, FFTFilterMode mode, bool columnFirst) {
 
     vk::CommandBuffer cmd = *commandBuffer;
 
@@ -606,11 +663,11 @@ void recordPrepare(const vk::raii::CommandBuffer& commandBuffer) {
 
         {});
 
-    std::array<uint32_t, 2> pushConstants{
+    std::array<uint32_t, 4> pushConstants{
 
         fftWidth,
 
-        fftHeight
+        fftHeight, static_cast<uint32_t>(mode), columnFirst ? 1u : 0u
 
     };
 
@@ -636,7 +693,7 @@ void recordPrepare(const vk::raii::CommandBuffer& commandBuffer) {
 
 }
 
-void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
+void recordFinish(const vk::raii::CommandBuffer& commandBuffer, FFTFilterMode mode, bool columnFirst) {
 
     vk::CommandBuffer cmd = *commandBuffer;
 
@@ -658,11 +715,11 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
 
         {});
 
-    std::array<uint32_t, 2> pushConstants{
+    std::array<uint32_t, 4> pushConstants{
 
         fftWidth,
 
-        fftHeight
+        fftHeight, static_cast<uint32_t>(mode), columnFirst ? 1u : 0u
 
     };
 
@@ -680,9 +737,9 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
 
     // Output image is 64x64.
 
-    constexpr uint32_t outputWidth = 64;
+    const uint32_t outputWidth = fftWidth/2;
 
-    constexpr uint32_t outputHeight = 64;
+    const uint32_t outputHeight = fftHeight/2;
 
     cmd.dispatch(
 
@@ -849,6 +906,7 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
     VkFFTApplication fftApp{};
 
     bool fftInitialized = false;
+    bool fftUsesTwiddleLUT = false;
 
     // Stable Vulkan handles: VkFFT stores pointers to these values.
 
@@ -861,6 +919,7 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
     VkCommandPool fftCommandPoolHandle = VK_NULL_HANDLE;
 
     VkFence fftFenceHandle = VK_NULL_HANDLE;
+    vk::raii::Fence fftUploadFence = nullptr;
 
     VkBuffer fftWorkBufferHandle = VK_NULL_HANDLE;
 
@@ -946,7 +1005,7 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
 
         const vk::raii::CommandBuffer& commandBuffer,
 
-        float ppd
+        float ppd, FFTFilterMode mode
 
     ) {
 
@@ -962,9 +1021,11 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
 
         }
 
-        const float sigma = std::pow(10.0f, -0.781367f) * ppd;
-
-        const auto kernel = generateGaussianKernel2D(sigma, fftWidth, fftHeight);
+        const double sigma = std::pow(10.0, -0.781367) * ppd;
+        auto kernel = generateGaussianKernel2D(sigma, fftWidth, fftHeight);
+        if (mode == FFTFilterMode::OpticalMTF) {
+            generate_mtf_filter(kernel.data(), fftWidth, fftHeight, ppd);
+        }
 
         const vk::DeviceSize bytes =
 
@@ -1034,7 +1095,7 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
 
     }
 
-    void initializeMultiplyPipeline() {
+    void initializeMultiplyPipeline(const std::string& mathDirectory={}) {
 
     // Three storage buffers: FFT input, Gaussian kernel, filtered output.
 
@@ -1183,7 +1244,7 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
 
     // Load compiled Gaussian multiplication shader.
 
-    const std::string shaderPath = "shaders/hdrvdp3/mtf_multiply.spv";
+    const std::string shaderPath = mathDirectory.empty()?"shaders/hdrvdp3/mtf_multiply.spv":mathDirectory+"/multiply.spv";
 
     std::ifstream shaderFile(shaderPath, std::ios::binary | std::ios::ate);
 
@@ -1265,7 +1326,7 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer) {
 
 }
 
-void initializeImagePipelines() {
+void initializeImagePipelines(const std::string& mathDirectory={}) {
 
     auto loadShader = [&](const std::string& path) {
 
@@ -1375,7 +1436,7 @@ void initializeImagePipelines() {
 
             .offset = 0,
 
-            .size = 2 * sizeof(uint32_t)
+            .size = 4 * sizeof(uint32_t)
 
         };
 
@@ -1466,7 +1527,7 @@ void initializeImagePipelines() {
 
     createImagePipeline(
 
-        "shaders/hdrvdp3/hdrvdp3_fft_prepare.spv",
+        mathDirectory.empty()?"shaders/hdrvdp3/hdrvdp3_fft_prepare.spv":mathDirectory+"/prepare.spv",
 
         prepareDescriptorSetLayout,
 
@@ -1482,7 +1543,7 @@ void initializeImagePipelines() {
 
     createImagePipeline(
 
-        "shaders/hdrvdp3/hdrvdp3_fft_finish.spv",
+        mathDirectory.empty()?"shaders/hdrvdp3/hdrvdp3_fft_finish.spv":mathDirectory+"/finish.spv",
 
         finishDescriptorSetLayout,
 
@@ -1682,7 +1743,7 @@ void updateImageDescriptors(const LocalAdaptFFTInput& input) {
 
         const vk::raii::Queue& queue,
 
-        const vk::raii::CommandPool& commandPool
+        const vk::raii::CommandPool& commandPool, bool useTwiddleLUT
 
     ) {
 
@@ -1708,7 +1769,10 @@ void updateImageDescriptors(const LocalAdaptFFTInput& input) {
 
         fftCommandPoolHandle = static_cast<VkCommandPool>(*commandPool);
 
-        fftFenceHandle = VK_NULL_HANDLE;
+        // VkFFT's LUT upload submits, waits and resets this fence during plan
+        // initialization. A nonnull pointer to VK_NULL_HANDLE is not sufficient.
+        fftUploadFence = vk::raii::Fence(device, vk::FenceCreateInfo{});
+        fftFenceHandle = static_cast<VkFence>(*fftUploadFence);
 
         fftWorkBufferHandle = static_cast<VkBuffer>(*workBuffer);
 
@@ -1752,7 +1816,7 @@ void updateImageDescriptors(const LocalAdaptFFTInput& input) {
 
         config.reorderFourStep = 1;
 
-        config.useLUT = -1;
+        config.useLUT = useTwiddleLUT ? 1 : -1;
 
         config.aimThreads = 128;
 
@@ -1777,6 +1841,7 @@ void updateImageDescriptors(const LocalAdaptFFTInput& input) {
         }
 
         fftInitialized = true;
+        fftUsesTwiddleLUT = useTwiddleLUT;
 
     }
 
@@ -1885,6 +1950,17 @@ LocalAdaptFFT::~LocalAdaptFFT() = default;
 // already-recording command buffer. The caller owns submission and synchronization.
 
 void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
+    const bool parity=!input.referenceShaderPath.empty();
+    if(input.width!=input.height || (input.width!=32&&input.width!=64))
+        throw std::invalid_argument("Unvalidated FFT filter input dimensions");
+    if(input.width==32&&!parity)
+        throw std::invalid_argument("32x32 FFT filter currently requires the reference backend");
+    if(impl->fftWidth && (impl->fftWidth!=2*input.width||impl->fftHeight!=2*input.height))
+        throw std::invalid_argument("FFT filter dimensions cannot change after initialization");
+    if(parity && (!input.columnFirst || input.useTwiddleLUT))
+        throw std::invalid_argument("Reference FFT requires column axis order and native twiddle option");
+    if(!parity && !input.referenceMathDirectory.empty())
+        throw std::invalid_argument("Reference math probe requires reference FFT backend");
 
     if (!input.cmdBuf || !input.cmdPool || !input.queue ||
 
@@ -1900,19 +1976,32 @@ void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
 
     }
 
+    if (input.mode != FFTFilterMode::LocalAdaptation && input.mode != FFTFilterMode::OpticalMTF)
+        throw std::invalid_argument("Unknown FFT filter mode");
+    if (input.mode == FFTFilterMode::LocalAdaptation &&
+        std::pow(10.0, -0.781367) * input.ppd < 4.3)
+        throw std::invalid_argument("LocalAdaptFFT requires sigma >= 4.3; reference uses spatial filtering below it");
+
     // The first integration test uses a 64x64 R32_SFLOAT input/output
 
     // and a 128x128 complex FFT. Both images must already be in GENERAL.
 
-    if (!impl->fftInitialized) {
+    if (impl->fftInitialized && impl->fftUsesTwiddleLUT != input.useTwiddleLUT)
+        throw std::invalid_argument("FFT twiddle mode cannot change after plan initialization");
+    if (impl->fftWidth && (parity!=!impl->parityShaderPath.empty() ||
+        (parity && (impl->parityShaderPath!=input.referenceShaderPath || impl->parityMathDirectory!=input.referenceMathDirectory))))
+        throw std::invalid_argument("FFT backend cannot change after initialization");
+    if (!impl->fftWidth) {
 
-        impl->initializeBuffers(128, 128);
+        impl->initializeBuffers(2*input.width, 2*input.height);
 
-        impl->initializeMultiplyPipeline();
+        impl->initializeMultiplyPipeline(input.referenceMathDirectory);
 
-        impl->initializeImagePipelines();
+        impl->initializeImagePipelines(input.referenceMathDirectory);
+        impl->parityMathDirectory=input.referenceMathDirectory;
 
-        impl->initializeFFT(*input.queue, *input.cmdPool);
+        if(parity) impl->initializeParity(input.referenceShaderPath);
+        else impl->initializeFFT(*input.queue, *input.cmdPool, input.useTwiddleLUT);
 
     }
 
@@ -1964,13 +2053,25 @@ void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
 
     };
 
+    auto snapshot = [&](vk::Buffer source, unsigned stage) {
+        if (!input.traceBuffer) return;
+        bufferBarrier(source, vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead,
+            vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eTransfer);
+        cmd.copyBuffer(source, **input.traceBuffer,
+            {vk::BufferCopy{0, complexBufferSize * stage, complexBufferSize}});
+        bufferBarrier(source, vk::AccessFlagBits::eTransferRead,
+            vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
+            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eComputeShader);
+    };
+
     // Kernel upload includes its own transfer-write -> compute-read barrier.
 
-    impl->recordGaussianKernelUpload(commandBuffer, input.ppd);
+    impl->recordGaussianKernelUpload(commandBuffer, input.ppd, input.mode);
 
     // Image -> padded log-domain complex work buffer.
 
-    impl->recordPrepare(commandBuffer);
+    impl->recordPrepare(commandBuffer, input.mode, input.columnFirst);
+    snapshot(*impl->workBuffer, 0);
 
     bufferBarrier(*impl->workBuffer,
 
@@ -1992,7 +2093,9 @@ void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
 
     launchParams.buffer = &rawWorkBuffer;
 
-    VkFFTResult result = VkFFTAppend(&impl->fftApp, -1, &launchParams);
+    VkFFTResult result = VKFFT_SUCCESS;
+    if(parity) impl->recordParity(cmd,false);
+    else result=VkFFTAppend(&impl->fftApp, -1, &launchParams);
 
     if (result != VKFFT_SUCCESS) {
 
@@ -2012,10 +2115,17 @@ void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
 
                   vk::PipelineStageFlagBits::eComputeShader);
 
-    // Multiply FFT coefficients by the frequency-domain Gaussian.
+    snapshot(*impl->workBuffer, 1);
+    // Multiply FFT coefficients by the selected frequency response.
 
     impl->recordGaussianMultiply(commandBuffer);
+    snapshot(*impl->outputBuffer, 2);
 
+    if(parity) {
+        bufferBarrier(*impl->outputBuffer,vk::AccessFlagBits::eShaderWrite,vk::AccessFlagBits::eShaderRead,
+            vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eComputeShader);
+        impl->recordParity(cmd,true);
+    } else {
     bufferBarrier(*impl->outputBuffer,
 
                   vk::AccessFlagBits::eShaderWrite,
@@ -2038,7 +2148,24 @@ void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
 
     };
 
-    cmd.copyBuffer(*impl->outputBuffer, *impl->workBuffer, {copyRegion});
+    if (input.columnFirst) {
+        // VkFFT's inverse plan reverses its forward axis traversal. Restore
+        // row-major storage here so the inverse also processes logical columns
+        // first. Transfer copies introduce no floating-point operations.
+        std::vector<vk::BufferCopy> transpose;
+        transpose.reserve(static_cast<std::size_t>(impl->fftWidth) * impl->fftHeight);
+        for (uint32_t y = 0; y < impl->fftHeight; ++y) {
+            for (uint32_t x = 0; x < impl->fftWidth; ++x) {
+                transpose.push_back(vk::BufferCopy{
+                    (static_cast<vk::DeviceSize>(y) * impl->fftWidth + x) * 2 * sizeof(float),
+                    (static_cast<vk::DeviceSize>(x) * impl->fftHeight + y) * 2 * sizeof(float),
+                    2 * sizeof(float)});
+            }
+        }
+        cmd.copyBuffer(*impl->outputBuffer, *impl->workBuffer, transpose);
+    } else {
+        cmd.copyBuffer(*impl->outputBuffer, *impl->workBuffer, {copyRegion});
+    }
 
     bufferBarrier(*impl->workBuffer,
 
@@ -2070,9 +2197,17 @@ void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
 
                   vk::PipelineStageFlagBits::eComputeShader);
 
-    // Top-left 64x64 crop and exp(real(IFFT)).
+    }
+    snapshot(*impl->workBuffer, 3);
+    if (input.traceBuffer) {
+        vk::MemoryBarrier host{.srcAccessMask=vk::AccessFlagBits::eTransferWrite,
+            .dstAccessMask=vk::AccessFlagBits::eHostRead};
+        cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+            vk::PipelineStageFlagBits::eHost, {}, {host}, {}, {});
+    }
+    // Top-left 64x64 crop, then exp for adaptation or clamp for MTF.
 
-    impl->recordFinish(commandBuffer);
+    impl->recordFinish(commandBuffer, input.mode, parity);
 
     // Make output image writes visible to subsequent compute or transfer reads.
 

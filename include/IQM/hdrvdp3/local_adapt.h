@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 #include <array>
+#include <string>
 
 namespace IQM {
 class VulkanInstance;
@@ -56,7 +57,10 @@ private:
 
 // ============================================================================
 // FFT-based Local Adaptation (matching fast_gauss.m for sigma >= 4.3)
+// Also supports optical MTF with symmetric post-padding and output clamping.
 // ============================================================================
+
+enum class FFTFilterMode : uint32_t { LocalAdaptation = 0, OpticalMTF = 1 };
 
 struct LocalAdaptFFTInput {
     const vk::raii::Device* device;
@@ -67,6 +71,19 @@ struct LocalAdaptFFTInput {
     const vk::raii::ImageView* ivInput;       // 64x64 R32_SFLOAT
     const vk::raii::ImageView* ivOutput;      // 64x64 R32_SFLOAT
     float ppd;
+    FFTFilterMode mode = FFTFilterMode::LocalAdaptation;
+    bool columnFirst = false; // Align forward/inverse logical column traversal.
+    bool useTwiddleLUT = false; // Numerical experiment: precomputed roots of unity.
+    // Explicit test-only backend: runtime SPIR-V generated from the licensed
+    // FFTW parity fixtures. Empty retains VkFFT. Requires columnFirst=true.
+    std::string referenceShaderPath;
+    // Optional explicit numerical math shaders, reference backend only.
+    std::string referenceMathDirectory;
+    // Optional transfer-destination buffer: four 128x128 complex float snapshots
+    // (prepared, forward FFT, filtered FFT, inverse FFT). Caller synchronizes.
+    const vk::raii::Buffer* traceBuffer = nullptr;
+    uint32_t width = 64;
+    uint32_t height = 64;
 };
 
 class LocalAdaptFFT {

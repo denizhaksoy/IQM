@@ -7,6 +7,11 @@
 #define HDRVDP3_SPYR_H
 
 #include <iostream>
+#include <fstream>
+#include <limits>
+#include <iomanip>
+#include <cmath>  // Dosyanın başına ekle
+#include <algorithm>
 #include <IQM/hdrvdp3/corrdn.h>
 #include <vector>
 #include <memory>
@@ -50,7 +55,9 @@ private:
 public:
     // Compute full steerable pyramid
     // Input image must be in row-major order (W*H floats)
-    // Returns bands in order: [hi0, orient_bands..., residual_lowpass]
+    // Returns bands in order: [hi0, orient_bands..., residual_lowpass].
+    // HDR-VDP callers cap maximum_height with ceil(log2(ppd))-2; the default
+    // retains the unrestricted pyramid behavior for generic callers.
     // The corrDnFn is a callable that performs a single corrDn operation:
     //   std::vector<float> corrDnFn(const IQM::VulkanInstance& instance, CorrDn& corrdn,
     //                                const float* filter_coeffs, int filter_size,
@@ -58,7 +65,9 @@ public:
     //                                unsigned width, unsigned height, int step)
     template <typename CorrDnFn>
     SpyrResult compute(const std::vector<float>& input, unsigned width, unsigned height,
-                       const IQM::VulkanInstance& instance, CorrDnFn&& corrDnFn) const;
+                       const IQM::VulkanInstance& instance, CorrDnFn&& corrDnFn,
+                       const std::string& export_prefix = "",
+                       unsigned maximum_height = std::numeric_limits<unsigned>::max()) const;
 
 private:
     Filters m_filters;
@@ -67,14 +76,15 @@ private:
 
 template <typename CorrDnFn>
 SpyrResult Spyr::compute(const std::vector<float>& input, unsigned width, unsigned height,
-                         const IQM::VulkanInstance& instance, CorrDnFn&& corrDnFn) const {
+                         const IQM::VulkanInstance& instance, CorrDnFn&& corrDnFn,
+                         const std::string& export_prefix, unsigned maximum_height) const {
     SpyrResult result;
-    result.pyr_height = max_pyr_height(width, height, 13);  // lofilt is 13x13
+    result.pyr_height = std::min(maximum_height, max_pyr_height(width, height, 13));
 
     // Step 1: Initial highpass (hi0filt)
     {
         auto hi0_output = corrDnFn(instance, *m_corrdn, m_filters.hi0filt, 9,
-                                   input, width, height, 1);
+                                   input, width, height, 1, false);
 
         SpyrBand band;
         band.width = width;
@@ -86,7 +96,8 @@ SpyrResult Spyr::compute(const std::vector<float>& input, unsigned width, unsign
 
     // Step 2: Initial lowpass (lo0filt)
     std::vector<float> current_lowpass = corrDnFn(instance, *m_corrdn, m_filters.lo0filt, 7,
-                                                  input, width, height, 1);
+                                                  input, width, height, 1, false);
+
 
     // Step 3: For each pyramid level, compute orientation bands and downsample
     unsigned current_w = width;
@@ -96,8 +107,13 @@ SpyrResult Spyr::compute(const std::vector<float>& input, unsigned width, unsign
         // Compute orientation bands for this level (sp0Filters has 1 orientation)
         for (unsigned orient = 0; orient < m_filters.num_orientations; ++orient) {
             const float* orient_filter = m_filters.bfilts + orient * 81;
-            auto band_output = corrDnFn(instance, *m_corrdn, orient_filter, 9,
-                                        current_lowpass, current_w, current_h, 1);
+            const bool use_non_fma = (std::max(current_h,current_w) < 32);
+
+            auto band_output = corrDnFn(
+                instance, *m_corrdn, orient_filter, 9,
+                current_lowpass, current_w, current_h, 1,
+                use_non_fma
+            );
 
             SpyrBand band;
             band.width = current_w;
@@ -111,11 +127,16 @@ SpyrResult Spyr::compute(const std::vector<float>& input, unsigned width, unsign
         unsigned next_w = (current_w + 1) / 2;  // ceil(width/2)
         unsigned next_h = (current_h + 1) / 2;  // ceil(height/2)
 
-        current_lowpass = corrDnFn(instance, *m_corrdn, m_filters.lofilt, 13,
-                                   current_lowpass, current_w, current_h, 2);
+        current_lowpass = corrDnFn(
+            instance, *m_corrdn, m_filters.lofilt, 13,
+            current_lowpass, current_w, current_h, 2,
+            std::max(current_h,current_w) < 32
+        );
 
         current_w = next_w;
         current_h = next_h;
+
+
     }
 
     // Final residual lowpass
@@ -126,6 +147,32 @@ SpyrResult Spyr::compute(const std::vector<float>& input, unsigned width, unsign
 
     result.pind.emplace_back(residual.height, residual.width);
     result.bands.push_back(std::move(residual));
+
+    // TEMPORARY DEBUG: Export raw steerable pyramid bands
+for (size_t b = 0; b < result.bands.size(); ++b) {
+    if (export_prefix.empty()) break;
+    const auto& band = result.bands[b];
+
+    const std::string filename =
+        export_prefix + std::to_string(b) + ".txt";
+
+    std::ofstream file(filename);
+
+    if (!file) {
+        throw std::runtime_error("Cannot open: " + filename);
+    }
+
+    file << band.height << " " << band.width << "\n";
+    file << std::setprecision(std::numeric_limits<float>::max_digits10);
+
+    for (float value : band.data) {
+        file << value << "\n";
+    }
+
+    std::cout << "Saved GPU Band " << b
+              << ": " << band.width << "x" << band.height
+              << '\n';
+}
 
     return result;
 }
