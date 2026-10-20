@@ -1,0 +1,30 @@
+[
+    {
+        "file":  "fft64.spv",
+        "sha256":  "2776758E2F4E6FD51EF2F3098CAF0E6B5CA02ADA695A23860767F9F1AAC293E1"
+    },
+    {
+        "file":  "fft32.spv",
+        "sha256":  "8F339ADF6FF03BB5E1D44EF1D767682ABDF136C7E82EF1C9FD30C719CAAD5460"
+    },
+    {
+        "file":  "base.spv",
+        "sha256":  "60447964152BB3B90222E470C0996AC503942E75257DB4CDCE479237AAD16E14"
+    },
+    {
+        "file":  "map.spv",
+        "sha256":  "0B023987B9A2C9267B8979A072574DCC04AD8F56EA56CB1B7AACF164EA041BFF"
+    },
+    {
+        "file":  "math/prepare.spv",
+        "sha256":  "9C84458F3ECAB56D1D4A3910662C6741E640D4DFBF2D960516E39237BAF34C56"
+    },
+    {
+        "file":  "math/finish.spv",
+        "sha256":  "A5FB1EB5091CEC5740B77AEBD316A7D2F47D064DEB835B36C1D9F38A5EF0400A"
+    },
+    {
+        "file":  "math/multiply.spv",
+        "sha256":  "47CA8933118C0C46029F77203FCD89A8601B6454DEB66CA3C4C8A40042AAF7B0"
+    }
+]

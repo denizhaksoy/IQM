@@ -1,0 +1,53 @@
+#version 450
+// Exact finite binary32 product via integer significands and ties-to-even.
+// Integer bitcasts preserve gradual underflow without shader denormal arithmetic.
+layout(local_size_x=32) in;
+layout(set=0,binding=0,std430) readonly buffer Input { vec2 value[]; } src;
+layout(set=0,binding=1,std430) writeonly buffer Output { vec2 value[]; } dst;
+layout(push_constant) uniform Parameters { uint n; uint batches; uint graph; uint fused; } p;
+uint roundedShift(uint hi,uint lo,int shift) {
+    if(shift<=0) return lo<<uint(-shift);
+    if(shift>=64) return 0u;
+    uint top,remainder,midpoint;
+    bool sticky=false;
+    if(shift<32) {
+        top=(lo>>uint(shift))|(hi<<uint(32-shift));
+        remainder=lo&((1u<<uint(shift))-1u); midpoint=1u<<uint(shift-1);
+    } else if(shift==32) {
+        top=hi; remainder=lo; midpoint=0x80000000u;
+    } else {
+        uint s=uint(shift-32); top=hi>>s;
+        remainder=hi&((1u<<s)-1u); midpoint=1u<<(s-1u); sticky=lo!=0u;
+    }
+    if(remainder>midpoint || (remainder==midpoint && (sticky || (top&1u)!=0u))) ++top;
+    return top;
+}
+float exactProduct(float a,float b) {
+    uint ua=floatBitsToUint(a),ub=floatBitsToUint(b),sign=(ua^ub)&0x80000000u;
+    uint ae=(ua>>23)&255u,be=(ub>>23)&255u;
+    if(ae==255u || be==255u) return a*b; // Special values retain native behavior.
+    uint am=ua&0x7fffffu,bm=ub&0x7fffffu;
+    if(ae!=0u) am|=0x800000u;
+    if(be!=0u) bm|=0x800000u;
+    if(am==0u || bm==0u) return uintBitsToFloat(sign);
+    int exponentA=ae==0u?-126:int(ae)-127;
+    int exponentB=be==0u?-126:int(be)-127;
+    uint hi,lo; umulExtended(am,bm,hi,lo);
+    int top=hi!=0u?32+findMSB(hi):findMSB(lo);
+    int exponent=exponentA+exponentB-46+top;
+    if(exponent < -126) {
+        uint mantissa=roundedShift(hi,lo,-(exponentA+exponentB+103));
+        return uintBitsToFloat(sign|mantissa);
+    }
+    uint mantissa=roundedShift(hi,lo,top-23);
+    if(mantissa>=0x1000000u) { mantissa>>=1; ++exponent; }
+    if(exponent>127) return uintBitsToFloat(sign|0x7f800000u);
+    return uintBitsToFloat(sign|(uint(exponent+127)<<23)|(mantissa&0x7fffffu));
+}
+void main() {
+    uint batch=gl_GlobalInvocationID.x; if(batch>=p.batches) return;
+    for(uint i=0;i<p.n;++i) {
+        uint index=batch*p.n+i; vec2 v=src.value[index];
+        dst.value[index]=vec2(exactProduct(v.x,v.y),0);
+    }
+}

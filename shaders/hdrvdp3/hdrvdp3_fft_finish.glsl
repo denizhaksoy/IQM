@@ -18,6 +18,8 @@ uniform writeonly image2D output_img;
 layout(push_constant) uniform PushConstants {
     uint fft_width;
     uint fft_height;
+    uint mode;
+    uint column_first;
 } params;
 
 void main() {
@@ -33,10 +35,11 @@ void main() {
 
     // Top-left crop of the inverse FFT result.
     uint index = y * params.fft_width + x;
+    if (params.column_first != 0) index = x * params.fft_height + y;
 
     float reconstructed = fft_output.data[index].x;
 
-    float result = exp(reconstructed);
+    float result = params.mode == 0 ? exp(reconstructed) : clamp(reconstructed, 1e-5, 1e10);
 
     imageStore(
         output_img,

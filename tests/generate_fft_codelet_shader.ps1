@@ -1,6 +1,11 @@
 # Generates test-only GLSL translations of FFTW 3.3.10 scalar graph variants.
 # Original sources and GPL-2.0-or-later license are preserved in fftw_reference/.
+param([string]$OutputDirectory='')
 $ErrorActionPreference = 'Stop'
+if($OutputDirectory){
+    if(Test-Path -LiteralPath $OutputDirectory){throw 'Use a fresh output directory'}
+    New-Item -ItemType Directory -Path $OutputDirectory|Out-Null
+}
 $referenceDir = Join-Path $PSScriptRoot 'fftw_reference'
 function Get-BraceBody([string]$source, [int]$opening) {
     $depth=0
@@ -288,4 +293,5 @@ void main() {
     }
 }
 '@
-[IO.File]::WriteAllText((Join-Path $referenceDir 'fft_codelet_test.comp'),$shader,[Text.UTF8Encoding]::new($false))
+$output=if($OutputDirectory){Join-Path $OutputDirectory 'fft128.comp'}else{Join-Path $referenceDir 'fft_codelet_test.comp'}
+[IO.File]::WriteAllText($output,$shader,[Text.UTF8Encoding]::new($false))

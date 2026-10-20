@@ -1,0 +1,14 @@
+#version 450
+// Probe only: component0=native GLSL pow; component1=exp(y*log(x)).
+layout(local_size_x=32) in;
+layout(set=0,binding=0,std430) readonly buffer Input { vec2 value[]; } src;
+layout(set=0,binding=1,std430) writeonly buffer Output { vec2 value[]; } dst;
+layout(push_constant) uniform Params { uint n; uint batches; uint graph; uint fused; } p;
+void main() {
+    uint batch=gl_GlobalInvocationID.x; if(batch>=p.batches) return;
+    for(uint i=0;i<p.n;++i) {
+        uint index=batch*p.n+i; vec2 v=src.value[index];
+        precise float product=v.y*log(v.x);
+        dst.value[index]=vec2(pow(v.x,v.y),exp(product));
+    }
+}

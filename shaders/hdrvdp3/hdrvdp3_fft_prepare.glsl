@@ -18,6 +18,8 @@ writeonly buffer FFTInput {
 layout(push_constant) uniform PushConstants {
     uint fft_width;
     uint fft_height;
+    uint mode; // 0: log adaptation/replicate; 1: optical MTF/symmetric
+    uint column_first;
 } params;
 
 void main() {
@@ -35,13 +37,19 @@ void main() {
         min(x, uint(input_size.x - 1)),
         min(y, uint(input_size.y - 1))
     );
+    if (params.mode == 1) {
+        // padarray(..., 'symmetric', 'post'), including the edge pixel.
+        source_coord.x = x < uint(input_size.x) ? int(x) : 2 * input_size.x - 1 - int(x);
+        source_coord.y = y < uint(input_size.y) ? int(y) : 2 * input_size.y - 1 - int(y);
+    }
 
     float value = imageLoad(input_img, source_coord).r;
 
     // Match the standalone FFT reference.
-    float log_value = log(max(value, 1e-6));
+    float log_value = params.mode == 0 ? log(max(value, 1e-6)) : value;
 
     uint index = y * params.fft_width + x;
+    if (params.column_first != 0) index = x * params.fft_height + y;
 
     // VkFFT complex float32 layout: real, imaginary.
     fft_input.data[index] = vec2(log_value, 0.0);

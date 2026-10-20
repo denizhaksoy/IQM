@@ -1,0 +1,30 @@
+{
+    "repository":  "https://github.com/amd/win-libm",
+    "commit":  "6121d02aef0c775947d5dc655d7fc4ccfe2144ab",
+    "files":  [
+                  {
+                      "file":  "expf.asm",
+                      "sha256_lf":  "A4BE0B06A1B8726D0FF1059CCF43A8B589DD360965946E884FAC520674236C8D"
+                  },
+                  {
+                      "file":  "logf.asm",
+                      "sha256_lf":  "2C2E55F2AE6166A262A33E1273C751BB8771ADB0DFFA0F25B7916DD244C66A00"
+                  },
+                  {
+                      "file":  "log_128_lead_tail_table.asm",
+                      "sha256_lf":  "2F1A6D742C5129D7030996D989862010DE72BD3170FAD4FA91643FE07F6DD6FD"
+                  },
+                  {
+                      "file":  "log_F_inv_dword_table.asm",
+                      "sha256_lf":  "FE005D2FAAD1469CAC5E883679E49CC3641E776830F6E928B53CA592A0C1F5EB"
+                  },
+                  {
+                      "file":  "two_to_jby64_table.asm",
+                      "sha256_lf":  "54E46AC4BB240ADDAE9F61214E641E48CBFE27C1D6DBC3D03E3D0CEAF5270F0A"
+                  },
+                  {
+                      "file":  "log10_128_lead_tail_table.asm",
+                      "sha256_lf":  "3D064C1164A35F0C1A951DEB6FCA7E2901E52B87446059918558EC03131DF171"
+                  }
+              ]
+}

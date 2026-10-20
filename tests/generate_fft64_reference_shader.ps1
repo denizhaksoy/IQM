@@ -1,9 +1,10 @@
 # Opt-in scalar FFTW3.3.10 graph translation; GPL-2.0-or-later.
-param([Parameter(Mandatory=$true)][string]$OutputDirectory)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$FFTWArchive='')
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
-$archive=Join-Path $root 'validation/fftw-3.3.10-inspection.tar.gz'
-if((Get-FileHash $archive).Hash -ne '56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467'){throw 'FFTW archive hash mismatch'}
+$archive=$FFTWArchive
+if($archive -and (Get-FileHash $archive).Hash -ne '56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467'){throw 'FFTW archive hash mismatch'}
+. (Join-Path $PSScriptRoot 'fftw_reference/read_runtime_source.ps1')
 if(Test-Path $OutputDirectory){throw 'Use a fresh output directory'}
 New-Item -ItemType Directory $OutputDirectory|Out-Null
 function Body([string]$source,[int]$opening){
@@ -33,8 +34,10 @@ float FNMA(float a,float b,float c){precise float product=a*b;return -(product+c
 foreach($kind in @('real','complex')){
     $name='n1_64';$path='dft/scalar/codelets/n1_64.c';$signature='void complex64(in float ri[64],in float ii[64],out float ro[64],out float io[64])'
     if($kind -eq 'real'){$name='r2cf_64';$path='rdft/scalar/r2cf/r2cf_64.c';$signature='void real64(in float samples[64],out float Cr[33],out float Ci[33])'}
-    $source=(& tar -xOf $archive "fftw-3.3.10/$path") -join "`n"
-    if($LASTEXITCODE -ne 0){throw 'FFTW extraction failed'}
+    if($archive){
+        $source=(& tar -xOf $archive "fftw-3.3.10/$path") -join "`n"
+        if($LASTEXITCODE -ne 0){throw 'FFTW extraction failed'}
+    }else{$source=Read-IQMFFTWSource (Join-Path $PSScriptRoot 'fftw_reference/runtime') "$name.c"}
     [IO.File]::WriteAllText((Join-Path $OutputDirectory "$name.c"),$source,[Text.UTF8Encoding]::new($false))
     $functions=[regex]::Matches($source,'static void '+$name+'\(')
     if($functions.Count -ne 2){throw 'Expected two scalar graphs'}

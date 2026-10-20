@@ -1,0 +1,65 @@
+#version 450
+// Original compensated-float experiment; not a production math replacement.
+layout(local_size_x=32) in;
+layout(set=0,binding=0,std430) readonly buffer Input { vec2 value[]; } src;
+layout(set=0,binding=1,std430) writeonly buffer Output { vec2 value[]; } dst;
+layout(push_constant) uniform Parameters { uint n; uint batches; uint graph; uint fused; } p;
+vec2 pairSum(float a,float b) {
+    precise float s=a+b, v=s-a;
+    precise float e=(a-(s-v))+(b-v);
+    return vec2(s,e);
+}
+vec2 pairAdd(vec2 a,vec2 b) {
+    precise vec2 s=pairSum(a.x,b.x);
+    precise float e=s.y+a.y+b.y;
+    return pairSum(s.x,e);
+}
+vec2 pairMul(vec2 a,vec2 b) {
+    precise float hi=a.x*b.x;
+    precise float ca=4097.0*a.x,cb=4097.0*b.x;
+    precise float ah=ca-(ca-a.x),al=a.x-ah;
+    precise float bh=cb-(cb-b.x),bl=b.x-bh;
+    precise float residual=((ah*bh-hi)+ah*bl+al*bh)+al*bl;
+    precise float lo=residual+a.x*b.y+a.y*b.x;
+    return pairSum(hi,lo);
+}
+vec2 pairDiv(vec2 a,vec2 b) {
+    precise float q=a.x/b.x;
+    precise vec2 r=pairAdd(a,-pairMul(vec2(q,0),b));
+    precise float correction=(r.x+r.y)/b.x;
+    return pairSum(q,correction);
+}
+const vec2 LN2=vec2(0.693147182464599609375,-1.904654299957768e-9);
+float accurateLog(float x) {
+    uint bits=floatBitsToUint(x);
+    int exponent=int((bits>>23)&255u)-127;
+    precise float m=uintBitsToFloat((bits&0x7fffffu)|0x3f800000u);
+    if(m>1.4142135623730951) {m*=0.5; ++exponent;}
+    precise vec2 z=pairDiv(pairSum(m,-1),pairSum(m,1));
+    precise vec2 z2=pairMul(z,z),term=z,total=z;
+    for(int k=3;k<=27;k+=2) {
+        term=pairMul(term,z2);
+        total=pairAdd(total,pairDiv(term,vec2(float(k),0)));
+    }
+    precise vec2 result=pairAdd(pairMul(total,vec2(2,0)),pairMul(vec2(float(exponent),0),LN2));
+    return result.x+result.y;
+}
+float accurateExp(float x) {
+    int exponent=int(round(x*1.4426950408889634));
+    precise vec2 r=pairAdd(vec2(x,0),-pairMul(vec2(float(exponent),0),LN2));
+    precise vec2 term=vec2(1,0),total=term;
+    for(int k=1;k<=17;++k) {
+        term=pairDiv(pairMul(term,r),vec2(float(k),0));
+        total=pairAdd(total,term);
+    }
+    precise float result=total.x+total.y;
+    // Experiment domain exp[-80,80]: scale is normal and exactly representable.
+    return result*uintBitsToFloat(uint(exponent+127)<<23);
+}
+void main() {
+    uint batch=gl_GlobalInvocationID.x; if(batch>=p.batches) return;
+    for(uint i=0;i<p.n;++i) {
+        uint index=batch*p.n+i; vec2 v=src.value[index];
+        dst.value[index]=vec2(accurateLog(v.x),accurateExp(v.y));
+    }
+}
