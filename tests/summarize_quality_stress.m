@@ -16,13 +16,14 @@ for a=1:numel(args)-1
     addpath(fileparts(mfilename('fullpath')));[bands,ppd]=hdrvdp_validation_band_count(root);
     qf=fopen(fullfile(root,'quality.txt'),'r'); assert(qf>=0); quality=fscanf(qf,'%f'); fclose(qf); assert(numel(quality)==bands+3);
     selected=dlmread(fullfile(root,'base_native_selection.txt'));
+    pupil=dlmread(fullfile(root,'pupil.txt'));assert(numel(pupil)==4);
     entry=struct('name',name,'export',root,'Q',quality(bands+2),'Q_JOD',quality(bands+3),...
-      'input_height',rows(reference),'input_width',columns(reference),'band_count',bands,'pixels_per_degree',ppd,...
+      'input_height',rows(reference),'input_width',columns(reference),'band_count',bands,'pixels_per_degree',ppd,'observer_age',pupil(4),...
       'active_mask_pixels',nnz(relative>0.001),'equal_threshold_pixels',nnz(relative==0.001),...
       'relative_min',double(min(relative(:))),'relative_max',double(max(relative(:))),...
       'base_index_one_based',selected(1),'base_frequency',selected(2));
     cases{end+1}=entry;
-    fprintf('%s ppd=%g Q=%.17g Q_JOD=%.17g active_mask=%d/%d index=%d frequency=%.17g\n',name,ppd,entry.Q,entry.Q_JOD,entry.active_mask_pixels,numel(reference),selected(1),selected(2));
+    fprintf('%s ppd=%g age=%.17g Q=%.17g Q_JOD=%.17g active_mask=%d/%d index=%d frequency=%.17g\n',name,ppd,pupil(4),entry.Q,entry.Q_JOD,entry.active_mask_pixels,numel(reference),selected(1),selected(2));
   endwhile
   fclose(f);
 endfor

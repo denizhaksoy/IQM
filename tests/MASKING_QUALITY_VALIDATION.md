@@ -233,6 +233,11 @@ The canonical 32x32 matrix has 18 labels across two accepted binary groups.
 [Viewing-parameter validation](PPD60_VALIDATION.md) records 22 fresh
 30/60 ppd pairs, including both HDR transform groups, with exact intermediate
 and official Q/Q_JOD comparisons. [Observer-age component checks](OBSERVER_AGE_VALIDATION.md)
-add isolated pupil and double CSF/AESL validation; full scores remain age24.
+add isolated pupil and double CSF/AESL validation. The later
+[full age checkpoint](FULL_AGE_VALIDATION.md) verifies ten full pipeline
+pairs atage24/60/60.001 and30ppd, using pinned native-resampled D65 inputs.
+The [raw spectral/viewing continuation](RAW_SPECTRAL_VALIDATION.md) adds four
+60ppd/new-age HDR pairs,a corrected power rounding corner and two raw-loader
+application regressions. These scopes retain separate hashes and counts.
 The portable JSON retains these checkpoints separately; mixed application
 integration remains local, and the public metric API remains incomplete.

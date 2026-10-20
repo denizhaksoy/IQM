@@ -1,6 +1,8 @@
 # Observer age: isolated component validation
 
-Updated 2026-10-19. Full metric parity is still scoped to age 24/D65.
+Updated 2026-10-20. This historical component checkpoint preceded the
+[full age pipeline checkpoint](FULL_AGE_VALIDATION.md), which now verifies
+selected age24/60/60.001 pairs at30ppd with native-resampled D65 inputs.
 The following checks establish two components needed for broader age support;
 they do not validate age-dependent spectral/JND processing or full scores.
 
@@ -53,14 +55,13 @@ The official quality defaults enable pupil contraction, AESL and aging
 optical density (`do_slum`, `do_aesl`, `do_aod`); `do_aslw` is disabled.
 `hdrvdp_visual_pathway.m` changes lens optical density at age 60, interpolates
 it with pchip, applies transmission to the emission spectrum and integrates
-the normalized LMSR matrix. The current C++ single JND path and Vulkan map
-shader retain age-24 D65 coefficients. Default CSF parameters also select age
-24 unless explicitly supplied.
+the normalized LMSR matrix. At this historical component checkpoint the JND
+paths still retained fixed age24 coefficients; the later full pipeline
+checkpoint supplies calibrated coefficients and observer age consistently.
 
 The subsequent [spectral calibration checkpoint](SPECTRAL_AGE_VALIDATION.md)
 now matches 16,822 double values across 13 ages, including 60/60.001 and the
 age-24 legacy coefficients. It consumes native resampled spectral inputs;
-raw spectral file loading/resampling is not yet ported. Next pass observer age and the
-matrix consistently through pupil, JND, CSF/AESL and all native validators;
-run fresh full metric pairs. Merely exposing an age environment variable
-would give inconsistent processing and is not an accepted implementation.
+raw spectral file loading/resampling is not yet ported. The subsequent full
+pipeline checkpoint completes age propagation and verifies ten fresh pairs;
+it does not establish arbitrary ages, inputs or viewing parameters.

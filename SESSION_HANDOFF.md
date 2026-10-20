@@ -1,8 +1,102 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-10-19 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-10-20 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Latest continuation: exact age-dependent spectral calibration
+## Latest continuation: raw spectral loading and corrected power rounding
+
+-2026-10-20:raw C++ D65/cone/rod table loader andnonuniform pchip are complete.
+  420 native wavelengths,2,520 sampled double values exact;feeding those into
+  calibration preserves16,822 double trace values across13 ages. Independent
+  scalar CTests spectral_age_double andspectral_loading_double pass2/2.
+  New source src/hdrvdp3/spectral_loader.cpp;header/API andstandalone test target
+  updated. Raw original data files remain external,unmodified inputs.
+- Raw evidence:validation/raw_spectral_639280955944105771/COMPLETED.json;
+  pointer validation/raw_spectral_completed_path.txt. COMPONENT_COMPLETED.json
+  retains the isolated checkpoint. Two full raw-input runs at32/64,60ppd,
+  age60.001,HDR ramp/stronger localized match official scores andall stages:
+  285,101 GPU floats and11,904 double mask words,zero differences.218 common
+  text export SHA256 hashes equal corrected resampled-input controls (103/115).
+- Harness now accepts IQM_SPECTRAL_DATA / -SpectralDataDirectory for the three
+  original files;raw andresampled inputs are mutually exclusive. Exports
+  spectral_source.txt='raw_d65';runner hashes all three source tables.
+  The tested runtime path no longer needs an Octave-produced sampled file.
+- Four cross-domain60ppd/new-age HDR ramp stress pairs pass at32/64 andages
+  60/60.001:570,202 floats and23,808 binary64 mask words exact. Evidence:
+  validation/age_ppd60_639280954526250977/COMPLETED.json;pointer
+  validation/age_ppd60_completed_path.txt. Original application binary is
+  preserved in its verified_bin;raw-loading build is a later executable.
+- Important genuine failure retained:first64/60ppd/age60 HDR ramp failed one
+  final D pixel by1 ULP (5.5511151231257827e-17),raw D/earlier stages exact.
+  abs(rawD)=0x30473d44,pf=0x3f7e96d5;old power0x305fbd82,native0x305fbd83.
+  initial_failed64_age60_suite.txt pins failure;do not label it a pass.
+- Higher polynomial degree was rejected after breaking4 random native cases.
+  Accepted fix retains native-style cubic log/exp anduses triple-float
+  expansion only near ambiguous normal-output rounding. No per-pixel/input
+  lookup or tolerance. Generator emits additional table/constant residuals;
+  helper tests/math_reference/power_triple_reference.glsl is currently local.
+- Accepted power probes:65,536 random +65,536 boundary +65,536 neighboring
+  counterexample pairs exact. Old shader fails exactly the neighborhood center.
+  Ten old full-age exports replay on the corrected map shader with zero
+  GPU differences (1,254,496 floats,52,352 double masks);this is replay,not
+  ten fresh full application runs. All accepted/rejected artifacts preserved.
+- Corrected map ABI13 SHA256:
+  0B023987B9A2C9267B8979A072574DCC04AD8F56EA56CB1B7AACF164EA041BFF.
+  Shader-only SPIR-V capability;no Float64/Int64. Original ABI13 SHA andABI12
+  artifacts remain historical. Do not substitute hashes across checkpoints.
+- Commands:finalize_full_age_checkpoint.ps1 -CrossPPD and
+  finalize_raw_spectral_checkpoint.ps1 under validation/. Raw root stores
+  full32_path/full64_path,verified_bin,build logs andnative oracle comparisons.
+  See tests/RAW_SPECTRAL_VALIDATION.md andtests/FULL_AGE_VALIDATION.md.
+- Mixed pipeline/GPU/power integration remains local/uncommitted;scoped raw
+  loader implementation andverified tools/docs may be committed. Preserve
+  existing staged shader blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,dirty
+  lib/VkFFT,all old references anddirty/untracked files. No push performed.
+
+Exact next step:move beyond synthetic-only inputs by adding an explicit
+absolute-luminance image input path at the already-supported32/64 sizes,
+without silent resizing/tone mapping. Export the exact input to Octave and
+run full comparisons with raw spectral loading andcorrected shader. Then
+package the verified path behind a normal public metric API andbroaden full
+dimensions/observer settings. This is not a completed arbitrary HDR/color
+metric;no measured project-wide completion percentage is available.
+
+## Previous continuation: full age pipeline ABI13
+
+- Calibrated L/M/R coefficients now reach CPU JND,GPU adaptation_input and
+  GPU JND;observer age also reaches pupil,band CSF LUTs andbase CSF/noise.
+  Native validators/checkers read pupil.txt age and spectral_lmr.txt instead
+  of assuming24. Runner adds -ObserverAge and -SpectralSamples,with age-specific
+  prefixes and input hashing. Accepted harness ages are24,60,60.001.
+- Ten full pairs at30ppd,32/64,D65 synthetic luminance pass native Q/Q_JOD,
+  strict preprocessing,CPU JND traces,raw/centered SPYR and GPU intermediates:
+  1,254,496 float values,52,352 binary64 mask words,zero differences.
+  Includes localized cases atall3 ages/bothsizes,stronger32 at60/60.001,
+  andHDR edge phase shifts at60.001/bothsizes. Scope is pinned native
+  resampled spectra,not independently loaded raw spectral data.
+- Age24 regression:216 common text-export SHA256 hashes equal the previous
+  accepted binaries (102 at32,114 at64). Detailed scores/equivalence and
+  remaining work:tests/FULL_AGE_VALIDATION.md.
+- Root:validation/full_age_639280300414897968/COMPLETED.json;pointer:
+  validation/full_age_completed_path.txt. Finalizer:
+  validation/finalize_full_age_checkpoint.ps1. Contains before/source snapshots,
+  verified_bin executables,suite JSON,all cases/logs,age_source_hashes.json,
+  age24_text_regression.json and fresh shader source/binary. Preserve these.
+- Map shader ABI13 SHA256:
+  871E3916717BFFCC49B4E59AD9E52EB311A148E277D99F32DCEAA8FE1C2FC0FE.
+  Adaptation mode receives two appended coefficient words;JND's existing
+  coefficient payload is parameterized. New host rejects oldABI12 shader.
+  Base FFT ABI81 unchanged;SPIR-V valid with Shader capability only.
+  Old ABI12 shader/executables remain saved;no blanket shader rebuild.
+- Subsequent cross-domain60ppd/new-age tests andraw loading are completed
+  above;the original10-case30ppd checkpoint retains its earlier shader hash.
+- Mixed pipeline integration remains local/uncommitted. Preserve staged shader
+  blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,dirty lib/VkFFT and all other
+  changes. Scoped verified tools/docs can be committed;no push.
+
+The cross-domain/raw-resampling next steps are completed above. Real HDR/color,
+arbitrary full dimensions andpublic API remain unfinished.
+
+## Previous continuation: exact age-dependent spectral calibration
 
 - New independent C++ component:include/IQM/hdrvdp3/spectral.h and
   src/hdrvdp3/spectral.cpp. Input is native-resampled double wavelength,

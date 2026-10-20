@@ -1,8 +1,10 @@
 # Age-dependent spectral calibration
 
 Updated 2026-10-19. A new independent C++ calibration component matches the
-official v3.0.7 age-dependent D65 calculation. Full metric age integration
-is still pending.
+official v3.0.7 age-dependent D65 calculation. This records its isolated
+scope; the subsequent [full age checkpoint](FULL_AGE_VALIDATION.md) verifies
+selected end-to-end cases. [Raw spectral loading](RAW_SPECTRAL_VALIDATION.md)
+now reproduces the native resampling in C++ and passes separate full runs.
 
 `calibrate_spectral_age` in `spectral.cpp` accepts already resampled double
 wavelengths, D65 emission and LMSR sensitivity. It computes lens optical
