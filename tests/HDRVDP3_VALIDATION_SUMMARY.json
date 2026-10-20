@@ -1,10 +1,10 @@
 {
-    "publication":  "Latest scoped checkpoint contains verified reference tools and validation documentation. Mixed GPU/application integration remains local/uncommitted;no push.",
+    "publication":  "Scoped checkpoints through6b18daa were pushed. Bounded API/runtime sources are locally committed in7c7f473 and clean-source verified;new commits are not pushed. Mixed main application integration remains local/uncommitted.",
     "reference":  "Official HDR-VDP-3 v3.0.7",
     "date":  "2026-10-20",
     "branch":  "feature/hdr-vdp3",
     "implementation_baseline_commit":  "b46666df138c5b2770f004ad59603a2d0eaf28ab",
-    "scope":  "Top-level ABI12 counts/cases are historical. Named checkpoints retain later32/64,D65 synthetic luminance evidence. full_age_checkpoint verifies10 pairs at30ppd ages24/60/60.001;age_ppd60_checkpoint verifies4 HDR pairs at60ppd ages60/60.001 with precision-fallback shader;raw_spectral_checkpoint verifies independent raw loading and2 full loader regressions. Replays and loader regressions are not new unique input cases. luminance_input_checkpoint adds6 file-derived photo luminance pairs and2 synthetic regressions;full RGB-native/full-frame/public API remain unverified.",
+    "scope":  "Top-level ABI12 counts/cases are historical. Named checkpoints retain later32/64,D65 synthetic luminance evidence. full_age_checkpoint verifies10 pairs at30ppd ages24/60/60.001;age_ppd60_checkpoint verifies4 HDR pairs at60ppd ages60/60.001 with precision-fallback shader;raw_spectral_checkpoint verifies independent raw loading and2 full loader regressions. Replays and loader regressions are not new unique input cases. luminance_input_checkpoint adds6 file-derived photo luminance pairs and2 synthetic regressions;full RGB-native/full-frame/public API remain unverified. evaluation_api_checkpoint verifies the bounded32/64 luminance library API with10 full regressions and2 direct calls;general dimensions,RGB-native and clean-checkout packaging remain open.",
     "map_shader_abi":  12,
     "shader_sha256":  "16CE90C5E22997F7DB7E7286F71AAE963F5EAA15A1E715BA19022DAEB36E23A1",
     "base_fft_abi":  81,
@@ -541,5 +541,40 @@
                                        "pfm_export_bit_values":  30720,
                                        "full_RGB_native_metric_verified":  false,
                                        "public_API_complete":  false
-                                   }
+                                   },
+    "evaluation_api_checkpoint":  {
+                                      "path":  "validation/evaluation_api_639281145664415302/COMPLETED.json",
+                                      "full_runs":  10,
+                                      "float_values":  1425505,
+                                      "double_mask_values":  59520,
+                                      "mismatches":  0,
+                                      "unchanged_full_suite_text_exports":  1218,
+                                      "direct_API_calls":  2,
+                                      "direct_API_identical_text_exports":  203,
+                                      "negative_API_cases":  14,
+                                      "bounded_luminance_API_verified":  true,
+                                      "full_RGB_native_metric_verified":  false,
+                                      "clean_checkout_runtime_verified":  false,
+                                      "isolated_build_verified":  true,
+                                      "regenerated_embedded_headers":  7,
+                                      "regenerated_headers_identical":  true,
+                                      "isolated_direct_API_calls":  2,
+                                      "isolated_identical_numeric_exports":  203,
+                                      "cli_failure_exit_propagation_verified":  true,
+                                      "post_cli_strict_success_runs":  1
+                                  },
+    "clean_checkout_checkpoint":  {
+                                      "path":  "validation/clean_api_639281156569491989/COMPLETED.json",
+                                      "commit":  "7c7f4736c324ce2d648151b6f21003f519132f95",
+                                      "clean_source_build":  true,
+                                      "clean_VkFFT_submodule":  true,
+                                      "direct_API_calls":  2,
+                                      "returned_scores_bitwise_exact":  true,
+                                      "identical_numeric_text_exports":  203,
+                                      "negative_cases":  14,
+                                      "regenerated_embedded_headers":  7,
+                                      "external_assets_hashed":  true,
+                                      "external_assets_regenerated":  false,
+                                      "self_contained_package_verified":  false
+                                  }
 }

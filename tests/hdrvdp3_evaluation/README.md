@@ -20,7 +20,9 @@ cmake --build validation/<fresh-build> --config Release -j 2
 
 `Release/IQM-quality-api-test.exe` accepts the arguments documented in
 `tests/evaluate_quality_api.cpp`. See `tests/EVALUATION_API_VALIDATION.md` for
-the numeric contract and validation scope. A fresh independent build of the
-dirty source snapshot is not a clean committed-checkout validation. Publishing
-the full runtime source/dependency set and generating external reference assets
-remain separate requirements.
+the numeric contract and validation scope. The bounded source set has now been
+committed and built from a clean worktree with a clean VkFFT submodule;32/64
+direct evaluations match the pinned baseline. See
+`tests/CLEAN_CHECKOUT_VALIDATION.md`. Publishing the new commits and generating
+the external reference assets remain separate requirements. A clean build with
+pinned external assets is not a self-contained source-to-assets distribution.

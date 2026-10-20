@@ -2,6 +2,123 @@
 
 Last updated: 2026-10-20 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation: clean committed-source build
+
+- Scoped18 API/runtime/build files committed as
+  `7c7f4736c324ce2d648151b6f21003f519132f95`,English message
+  `Expose bounded luminance quality API with isolated shader build`. This
+  promotes the previously verified bounded runtime,not the mixed main wrapper
+  or root/source CMake integration. No push;origin still at6b18daa.
+- Detached clean worktree at
+  validation/clean_api_639281156569491989/checkout. Its VkFFT is clean at
+ 539be29f30ef40384f3ccd24d7884166f82cbef8,cloned from local Git objects using
+  a per-command submodule URL override;no dirty files or configuration changes
+  were copied from the original submodule. Original dirty VkFFT is preserved.
+- Fresh independent configure/build passes from committed sources,using
+  tests/hdrvdp3_evaluation,with build and exports outside the checkout. Seven
+  embedded shader headers regenerated from GLSL match prior headers' hashes.
+  No root build cache,workspace shaders_out,wrapper,other metrics or dependency
+  downloads. Clean checkout and submodule remain clean after all tests.
+- Two fresh direct32/64 photo-localized API calls return exact error/Q/Q_JOD
+  bits and203 matching numerical text export hashes (96/107),despite16 poisoned
+  environment variables. Fourteen negative cases pass. This compares against
+  prior native-validated baselines;it is not another fresh Octave/GPU checker
+  execution. Scope remains30ppd/age24/D65 positive square luminance.
+- Evidence:validation/clean_api_639281156569491989/COMPLETED.json;pointer
+  validation/clean_api_completed_path.txt. Includes checkout,build,source and
+  binary hashes,configure/build/run/negative logs andassets/manifest.json.
+  Local driver:validation/validate_clean_api.ps1;use a fresh work path on rerun.
+  Fourteen runtime assets are copied and hashed inassets (FFT2,map/base2,
+  math3,spectral3,PFM4);golden files are comparison evidence. Original reference
+  files and earlier failed/successful artifacts are preserved.
+- Remaining distinction:external reference FFT/math/map/baseFFT assets were
+  NOT regenerated from clean committed generator inputs. The clean checkout
+  build with pinned assets is verified;the full self-contained source-to-assets
+  package is not. See tests/CLEAN_CHECKOUT_VALIDATION.md for exact scope.
+- Preserve staged shader index blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7.
+  Root/source CMake,wrapper,other existing experiments remain local and mixed.
+
+Exact next step:package external reference shader generation and its source
+dependencies/provenance,then reproduce the14 runtime assets from a fresh
+location andcompare hashes/numerical results. Audit FFTW graph source/archive,
+reference math source manifests andpower/map/base FFT generators before
+promoting them. Do not reclassify copied binaries as regenerated assets.
+General dimensions,RGB-native encodings andfull frames follow separately.
+
+## Latest continuation: library quality API
+
+- Added `include/IQM/hdrvdp3/evaluation.h` and
+  `src/hdrvdp3/evaluation.cpp`, compiled into `IQM-HDRVDP3` with strict FP.
+  `evaluate_quality(instance,reference,test,options,trace)` accepts two
+  `LuminanceImage` objects and explicit viewing/age, FFT/math/map/baseFFT
+  assets and raw spectral directory or sampled data. Returns `QualityScores`
+  plus per-band errors. No environment reads or synthetic generation in the
+  evaluator. Native arithmetic, padding/layout/DC processing and shaders are
+  unchanged. Only validated square32/64 positive luminance inputs are accepted.
+- Wrapper now prepares inputs/configuration and calls the library. The old
+  preliminary non-FFT/CPU quality modes are rejected explicitly; isolated
+  corrDn/SPYR probes remain. Historical constant-image comparison code was
+  removed from this path; its source snapshot/reference files are preserved.
+- New independent target `IQM-quality-api-test` links the library without the
+  wrapper. With16 poisoned legacy environment variables, direct32/64 calls
+  return bitwise exact error/Q/Q_JOD and4/5 band errors.203 API-generated
+  numerical text exports match baseline hashes. Fourteen invalid shape/count,
+  luminance, viewing/age/FFT/map and trace-directory cases are rejected before
+  dispatch/overwrite. Diagnostic export to a fresh explicit directory remains
+  required by this first API; the shared VulkanInstance must not be concurrent.
+- Ten fresh full regressions pass:6 photo luminance pairs +2 synthetic controls
+  at30ppd/age24, and2 HDR ramp localized-stronger at60ppd/age60.001, both32/64.
+  Official Q/Q_JOD, CPU JND, raw/centered SPYR, CSF/masking/D and independent GPU
+  stages pass.1,425,505 floats and59,520 binary64 masks compare with zero
+  differences;1,218 full-suite text export hashes remain identical.
+- Root: `validation/evaluation_api_639281145664415302/COMPLETED.json`;
+  pointer `validation/evaluation_api_completed_path.txt`. Contains before
+  snapshots, source/binary hashes, per-case suite paths/logs, direct/extended
+  results and14-rejection log. Drivers in validation:run_evaluation_api_regression,
+  run_evaluation_api_direct,run_evaluation_api_extended and
+  finalize_evaluation_api_checkpoint.ps1. Use fresh work/export paths on rerun.
+  Preserve initial failed build (missing transpose helper) and initial direct
+  comparison attempt:the latter wrongly expected Octave-added files in API
+  output, although the initial direct32 returned scores were exact. Corrected
+  direct attempts use fresh directories and compare all actual API files.
+- Follow-up CLI error propagation:wrapper rethrows full-quality exceptions;
+  main already converts them to nonzero exit. A32-PFM/64-selected rejection
+  returns-1 (`cli_reject_dimension.json`). The numerical API checkpoint keeps
+  its pre-CLI-change executable/source snapshot; CLI status verification is a
+  subsequent build, recorded separately in `CLI_COMPLETED.json`. One additional
+  fresh32/asymmetric-localized full strict success regression passes on that
+  build:57,046 floats and2,368 double masks exact,116 unchanged text exports.
+  The final executable is `IQM_cli_status.exe`,with separate source/hash files.
+- Added independent `tests/hdrvdp3_evaluation/CMakeLists.txt` and README.
+  Fresh configure/build passes without the root build cache, other metrics,
+  FetchContent or workspace shaders_out. Generates exactly seven embedded
+  headers from current GLSL into isolated_build/generated;all seven SHA256s
+  equal the previously verified embedded headers. Uses SDK discovery rather
+  than the main build's hardcoded SDK library paths. Independent32/64 direct
+  calls then pass bitwise scores and203 numerical export hashes with poisoned
+  environment. Evidence:ISOLATED_BUILD.json,isolated_source_inventory_hashes.json,
+  isolated_shader_header_hashes.json,isolated_binary_hash.json and
+  isolated_direct_results.json under the API root. This builds the current
+  source snapshot,not a clean committed checkout. VkFFT tracked header changes
+  are empty;its existing dirty changes affect CMakeLists.txt and an untracked
+  glslang directory. The isolated project does not use that modified CMake.
+- Current runtime/API integration remains local/uncommitted with existing
+  mixed changes. Do not blindly commit whole CMake/wrapper/shader files.
+  Published HEAD remains `6b18daa`;earlier11 verified commits were successfully
+  pushed, origin and HEAD matched at that checkpoint. Staged shader blob
+  `1cf7baedb1d54be0ca8ad02d14485e510b0434e7`,dirty VkFFT and old artifacts preserved.
+
+Exact next step:review and promote the minimal runtime dependency set used by
+the new isolated target into a scoped commit,then validate from a fresh clean
+checkout with complete external reference shader generation/assets. The
+independent build already regenerates all embedded headers;reference FFT,
+math,map/baseFFT assets still arrive as explicit pinned runtime inputs.
+Resolve shared bin Vulkan resource ownership as needed for packaging.
+Then generalize image/FFT dimensions and validate additional official RGB/HDR
+encodings and full frames. Those remain unfinished; a measured overall
+completion percentage is not available. Do not label square32/64 luminance
+validation as full HDR-VDP-3 input-domain parity or a fully GPU-only pipeline.
+
 ## GitHub publication checkpoint
 
 - User explicitly requested publication on 2026-10-20. Fetched

@@ -1,5 +1,23 @@
 # Masking and quality validation
 
+2026-10-20 clean-source continuation:the bounded runtime is committed in
+7c7f473 and builds in a detached clean worktree with clean VkFFT. Two fresh
+direct32/64 cases preserve score bits and203 numerical export hashes;14 invalid
+cases pass. External reference shader binaries were copied and hashed,not
+regenerated. See [clean-source checkpoint](CLEAN_CHECKOUT_VALIDATION.md).
+
+2026-10-20 library API continuation: `evaluate_quality` now runs the validated
+quality path from the HDRVDP3 library with explicit luminance inputs,
+viewing/age and assets, without environment parsing or synthetic generation.
+Ten fresh full regressions preserve official Q/Q_JOD and strict stages:
+1,425,505 float values and59,520 binary64 masks, zero differences;1,218
+text exports remain identical. Two independent direct callers ignore a
+poisoned environment, return bitwise matching scores and preserve203 numeric
+exports. Fourteen invalid API configurations/inputs are rejected. Scope is
+still square32/64 luminance;general dimensions, RGB-native and clean-checkout
+runtime packaging remain open. See [API checkpoint](EVALUATION_API_VALIDATION.md).
+This supersedes older public-API-pending statements only within that scope.
+
 Current2026-10-19 extension:six32x32 full-metric pairs now match official
 Q/Q_JOD and strict intermediates;the four-band GPU checker compares342276
 float values and14208 double masks with zero differences. Six64x64 regressions
