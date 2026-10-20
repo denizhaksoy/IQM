@@ -4,7 +4,7 @@
     "date":  "2026-10-20",
     "branch":  "feature/hdr-vdp3",
     "implementation_baseline_commit":  "b46666df138c5b2770f004ad59603a2d0eaf28ab",
-    "scope":  "Top-level ABI12 counts/cases are historical. Named checkpoints retain later32/64,D65 synthetic luminance evidence. full_age_checkpoint verifies10 pairs at30ppd ages24/60/60.001;age_ppd60_checkpoint verifies4 HDR pairs at60ppd ages60/60.001 with precision-fallback shader;raw_spectral_checkpoint verifies independent raw loading and2 full loader regressions. Replays and loader regressions are not new unique input cases.",
+    "scope":  "Top-level ABI12 counts/cases are historical. Named checkpoints retain later32/64,D65 synthetic luminance evidence. full_age_checkpoint verifies10 pairs at30ppd ages24/60/60.001;age_ppd60_checkpoint verifies4 HDR pairs at60ppd ages60/60.001 with precision-fallback shader;raw_spectral_checkpoint verifies independent raw loading and2 full loader regressions. Replays and loader regressions are not new unique input cases. luminance_input_checkpoint adds6 file-derived photo luminance pairs and2 synthetic regressions;full RGB-native/full-frame/public API remain unverified.",
     "map_shader_abi":  12,
     "shader_sha256":  "16CE90C5E22997F7DB7E7286F71AAE963F5EAA15A1E715BA19022DAEB36E23A1",
     "base_fft_abi":  81,
@@ -529,5 +529,17 @@
                                     "gpu_mismatches":  0,
                                     "unchanged_text_exports":  218,
                                     "full_pipeline_raw_loading_verified":  true
-                                }
+                                },
+    "luminance_input_checkpoint":  {
+                                       "date":  "2026-10-20",
+                                       "path":  "validation/luminance_input_639280968498275868/COMPLETED.json",
+                                       "photo_pairs":  6,
+                                       "synthetic_regressions":  2,
+                                       "float_values":  1140404,
+                                       "double_mask_values":  47616,
+                                       "mismatches":  0,
+                                       "pfm_export_bit_values":  30720,
+                                       "full_RGB_native_metric_verified":  false,
+                                       "public_API_complete":  false
+                                   }
 }

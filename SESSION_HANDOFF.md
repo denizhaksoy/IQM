@@ -2,7 +2,67 @@
 
 Last updated: 2026-10-20 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Latest continuation: raw spectral loading and corrected power rounding
+## Latest continuation: file-based absolute luminance input
+
+- New standalone input API:include/IQM/hdrvdp3/luminance.h and
+  src/hdrvdp3/luminance.cpp,load_luminance_pfm. Grayscale Pf,three-line
+  header,both byte orders,bottom-up raster ->top-down row-major float32;
+  header scale magnitude applied once. Requires positive finite luminance.
+  No IO resize,gamma normalization or tone mapping. RGB/zero/generalformats
+  remain outside this contract. Existing8-bit shared reader is unchanged.
+- Independent tests/hdrvdp3_input:25 cases (18 valid,7 rejected),30,810
+  float bit values exact;CTest passes. Nonsquare3x5 IO tested separately from
+  fixed32/64 full-pipeline support. Photo-content files add15,360 bit values.
+- Validation-only prepare_hdr_luminance uses bundled stb float HDR decoding,
+  explicit binary32 Rec709 numeric Y andone cd/m2 perderivedY unit assumption.
+  Source primaries/photometric calibration are not independently verified.
+  External source C:/HDR-VDP-3_Ref/examples/nancy_church.hdr is768x1024.
+  Center crops32@(368,496),64@(352,480);no resizing. This is shared luminance
+  input validation,not full RGB-native metric parity or whole-frame validation.
+- Full wrapper accepts IQM_LUMINANCE_REFERENCE / IQM_LUMINANCE_TEST;both required
+  andmust match selected32/64 shape. Synthetic generation/transforms bypassed
+  in file mode;input_source.txt records routing. Runner options
+  -LuminanceReference/-LuminanceTest hash inputs,use _file prefixes andclear
+  stale file flags for synthetic runs. Separate native PFM decoder proves
+  30,720 input/export float bits identical across six photo pairs.
+- Six photo pairs at30ppd/age24/D65/raw spectral loading:localized1.5 patch,
+  global1.05 brighter andidentical at32/64. All official scores,strict stages,
+  CPU JND traces,raw/centered SPYR andGPU intermediates match. Photo-only:
+  855,303 float comparisons,35,712 binary64 masks,zero differences.
+  Two synthetic regressions keep prior scores exact andprove stale flags
+  clear. Combined8 fresh runs:1,140,404 floats,47,616 double mask words exact.
+- Photo Q/Q_JOD:32localized8.0709753036499023/8.7933588027954102;
+  64localized9.2685623168945312/9.6516733169555664;32brighter
+  9.9970340728759766/9.999699592590332;64brighter9.9958648681640625/
+  9.9995403289794922;both identical10/10. Source crop ranges are recorded
+  precisely inmetadata andtests/LUMINANCE_INPUT_VALIDATION.md.
+- Expected dimension mismatch is rejected without resize. Legacy wrapper can
+  returnexit0 after printing its error;runner correctly treats that as failure.
+  rejected_dimension_suite.txt preserves the expected rejection artifact.
+- Root:validation/luminance_input_639280968498275868/COMPLETED.json;pointer:
+  validation/luminance_input_completed_path.txt. Includes before/source,binaries,
+  fixtures,nancy metadata/derivedfiles,all logs,loader/CTest results andnegative
+  test. Local finalizer:validation/finalize_luminance_input_checkpoint.ps1.
+  No shader changes inthis continuation;corrected ABI13 hash remains0B023987...
+- Important export-path race:negative test replaced the shared64 _file latest
+  pointer while64-identical wasinflight. Provisional parent suite metadata
+  was savedas suites64_from_mutable_latest.json. Canonical validated_suites.json
+  parses the unique completed Suite PASS lines;corrected suites64.json now
+  agrees. latest_pointer_audit.json records this. No numerical result changed;
+  never use mutable global latest pointers as evidence under shared prefixes.
+- Preserve staged corrdn_test shader blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,
+  dirty lib/VkFFT andall pre-existing changes. Scoped input module/tools/docs
+  may be committed;main pipeline integration remains local. No push.
+
+Exact next step:extract the validated evaluation from hdrvdp3_test_run into
+a reusable quality API accepting a LuminanceImage pair,explicit viewing/age
+parameters andasset configuration,without global environment dependence.
+Keep the harness thin andcompare before/after against these six file pairs
+andtwo synthetic controls before changing arithmetic. Full original frames,
+RGB-native/other encodings,zero-input handling andgeneral dimensions remain
+unfinished. No measured overall completion percentage exists.
+
+## Previous continuation: raw spectral loading and corrected power rounding
 
 -2026-10-20:raw C++ D65/cone/rod table loader andnonuniform pchip are complete.
   420 native wavelengths,2,520 sampled double values exact;feeding those into
@@ -52,13 +112,8 @@ Last updated: 2026-10-20 (Europe/Prague). Branch: `feature/hdr-vdp3`.
   existing staged shader blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,dirty
   lib/VkFFT,all old references anddirty/untracked files. No push performed.
 
-Exact next step:move beyond synthetic-only inputs by adding an explicit
-absolute-luminance image input path at the already-supported32/64 sizes,
-without silent resizing/tone mapping. Export the exact input to Octave and
-run full comparisons with raw spectral loading andcorrected shader. Then
-package the verified path behind a normal public metric API andbroaden full
-dimensions/observer settings. This is not a completed arbitrary HDR/color
-metric;no measured project-wide completion percentage is available.
+The explicit32/64 float luminance input next step is completed above.
+Normal public metric API,full RGB/color andgeneral dimensions remain open.
 
 ## Previous continuation: full age pipeline ABI13
 

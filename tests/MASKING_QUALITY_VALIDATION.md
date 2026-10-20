@@ -241,3 +241,12 @@ The [raw spectral/viewing continuation](RAW_SPECTRAL_VALIDATION.md) adds four
 application regressions. These scopes retain separate hashes and counts.
 The portable JSON retains these checkpoints separately; mixed application
 integration remains local, and the public metric API remains incomplete.
+
+## File-based luminance continuation (2026-10-20)
+
+[File-input validation](LUMINANCE_INPUT_VALIDATION.md) now verifies six
+Nancy Church derived-luminance crop pairs andtwo synthetic regressions at
+32/64,30ppd,age24,D65. All native stages andscores match;the combined eight
+runs compare1,140,404 GPU floats and47,616 binary64 mask words exactly.
+Independent source-file bit checks cover the input route. Crop/color/unit
+assumptions are explicit;full-frame andRGB-native metric parity remain open.
