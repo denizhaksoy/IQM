@@ -2,6 +2,64 @@
 
 Last updated: 2026-10-20 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## GitHub publication checkpoint
+
+- User explicitly requested publication on 2026-10-20. Fetched
+  `origin/feature/hdr-vdp3`; the remote has no divergent commits. Prepared
+  the ten verified local commits through `d03c2c3`, plus this handoff update,
+  for a normal push to `origin/feature/hdr-vdp3` (no force push).
+- Publication scope: scalar numerical corrections, spectral calibration/raw
+  loading, lossless luminance IO, isolated validation tools and documented
+  numerical checkpoints. Commit messages and technical documents are English.
+- Full runtime integration, including the validated FFT config boundary,
+  remains local with mixed existing changes. The remote branch must not be
+  described as a complete standalone implementation of the validated local
+  runtime. Existing untracked artifacts and dirty `lib/VkFFT` are preserved;
+  the staged corrdn_test shader is excluded. Next implementation step remains
+  the reusable quality API described below.
+
+## Latest continuation: explicit FFT configuration boundary
+
+- Committed the independently verified luminance input module, standalone
+  tools and validation documents as `d03c2c3931c616b3f38399de7bf109bff392a59a`
+  (`Add lossless luminance file input and validate real image crops`). No push.
+  Mixed main application integration was excluded; staged shader preserved.
+- Added `HDRVDP3FFTConfig` and an explicit `compute_fft_filter_gpu` overload
+  in the local wrapper. Axis order, twiddle mode, reference shader path and
+  math shader directory are passed explicitly to FFT execution. The test
+  harness parses its environment once for the four MTF/adaptation calls.
+  The old overload remains a compatibility adapter. Arithmetic, shaders,
+  padding, layouts and DC processing are unchanged. This is the first
+  extraction boundary, not a complete public quality API.
+- Release build passed. Eight fresh full strict native-reference regressions
+  passed: six photo-derived luminance pairs and two synthetic controls at
+  32/64,30ppd,age24,D65/raw spectral input. GPU checks cover 1,140,404 float
+  comparisons and 47,616 binary64 mask values with zero differences.
+  Before/after hashes match for 976 text exports (116 per32 run,128 per64
+  run; three asset-path metadata filenames excluded from the comparison).
+  Full raw/centered SPYR checks, native JND traces and official Q/Q_JOD pass.
+- Evidence: `validation/fft_explicit_config_639281136637103838/COMPLETED.json`;
+  pointer `validation/fft_explicit_config_completed_path.txt`. Preserves old
+  wrapper/header/executable, build log, per-case logs, authoritative suite
+  paths from completed logs, verified executable/source hashes, and isolated
+  continuation patches against the before snapshots. Driver:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File
+  validation/run_fft_explicit_config_regression.ps1`. Before rerunning, create
+  a fresh timestamped work directory with before snapshots and update
+  `validation/fft_explicit_config_work_path.txt`; preserve existing logs.
+- Wrapper/header changes remain local with pre-existing mixed integration;
+  do not commit their entire contents indiscriminately. The staged shader
+  index blob remains `1cf7baedb1d54be0ca8ad02d14485e510b0434e7`.
+
+Exact next step: continue extracting the validated evaluation into a reusable
+quality API accepting two `LuminanceImage` objects, explicit viewing/age,
+spectral data and shader configuration, returning `QualityScores`. Move
+remaining environment parsing and synthetic generation into the harness;
+use the explicit FFT overload internally. Preserve the same stage arithmetic
+and repeat the six file/two synthetic before/after comparisons. General image
+sizes, full original frames, zero-input policy and RGB-native parity remain
+unfinished; no measured overall completion percentage is available.
+
 ## Latest continuation: file-based absolute luminance input
 
 - New standalone input API:include/IQM/hdrvdp3/luminance.h and
