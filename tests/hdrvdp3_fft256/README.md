@@ -26,6 +26,12 @@ inverse SPIR-V,math directory,ref|test,mtf|la andfresh export. The four-case
 `tests/FFT256_FILTER_VALIDATION.md` for measured chains and the16x16 residual
 required by official128x128/30ppd SPYR height control.
 
+`fft256-filter-test --base16 <fixture> <shader> <fresh-output>` checks the
+isolated residual16 FFT,magnitudes andfirst-max indices. Generate fixtures
+using `tests/generate_base16_reference.m` (optional `spyr` input source) and
+compile using `compile_base16.ps1`. See `tests/BASE16_VALIDATION.md`;production
+MapGPU base16 routing/DC/adaptation are still separate integration work.
+
 The first native inverse axis uses sixteen scalar16 leaves followed by t2_16.
 The second uses32 inverse8 leaves followed by t3bv_32 SIMD twiddles. Original
 FFTW3.3.10 source and GPL-2.0-or-later attribution/COPYING are preserved.

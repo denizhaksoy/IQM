@@ -2,6 +2,42 @@
 
 Last updated: 2026-10-21 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation:residual16 FFT andfirst-max selection
+
+- Added source-backed r2cf_16/n1_16 ordinary graph shader,existing finite_hypot
+  andcolumn-first strict-greater maximum scan. Original FFTW source notices,
+  GPL andarchive/member/LF hashes preserved underfftw_reference/base16.
+- Two GPU batch executions cover128 matrices:64 synthetic controls/random
+  and64 official sp0Filters residuals from128x128 single inputs at30ppd.
+  Native SPYR residuals are normalized byget_band andmean-subtracted before
+  export. GPU mean/DC subtraction isnotpart ofthis test.
+-65,536 FFT components,32,768 magnitude values and128 selected indices all
+  match native single Octave exactly;98,432 total scalar comparisons,no
+  tolerance. Zero/constant/tie/near-tie controls included. Signed-zero bit
+  identity isnotasserted. Only selection magnitudeDC iszeroed;raw FFT retained.
+- Native fixturethreads3/estimate,wisdom containsr2cf_16 andn1_16. Separate
+  earlier extension plan probe used22threads;notincluded inthis profile.
+  SPIR-V Shader/DenormPreserve/RoundingModeRTE only;noFloat64/Int64.
+  Intel Arc Pro GPU logs show noERROR/Validation Error/VUID diagnostics.
+- Evidence:validation/base16_639281811300602859/COMPLETED.json,source_hashes,
+  binary_hashes,native_hashes,native/native_spyr wisdom andmetadata,gpu/gpu_spyr
+  exports andlogs. Pointer:validation/base16_completed_path.txt.
+  Reproduce:generate_base16_reference.m [spyr],compile_base16.ps1,then
+  fft256-filter-test --base16 fixture shader fresh-export.
+  Docs:tests/BASE16_VALIDATION.md. Existing8x8 shader pins/production guards
+  unchanged. Prior staged shader/VkFFT andall unrelated changes preserved.
+- Verified filter-chain work islocal commit2d8618e,forwardFFT localf9ce823,
+  inverseFFT local4bc1522;remote previouslythrough11797c1. No new push.
+
+Exact next step:validate GPU16x16 residual mean/DC andbase adaptation (existing
+MapGPU paths require64 samples),thenroute validated FFT/selection for16x16.
+Apply official ppd-limited height toboth evaluationSPYR calls andband-count
+metadata;128@30ppd mustuseheight3/residual16,128@60ppd height4/residual8.
+Then validate128 map resize/masking,pupil/quality reductions andfull-stage
+native score regression. Integrate FFT256 dispatch andlift public guards only
+after complete128 parity;the current API remains32/64. General dimensions,
+RGB-native processing andfull-frame parity remain outside measured scope.
+
 ## Latest continuation:128x128 MTF/LA chains
 
 - Added isolated fft256-filter-test, using actual R32 storage images and

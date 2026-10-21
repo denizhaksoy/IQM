@@ -677,5 +677,35 @@
                                      "driver_replays_in_unique_counts":  false,
                                      "path":  "validation/fft256_filter_639281807624298950",
                                      "next_step":  "128@30ppd official residual16x16 FFT/selection and ppd-limited SPYR height;map128 dimensions"
-                                 }
+                                 },
+    "base16_checkpoint":  {
+                              "scope":  "Isolated residual16 FFT/magnitude/first-max,not full128 metric",
+                              "gpu_batch_executions":  2,
+                              "matrices":  128,
+                              "fft_components":  65536,
+                              "fft_numeric_mismatches":  0,
+                              "magnitudes":  32768,
+                              "magnitude_numeric_mismatches":  0,
+                              "indices":  128,
+                              "index_mismatches":  0,
+                              "total_scalar_comparisons":  98432,
+                              "native_threads":  3,
+                              "native_planner":  "estimate",
+                              "precision":  "single",
+                              "layout":  "row-major interleaved real input;row-major spectrum/magnitude outputs;zero-based column-major first-max index",
+                              "DC_processing":  "Native mean subtraction for SPYR input;GPU only zeros DC magnitude;raw spectrum unchanged",
+                              "normalization":  1,
+                              "gpu_mean_DC_verified":  false,
+                              "production_MapGPU_routing_verified":  false,
+                              "signed_zero_bits_asserted":  false,
+                              "float_controls":  [
+                                                     "DenormPreserve32",
+                                                     "RoundingModeRTE32"
+                                                 ],
+                              "path":  "validation/base16_639281811300602859",
+                              "public_api_dimensions":  [
+                                                            32,
+                                                            64
+                                                        ]
+                          }
 }

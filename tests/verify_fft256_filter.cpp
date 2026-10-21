@@ -72,7 +72,25 @@ static size_t compare(Buffer& b,const std::vector<float>& expected,const Path& d
         if(!std::isfinite(v)||v!=expected[i]){if(bad<3)std::cout<<dump.filename()<<" index="<<i<<" gpu="<<v<<" native="<<expected[i]<<'\n';++bad;maximum=std::max(maximum,std::abs(double(v)-expected[i]));}
     }b.memory.unmapMemory();std::cout<<dump.filename()<<" values="<<expected.size()<<" mismatches="<<bad<<" max="<<maximum<<'\n';return bad;
 }
+static int base16(const Path& source,const Path& shader,const Path& output){
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh base16 export required");
+    const auto input=read(source/"input.txt",64,512),expected=read(source/"expected.txt",64,769);
+    VulkanInstance instance(true);const auto& device=*instance.device();
+    const auto props=instance.physicalDevice()->getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();
+    const auto& controls=props.get<vk::PhysicalDeviceFloatControlsProperties>();
+    if(!controls.shaderDenormPreserveFloat32||!controls.shaderRoundingModeRTEFloat32)throw std::runtime_error("Required float controls unsupported");
+    auto in=buffer(instance,unsigned(input.size()*4)),out=buffer(instance,unsigned(expected.size()*4));upload(in,input);
+    const auto sb=vk::DescriptorType::eStorageBuffer;Kernel kernel(instance,shader,{sb,sb});kernel.bind(instance,0,in);kernel.bind(instance,1,out);
+    vk::CommandBuffer cmd=**instance.cmdBuf();cmd.begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    vk::MemoryBarrier host{.srcAccessMask=vk::AccessFlagBits::eHostWrite,.dstAccessMask=vk::AccessFlagBits::eShaderRead};
+    cmd.pipelineBarrier(vk::PipelineStageFlagBits::eHost,vk::PipelineStageFlagBits::eComputeShader,{}, {host},{},{});
+    kernel.run(cmd,{16,64,0,0},2);cmd.end();vk::SubmitInfo submit{.commandBufferCount=1,.pCommandBuffers=&cmd};
+    vk::raii::Fence fence(device,vk::FenceCreateInfo{});instance.queue()->submit(submit,fence);instance.waitForFence(fence);
+    const auto bad=compare(out,expected,output/"base16_output.txt",64,769,false);
+    std::cout<<"base16 values=49216 mismatches="<<bad<<'\n';return bad?1:0;
+}
 int main(int argc,char** argv){try{
+    if(argc==5&&std::string(argv[1])=="--base16")return base16(argv[2],argv[3],argv[4]);
     if(argc!=8)throw std::runtime_error("Usage: fixture forward.spv inverse.spv math_dir ref|test mtf|la fresh_export");
     const Path source(argv[1]),math(argv[4]),output(argv[7]);const std::string label(argv[5]),mode(argv[6]);
     if((label!="ref"&&label!="test")||(mode!="mtf"&&mode!="la"))throw std::runtime_error("Invalid mode/label");
