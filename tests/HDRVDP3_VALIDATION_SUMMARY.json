@@ -1,5 +1,5 @@
 {
-    "publication":  "Verified checkpoints through11797c1 were pushed. Isolated inverse256 commit4bc1522 and subsequent forward256 work are local;main integration remains mixed.",
+    "publication":  "Remote verified through11797c1;local inverse4bc1522 andforwardf9ce823 checkpoints. Subsequent128 filter-chain diagnostics are local;public API remains32/64.",
     "reference":  "Official HDR-VDP-3 v3.0.7",
     "date":  "2026-10-21",
     "branch":  "feature/hdr-vdp3",
@@ -646,5 +646,36 @@
                                                                    32,
                                                                    64
                                                                ]
-                              }
+                              },
+    "fft256_filter_checkpoint":  {
+                                     "scope":  "Isolated128x128 MTF/LA filter chains, not full metric",
+                                     "unique_chain_cases":  12,
+                                     "gpu_float_components":  6488064,
+                                     "gpu_numeric_mismatches":  0,
+                                     "cpu_generated_filter_float_comparisons":  786432,
+                                     "cpu_filter_float_mismatches":  0,
+                                     "patterns":  [
+                                                      "asymmetric",
+                                                      "impulse",
+                                                      "hdr_ramp"
+                                                  ],
+                                     "ppd":  30,
+                                     "input_precision":  "single",
+                                     "kernel_cpu_precision":  "double rounded tofloat32; double-bit identity not asserted",
+                                     "fft_float_controls":  [
+                                                                "DenormPreserve32",
+                                                                "RoundingModeRTE32"
+                                                            ],
+                                     "normalization":  "inverse only1/65536",
+                                     "DC_removal":  false,
+                                     "layouts":  "R32 images row-major;FFT column-major;explicit row-major export",
+                                     "api_guard_unchanged":  [
+                                                                 32,
+                                                                 64
+                                                             ],
+                                     "driver_replay_cases":  4,
+                                     "driver_replays_in_unique_counts":  false,
+                                     "path":  "validation/fft256_filter_639281807624298950",
+                                     "next_step":  "128@30ppd official residual16x16 FFT/selection and ppd-limited SPYR height;map128 dimensions"
+                                 }
 }

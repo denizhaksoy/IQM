@@ -2,6 +2,42 @@
 
 Last updated: 2026-10-21 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation:128x128 MTF/LA chains
+
+- Added isolated fft256-filter-test, using actual R32 storage images and
+  existing source-generated prepare/multiply/finish shaders with accepted
+  forward256/inverse256 SPIR-V. Production/public API guards remain32/64.
+-12 unique chain cases:asymmetric,impulse,HDR1e-3..1e4;ref/test;MTF/LA.
+  Four complex stages andfinal cropped output compare6,488,064 GPU float
+  components toofficial native Octave withzero numeric mismatches/no tolerance.
+  CPU-generated MTF/Gaussian filters compare786,432 Float32 values exactly;
+  this doesnotassert binary64 filter identity. Generated filters are uploaded.
+- Four final-source driver replays pass separately,excluded fromunique counts.
+  No Vulkan ERROR/Validation Error/VUID diagnostics. Signed-zero bits unasserted.
+  MTF andLA take separate native inputs;this isnot acontinuous visual-pathway
+  run orfull128 score validation. No CPU stage-output replacement orDC removal.
+- Native128 fixtures use official3.07 functions,30ppd,single,paddedFFT256.
+  Symmetric MTF /replicate LA post padding;inverse normalization1/65536.
+  R32 input/output row-major;FFT column-major with explicit export conversion.
+- Evidence:validation/fft256_filter_639281807624298950/COMPLETED.json,
+  records.json,source_hashes.json,native_reference_hashes.json,driver_replay/
+  provenance.json,numeric exports/logs. Pointer:fft256_filter_completed_path.txt.
+  New native impulse/HDR fixtures preserved undercheckpoint. Reproduce via
+  tests/hdrvdp3_fft256/validate_filter.ps1. See FFT256_FILTER_VALIDATION.md.
+- Crucial native shape confirmation:pyramid_shape.json from actual official
+  hdrvdp_spyr.decompose:128@30ppd height3,bands128/128/64/32/16,residual16;
+ 128@60ppd height4,bands128/128/64/32/16/8,residual8. Current bounded evaluation
+  uses size-only maximum height;before128 integration itmustpass the official
+  min(ceil(log2(ppd))-2,maxPyrHt) height toboth Spyr calls andband-count metadata.
+  Existing32/64 validated height behavior isunchanged. Separate base16 plan
+  probe selects r2cf_16/n1_16 andreports22threads;diagnostic only,notthe3thread
+  FFT256 reference profile. Probe source/log preserved undercheckpoint.
+
+Exact next step:validate16x16 residual FFT/first-max selection andppd-limited
+pyramid height for128@30ppd,then128 map resize/masking/reductions. Integrate
+FFT256 intoLocalAdaptFFT diagnostically onlyafterthe base/map paths are ready;
+keep public API guards until complete full-stage native128 parity is measured.
+
 ## Latest continuation: isolated forward256 GPU graph
 
 - Added source-backed real256 composite and complex256 forward generators.

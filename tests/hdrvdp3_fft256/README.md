@@ -19,6 +19,13 @@ the Hermitian half. There is no normalization, DC removal or CPU substitution.
 Final GPU storage is column-major; the checker exports row-major for Octave.
 See `tests/FFT256_FORWARD_VALIDATION.md` for measured scope.
 
+The `fft256-filter-test` target directly checks128x128 MTF/LA filter chains
+without changing public API guards. Its CLI takes native fixture,forward SPIR-V,
+inverse SPIR-V,math directory,ref|test,mtf|la andfresh export. The four-case
+`validate_filter.ps1` driver saves logs,counts and provenance. See
+`tests/FFT256_FILTER_VALIDATION.md` for measured chains and the16x16 residual
+required by official128x128/30ppd SPYR height control.
+
 The first native inverse axis uses sixteen scalar16 leaves followed by t2_16.
 The second uses32 inverse8 leaves followed by t3bv_32 SIMD twiddles. Original
 FFTW3.3.10 source and GPL-2.0-or-later attribution/COPYING are preserved.
