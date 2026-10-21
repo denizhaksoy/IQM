@@ -2,6 +2,41 @@
 
 Last updated: 2026-10-21 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation: isolated forward256 GPU graph
+
+- Added source-backed real256 composite and complex256 forward generators.
+  Axis0 uses r2cf_8 halfcomplex leaves, r2cf_32 DC, paired hc2cf_32 and
+  r2cfII_32 middle; axis1 uses n2fv_16 leaves and t3fv_16 SIMD twiddles.
+  Original FFTW sources and archive/member/LF hashes retained.
+-18 full GPU runs match native single Octave fft2 in2,359,296 components,
+  zero numeric mismatches. Four actual MTF/LA matrices plus14 real synthetic
+  zero/impulse/random1e-3/1/1e3/subnormal1e-40/boundary1e-38 matrices.
+  First-axis exports fromthe same18 runs match1,188,864 native FFTW components.
+  These are extra comparisons,not18 extra GPU executions. No tolerance,
+  normalization or DC removal; signed-zero bit identity is not asserted.
+- Native axis-plan fingerprints/groups match the native full256 plan.
+  Four CPU reconstructions also match existing Octave exports in524,288
+  components. GPU input column-major real/interleaved;axis0 compact256x129;
+  final GPU column-major,exported row-major. DenormPreserve32 andRTE32 required.
+- Inverse regeneration retains accepted shader SHA256
+  A07F14752C10E713EB85DA51F5AE4379D9DEF03CB74B5830077CDD27EA0A1CED.
+  Final-source forward,subnormal inverse andnative-oracle smoke checks pass.
+- Evidence:validation/forward256_axes_639281632814118746/COMPLETED.json,
+  full_records.json,independent_axis_checks.json,full_shader,full_accepted_*,
+  accepted_source_hashes.json,accepted_binary_hashes.json,final_source_smoke.json.
+  Local drivers:validation/run_forward256_suite.ps1 andcheck_forward256_axes.ps1.
+  Preliminary probes are excluded from18 counts. Interrupted PowerShell stderr
+  logging and rejected oversized metadata serialization are kept separately.
+- Docs:tests/FFT256_FORWARD_VALIDATION.md andtests/hdrvdp3_fft256/README.md.
+  Compiler accepts -Forward;checker --forward or--forward-axis. Public API
+  guards remain32/64;production FFT dispatch/asset pins unchanged. Protected
+  staged shader anddirty VkFFT plusall unrelated experiments preserved.
+
+Exact next step:connect isolated forward256 +inverse256 into a diagnostic
+128x128 MTF/LA preparation/multiply/finish chain;compare allstages toOctave.
+Then extend residual FFT beyond8x8 and128 map/resize/masking/reductions.
+Do not lift public API guards until complete full-stage parity is measured.
+
 ## Latest continuation: inverse256 GPU graph
 
 - User requested GitHub publication before continuing. Four existing commits

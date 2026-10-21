@@ -1,7 +1,23 @@
-# Isolated inverse256 experiment
+# Isolated FFT256 experiments
 
 This project evaluates inverse256 independently of the bounded quality API.
-It does not enable forward FFT256 or full128x128 quality evaluation.
+It does not enable full128x128 quality evaluation in the public API.
+
+Forward generation is available using the same compile script with `-Forward`.
+The checker accepts `--forward` for two axes or `--forward-axis` for the first
+axis only. Forward fixture names are `ref_mtf_stage0.txt` and
+`ref_native_forward.txt` (or test equivalents); first-axis mode instead expects
+`ref_axis0_compact.txt`. Both full input and expected files contain256x512
+scalar text values; the compact intermediate contains256x258. Generate fresh
+synthetic native references with `tests/generate_fft256_forward_reference.m`.
+
+The first forward axis applies32 real8 leaves into halfcomplex scratch, then
+real32 for DC, hc2cf_32 for paired frequencies1/7,2/6,3/5, and real-II32 for
+frequency4. Its output is256 columns of129 interleaved complex frequencies.
+The second axis uses16 forward16 leaves and t3fv_16 SIMD twiddles, then expands
+the Hermitian half. There is no normalization, DC removal or CPU substitution.
+Final GPU storage is column-major; the checker exports row-major for Octave.
+See `tests/FFT256_FORWARD_VALIDATION.md` for measured scope.
 
 The first native inverse axis uses sixteen scalar16 leaves followed by t2_16.
 The second uses32 inverse8 leaves followed by t3bv_32 SIMD twiddles. Original

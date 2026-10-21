@@ -12,6 +12,26 @@
                       "file":  "t3bv_32.c",
                       "member":  "dft/simd/common/t3bv_32.c",
                       "sha256_lf":  "C687C73E9A878DEE304E14D83F3A4610DF9B486167C16A5814F041193EE6322E"
+                  },
+                  {
+                      "file":  "r2cf_32.c",
+                      "member":  "rdft/scalar/r2cf/r2cf_32.c",
+                      "sha256_lf":  "DDF569F802C81B242A1794DCE24BAF0CE4FEAA7833022A684837E6C510A9698C"
+                  },
+                  {
+                      "file":  "r2cfII_32.c",
+                      "member":  "rdft/scalar/r2cf/r2cfII_32.c",
+                      "sha256_lf":  "384EB8935F2AA9288D748D8545B431ADF830A61D0DE22F401CED71098DD29919"
+                  },
+                  {
+                      "file":  "hc2cf_32.c",
+                      "member":  "rdft/scalar/r2cf/hc2cf_32.c",
+                      "sha256_lf":  "AECFBB7A82944154D6ADFE060A2B2F68CD00FFA25A563AD940EB6447FC8205F5"
+                  },
+                  {
+                      "file":  "t3fv_16.c",
+                      "member":  "dft/simd/common/t3fv_16.c",
+                      "sha256_lf":  "0A0D5B4DC31570A39F2BC028E63602448A2ABC4790BBB8B78E215B86DF9BA028"
                   }
               ]
 }

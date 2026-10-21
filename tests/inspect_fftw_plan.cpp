@@ -250,7 +250,52 @@ static int inverse256_axis(const std::filesystem::path& source,const std::filesy
     std::cout<<"axis0 subnormal_only_differences="<<subnormal_differences<<" max="<<std::setprecision(17)<<maximum<<'\n';
     return mismatches?1:0;
 }
+static int forward256_axes(const std::filesystem::path& source,const std::filesystem::path& output) {
+    constexpr int n=256,half=129;constexpr size_t count=size_t(n)*n;
+    const auto input=read(source,n,2*n);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh forward oracle directory required");
+    FFTW api;api.threads(3);api.forget_wisdom();
+    Allocation real_mem(api,count*sizeof(float)),half_mem(api,size_t(n)*half*sizeof(Complex));
+    auto* real=static_cast<float*>(real_mem.data);auto* spectrum=static_cast<Complex*>(half_mem.data);
+    Plan first{api,api.real_many_plan(1,&n,n,real,nullptr,1,n,spectrum,nullptr,1,half,64u|2u)};
+    if(!first.data)throw std::runtime_error("Cannot create real256 first-axis oracle");
+    char* printed=api.print(first.data);const std::string firstText=printed;std::free(printed);
+    std::ofstream(output/"axis0_plan.txt")<<firstText;
+    for(const auto* name:{"hc2cf_32","r2cf_32","r2cfII_32","r2cf_8"})
+        if(firstText.find(name)==std::string::npos)throw std::runtime_error("Unexpected real256 first-axis graph");
+    Plan second{api,api.complex_many_plan(1,&n,half,spectrum,nullptr,half,1,spectrum,nullptr,half,1,-1,64u|2u)};
+    if(!second.data)throw std::runtime_error("Cannot create complex256 second-axis oracle");
+    printed=api.print(second.data);const std::string secondText=printed;std::free(printed);
+    std::ofstream(output/"axis1_plan.txt")<<secondText;
+    for(const auto* name:{"t3fv_16_avx2_128","n2fv_16_avx2_128"})
+        if(secondText.find(name)==std::string::npos)throw std::runtime_error("Unexpected complex256 second-axis graph");
+    for(size_t i=0;i<count;++i){
+        if(!std::isfinite(input[2*i])||input[2*i+1]!=0)throw std::runtime_error("Expected finite real column-major input");
+        real[i]=input[2*i];
+    }
+    api.execute(first.data);
+    std::ofstream axis(output/"axis0_compact.txt");axis<<n<<' '<<2*half<<'\n'<<std::setprecision(9);
+    for(size_t i=0;i<size_t(n)*half;++i)axis<<spectrum[i][0]<<'\n'<<spectrum[i][1]<<'\n';
+    api.execute(second.data);
+    std::vector<std::array<float,2>> full(count);
+    for(unsigned y=0;y<n;++y)for(unsigned x=0;x<n;++x){
+        const bool conjugate=y>=half;
+        const size_t index=conjugate?((n-x)%n)*half+(n-y):x*half+y;
+        full[y*n+x]={spectrum[index][0],conjugate?-spectrum[index][1]:spectrum[index][1]};
+    }
+    save(output/"forward_row_major.txt",full,n);
+    std::ofstream(output/"layout.txt")<<"Input: 256x256 column-major complex text, imaginary zero.\n"
+        <<"axis0_compact: 256 columns, each 129 interleaved complex float32 frequencies; no transpose.\n"
+        <<"axis1: in-place complex FFT, stride129, distance1, howmany129.\n"
+        <<"Final: 256x256 row-major interleaved complex, Hermitian half expanded; no normalization or DC removal.\n"
+        <<"FFTW_ESTIMATE|FFTW_UNALIGNED, threads3, fresh wisdom; diagnostic only.\n";
+    std::cout<<"Forward256 axis oracles saved to "<<output.string()<<'\n';return 0;
+}
 int main(int argc,char** argv) {
+    if(argc==4&&std::string(argv[1])=="--forward256-axes") {
+        try{return forward256_axes(argv[2],argv[3]);}
+        catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
+    }
     if(argc==5&&std::string(argv[1])=="--inverse256-axis") {
         try{return inverse256_axis(argv[2],argv[3],argv[4]);}
         catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}

@@ -1,5 +1,5 @@
 {
-    "publication":  "Verified checkpoints through11797c1 were pushed to origin/feature/hdr-vdp3. New isolated inverse256 checkpoint is local;main application integration remains mixed.",
+    "publication":  "Verified checkpoints through11797c1 were pushed. Isolated inverse256 commit4bc1522 and subsequent forward256 work are local;main integration remains mixed.",
     "reference":  "Official HDR-VDP-3 v3.0.7",
     "date":  "2026-10-21",
     "branch":  "feature/hdr-vdp3",
@@ -619,5 +619,32 @@
                                   "forward_FFT256_verified":  false,
                                   "GPU_metric128_verified":  false,
                                   "production_API_guards_changed":  false
+                              },
+    "forward256_checkpoint":  {
+                                  "scope":  "Isolated FFT256 forward, not full128 metric",
+                                  "gpu_runs":  18,
+                                  "gpu_components":  2359296,
+                                  "gpu_numeric_mismatches":  0,
+                                  "first_axis_checks_same_runs":  18,
+                                  "first_axis_components":  1188864,
+                                  "first_axis_numeric_mismatches":  0,
+                                  "signed_zero_bit_identity_asserted":  false,
+                                  "float_controls":  [
+                                                         "DenormPreserve32",
+                                                         "RoundingModeRTE32"
+                                                     ],
+                                  "normalization":  1,
+                                  "DC_removal":  false,
+                                  "input_layout":  "column-major interleaved real float32",
+                                  "intermediate_layout":  "256 columns x129 complex, contiguous",
+                                  "final_gpu_layout":  "column-major complex",
+                                  "comparison_layout":  "row-major complex",
+                                  "reference":  "Native Octave11.3.0 single fft2; FFTW3.3.10 threads3 estimate unaligned",
+                                  "device":  "Intel Arc Pro Graphics",
+                                  "path":  "validation/forward256_axes_639281632814118746",
+                                  "api_dimensions_unchanged":  [
+                                                                   32,
+                                                                   64
+                                                               ]
                               }
 }
