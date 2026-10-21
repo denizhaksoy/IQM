@@ -32,6 +32,13 @@ using `tests/generate_base16_reference.m` (optional `spyr` input source) and
 compile using `compile_base16.ps1`. See `tests/BASE16_VALIDATION.md`;production
 MapGPU base16 routing/DC/adaptation are still separate integration work.
 
+Later component checks are documented in `tests/HDR128_COMPONENT_VALIDATION.md`.
+The checker supports `--base-reductions`, `--base-reductions-chain`, `--mask128`,
+`--pupil128`, `--quality128`, `--resize-float128` and `--resize-mask128`.
+`compile_base16.ps1 -Reductions` generates the isolated reduction shader.
+Q20 comparison-mask resize uses a separate ABI141 shader and checker argument20;
+the accepted map ABI13 asset/production guards remain unchanged.
+
 The first native inverse axis uses sixteen scalar16 leaves followed by t2_16.
 The second uses32 inverse8 leaves followed by t3bv_32 SIMD twiddles. Original
 FFTW3.3.10 source and GPL-2.0-or-later attribution/COPYING are preserved.

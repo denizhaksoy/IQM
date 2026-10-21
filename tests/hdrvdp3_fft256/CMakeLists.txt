@@ -19,6 +19,7 @@ else()
 endif()
 add_executable(fft256-filter-test ../verify_fft256_filter.cpp
     "${IQM_ROOT}/src/hdrvdp3/mtf.cpp"
+    "${IQM_ROOT}/src/hdrvdp3/resize.cpp"
     "${IQM_ROOT}/bin/shared/vulkan_res.cpp"
     "${IQM_ROOT}/bin/IQM/vulkan_instance.cpp"
     "${IQM_ROOT}/src/base/vulkan_runtime.cpp")

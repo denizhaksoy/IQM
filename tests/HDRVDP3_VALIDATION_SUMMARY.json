@@ -707,5 +707,91 @@
                                                             32,
                                                             64
                                                         ]
-                          }
+                          },
+    "mask128_checkpoint":  {
+                               "cases":  16,
+                               "float_values":  524288,
+                               "mismatches":  0,
+                               "scope":  "Isolated raw masking and3x3 pool,unchanged ABI13",
+                               "path":  "validation/mask128_639281816218927514",
+                               "date":  "2026-10-21",
+                               "public_api_dimensions_unchanged":  [
+                                                                       32,
+                                                                       64
+                                                                   ],
+                               "signed_zero_bit_identity_asserted":  false,
+                               "device":  "Intel Arc Pro Graphics"
+                           },
+    "resize_mask128_checkpoint":  {
+                                      "binary_masks":  8,
+                                      "outputs":  40,
+                                      "double_values":  174592,
+                                      "bit_mismatches":  0,
+                                      "accepted_profile":  "Q20 coefficients/Q40 accumulation;experimental ABI141",
+                                      "rejected_profile":  "Q16 cannot represent128-\u003e8 coefficients;gpu.log/partialgpu retained",
+                                      "scope":  "Isolated binary64 resize;not production MapGPU",
+                                      "path":  "validation/resize_mask128_639281818201889156",
+                                      "date":  "2026-10-21",
+                                      "public_api_dimensions_unchanged":  [
+                                                                              32,
+                                                                              64
+                                                                          ],
+                                      "signed_zero_bit_identity_asserted":  true,
+                                      "device":  "Intel Arc Pro Graphics"
+                                  },
+    "scalar128_checkpoint":  {
+                                 "pupil_cases":  30,
+                                 "pupil_values":  120,
+                                 "pupil_mismatches":  0,
+                                 "quality_band_cases":  16,
+                                 "quality_band_values":  16,
+                                 "quality_band_mismatches":  0,
+                                 "scope":  "Isolated pupil/band pooling,not final scores",
+                                 "path":  "validation/scalar128_639281817346881631",
+                                 "date":  "2026-10-21",
+                                 "public_api_dimensions_unchanged":  [
+                                                                         32,
+                                                                         64
+                                                                     ],
+                                 "signed_zero_bit_identity_asserted":  false,
+                                 "device":  "Intel Arc Pro Graphics"
+                             },
+    "base_reductions_checkpoint":  {
+                                       "standalone_sample_counts":  [
+                                                                        64,
+                                                                        256
+                                                                    ],
+                                       "cases_each":  512,
+                                       "standalone_values":  166912,
+                                       "standalone_mismatches":  0,
+                                       "final_shader_replays":  2,
+                                       "replays_excluded_from_unique_counts":  true,
+                                       "gpu_only_chain_cases":  512,
+                                       "chain_values":  655872,
+                                       "chain_zero_imaginary_padding_values":  131072,
+                                       "chain_mismatches":  0,
+                                       "scope":  "Isolated DC/base adaptation andDC-to-FFT16/selection;not production MapGPU",
+                                       "path":  "validation/base_reductions_639281814095504643",
+                                       "date":  "2026-10-21",
+                                       "public_api_dimensions_unchanged":  [
+                                                                               32,
+                                                                               64
+                                                                           ],
+                                       "signed_zero_bit_identity_asserted":  false,
+                                       "device":  "Intel Arc Pro Graphics"
+                                   },
+    "resize_float128_checkpoint":  {
+                                       "transitions":  80,
+                                       "float_values":  479744,
+                                       "mismatches":  0,
+                                       "scope":  "Isolated Float32 imresize;unchanged ABI13",
+                                       "path":  "validation/resize_float128_639281818909600345",
+                                       "date":  "2026-10-21",
+                                       "public_api_dimensions_unchanged":  [
+                                                                               32,
+                                                                               64
+                                                                           ],
+                                       "signed_zero_bit_identity_asserted":  false,
+                                       "device":  "Intel Arc Pro Graphics"
+                                   }
 }

@@ -2,6 +2,45 @@
 
 Last updated: 2026-10-21 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation:128 reduction/masking/resize components
+
+- Isolated64/256-sample mean/DC andbase adaptation:512 cases each,34,304 /
+ 132,608 float outputs,zero mismatches. Final reduction shader replays pass.
+ 512-case GPU DC->FFT16->magnitude/first-max chain compares655,872 scalars
+  exactly,including131,072 explicit imaginary-zero padding values. No CPU
+  intermediate readback/substitution. Declared exponent/log domains retained.
+- Unchanged accepted ABI13 map shader:128 masking16cases/524,288 floats,
+  pupil30cases/120 trace values,quality-band16cases/16 scalars,Float32resize
+ 80transitions/479,744 floats allzero numeric mismatches. Notfullscores.
+- Important failure/fix:128->8 binary mask resize rejects existingQ16 weights
+  asnonexact. Failed gpu.log/partialgpu exports retained. Separate experimental
+  ABI141 Q20coefficients/Q40conversion matches40 outputs/174,592 binary64
+  values bit-for-bit. Shader has onlyShader capability,noFloat64/Int64.
+  This customshader mustnotreplace ABI13 underits existingcontract.
+- Accepted map/base16 reproduction hashes unchanged:
+  map0B023987B9A2C9267B8979A072574DCC04AD8F56EA56CB1B7AACF164EA041BFF;
+  base16 64F99AC7EF8242219A13402416549BF94FD7BED991AC02F2E3BF2C1EE264CEDC.
+  AllGPU logs have noERROR/Validation Error/VUID diagnostics. Float equality
+  doesnotassert signed-zero bitidentity;doublemaskresize doescompare bits.
+- Evidence roots/pointers under validation:
+  base_reductions_639281814095504643 (shader,chain_shader,gpu_chain,final_gpu*);
+  mask128_639281816218927514;
+  scalar128_639281817346881631;
+  resize_mask128_639281818201889156 (acceptedgpu_q20/q20_shader;rejectedgpu);
+  resize_float128_639281818909600345.
+  Eachhas COMPLETED.json,source/native hashes andnative metadata/exports/logs.
+  Docs:tests/HDR128_COMPONENT_VALIDATION.md. Reproduce via native generators,
+  compile_base16.ps1 -Reductions,andfft256-filter-test nameddiagnostic modes.
+- Tests remainisolated;production MapGPU/LocalAdaptFFT/evaluation guards still
+ 32/64 or64samples asbefore. Staged shader,VkFFT andunrelated changes preserved.
+
+Exact next step:integrate256-sample DC/base adaptation and16x16 FFT/selection
+through explicit newMapGPU shader ABI;retain ABI13 and8x8 paths unchanged.
+Integrate Q20 maskresize underanexplicit contract,combine FFT2563/4+8/9
+graphs forLocalAdaptFFT,andapply ppd-limited SPYR height/band-count metadata.
+Then runfull native128 diagnostic stage/score comparisons beforelifting public
+API guards. Component passes above arenot acompleted128 metric/API claim.
+
 ## Latest continuation:residual16 FFT andfirst-max selection
 
 - Added source-backed r2cf_16/n1_16 ordinary graph shader,existing finite_hypot
