@@ -9,7 +9,8 @@ function write_complex(path,image,column_order)
   v=image(:); values=[real(v)';imag(v)']; fprintf(f,'%.17g\n',values); fclose(f);
 endfunction
 args=argv(); output=args{1}; side=32; if numel(args)>1,side=str2double(args{2});endif
-assert(side==32||side==64); assert(!exist(output,'dir')); assert(mkdir(output));
+%128 is a native diagnostic frontier; it does not enable GPU metric support.
+assert(side==32||side==64||side==128); assert(!exist(output,'dir')); assert(mkdir(output));
 official='C:/HDR-VDP-3_Ref'; if numel(args)>2,official=args{3};endif
 addpath(genpath(official)); assert(hdrvdp_version()==3.07); pkg load image;
 ppd=30; metric_par.mtf='hdrvdp'; metric_par.use_gpu=false; metric_par.surround='none';

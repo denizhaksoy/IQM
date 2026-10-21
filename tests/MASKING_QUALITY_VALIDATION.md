@@ -1,5 +1,12 @@
 # Masking and quality validation
 
+2026-10-21 source-to-shader checkpoint:all7 reference shaders now regenerate
+from committed FFTW/AMD/helper sources with identical binary hashes. Clean
+build/direct32/64 API checks preserve203 numerical exports andscore bits;
+14 rejection cases pass. See [shader reproduction](REFERENCE_ASSET_VALIDATION.md).
+Native128-input/256-FFT diagnostics also identify8 exact unaligned CPU plans;
+this does not enable GPU128 quality. See [frontier](FFT256_FRONTIER.md).
+
 2026-10-20 clean-source continuation:the bounded runtime is committed in
 7c7f473 and builds in a detached clean worktree with clean VkFFT. Two fresh
 direct32/64 cases preserve score bits and203 numerical export hashes;14 invalid

@@ -1,6 +1,68 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-10-20 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-10-21 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Latest continuation: source-to-reference-shader reproduction
+
+- Committed32 scoped generator/source files in
+  ffeed634246fca6530165c122cd065b8f65eaa54. Includes seven reference shader
+  generation, FFTW runtime codelets with source/member/LF-hash provenance,
+  AMD sources/hash manifest/licenses and required math helpers. No push.
+  FFT128 generator gained a fresh-output option;FFT64/base use vendored
+  hash-checked codelets by default,optional original archive still supported.
+- Fresh clean worktree under validation/asset_generation_639281159480285385/
+  checkout and clean VkFFT. API built from committed sources;all seven
+  reference shaders generated without old archive/binaries/downloads. All7
+  SHA256s equal accepted prior binaries;seven embedded headers also equal.
+- Fresh direct32/64 API runs with generated shaders preserve score bits and
+  203 numerical text export hashes (96/107),plus14 negative cases.16 poisoned
+  environment variables ignored;checkout/submodule remain clean. These compare
+  prior native-validated baselines,not another fresh Octave/GPU checker run.
+- Added default hash-pin verification,license copying and compiler metadata
+  to generation;fresh final_manifest_check reproduces all7 binaries unchanged.
+  Tampered FFTW source andexisting output directory guards pass,old binary
+  preserved. Spectral CSVs andPFMs remain explicit external input data.
+- Evidence:validation/asset_generation_639281159480285385/COMPLETED.json;
+  pointer validation/asset_generation_completed_path.txt. Includesclean source,
+  build,generation/run logs,comparison.json,assets_verified/manifest.json,
+  generator_negative_checks.json andfinal_manifest_check. Local drivers:
+  validation/validate_generated_api.ps1,check_asset_generator_guards.ps1.
+  Initial premature API launch did not execute;initial_launch_note.txt preserves
+  this. Verified retry uses assets_verified;all old artifacts retained.
+- See tests/REFERENCE_ASSET_VALIDATION.md. Existing staged shader blob remains
+  1cf7baedb1d54be0ca8ad02d14485e510b0434e7;dirty VkFFT preserved. New commits
+  are local;origin remains6b18daa. Main wrapper/root CMake remain mixed.
+
+Next implementation area:general dimensions. Start from the actual native
+256-point FFT plans before translating larger graphs;do not replace the native
+graph with an arbitrary mathematically equivalent FFT. Existing bounded API
+guards remain until new FFT,base-residual andresize/masking stages pass.
+
+### Native256 frontier started
+
+- Extended only diagnostic tests/generate_fft_size_reference.m to128-pixel
+  inputs andtests/inspect_fftw_plan.cpp to256-point FFT. Public API/GPU guards
+  remain unchanged. Fresh asymmetric ref/test native MTF/LA fixture generated;
+  staged MTF matches official fast_conv_fft exactly at30ppd,single inputs,
+  double filters,symmetric post padding,inverse normalization1/65536.
+-16 native DLL/Octave plan comparisons:all8 unaligned forward/inverse cases
+  (threads1/3,ref/test) match1,048,576 float components exactly.8 aligned
+  alternatives differ;they remain rejected evidence,not tolerance passes.
+- Native estimate planner uses3 threads. Observed real256 graph is composite
+  hc2cf_32/r2cf_32/r2cfII_32/r2cf_8;complex forward includes
+  t3fv_16_avx2_128/n2fv_16_avx2_128,and inverse t3bv_32_avx2_128/n1_8.
+  Changing a shader size constant or choosing an arbitrary scalar256 FFT
+  would not reproduce these native operation orders.
+- Evidence:validation/fft256_frontier_639281615622631080/COMPLETED.json;
+  pointer validation/fft256_frontier_completed_path.txt. Includes actual
+  wisdom,plan trees,all candidate spectra,comparison/build/run logs andsource
+  hashes. See tests/FFT256_FRONTIER.md. No GPU128 metric parity claim.
+
+Exact next step:translate the observed native256 real/complex/inverse graphs
+as an isolated shader experiment andcompare intermediate results against these
+fixtures. Then extend base residual FFT beyond8x8 and128 map reductions/resize;
+only widen API guards after isolated andfull-stage tests pass. Existing32/64
+regressions andoriginal source/reference assets must remain preserved.
 
 ## Latest continuation: clean committed-source build
 

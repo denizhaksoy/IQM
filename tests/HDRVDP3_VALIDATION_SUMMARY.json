@@ -1,7 +1,7 @@
 {
-    "publication":  "Scoped checkpoints through6b18daa were pushed. Bounded API/runtime sources are locally committed in7c7f473 and clean-source verified;new commits are not pushed. Mixed main application integration remains local/uncommitted.",
+    "publication":  "Scoped checkpoints through6b18daa were pushed. Bounded API/runtime and source shader generators are locally committed;new commits are not pushed. Mixed main application integration remains local/uncommitted.",
     "reference":  "Official HDR-VDP-3 v3.0.7",
-    "date":  "2026-10-20",
+    "date":  "2026-10-21",
     "branch":  "feature/hdr-vdp3",
     "implementation_baseline_commit":  "b46666df138c5b2770f004ad59603a2d0eaf28ab",
     "scope":  "Top-level ABI12 counts/cases are historical. Named checkpoints retain later32/64,D65 synthetic luminance evidence. full_age_checkpoint verifies10 pairs at30ppd ages24/60/60.001;age_ppd60_checkpoint verifies4 HDR pairs at60ppd ages60/60.001 with precision-fallback shader;raw_spectral_checkpoint verifies independent raw loading and2 full loader regressions. Replays and loader regressions are not new unique input cases. luminance_input_checkpoint adds6 file-derived photo luminance pairs and2 synthetic regressions;full RGB-native/full-frame/public API remain unverified. evaluation_api_checkpoint verifies the bounded32/64 luminance library API with10 full regressions and2 direct calls;general dimensions,RGB-native and clean-checkout packaging remain open.",
@@ -576,5 +576,32 @@
                                       "external_assets_hashed":  true,
                                       "external_assets_regenerated":  false,
                                       "self_contained_package_verified":  false
-                                  }
+                                  },
+    "reference_asset_checkpoint":  {
+                                       "path":  "validation/asset_generation_639281159480285385/COMPLETED.json",
+                                       "commit":  "ffeed634246fca6530165c122cd065b8f65eaa54",
+                                       "clean_source_generation":  true,
+                                       "old_FFTW_archive_required":  false,
+                                       "reference_shaders_regenerated":  7,
+                                       "binary_hashes_identical":  7,
+                                       "embedded_headers_regenerated":  7,
+                                       "direct_API_calls":  2,
+                                       "numeric_export_hashes_identical":  203,
+                                       "negative_cases":  14,
+                                       "external_spectral_and_PFM_inputs":  true,
+                                       "general_dimensions_verified":  false
+                                   },
+    "fft256_native_frontier":  {
+                                   "path":  "validation/fft256_frontier_639281615622631080/COMPLETED.json",
+                                   "input_size":  128,
+                                   "fft_size":  256,
+                                   "native_cases":  16,
+                                   "exact_unaligned_cases":  8,
+                                   "exact_float_components":  1048576,
+                                   "exact_mismatches":  0,
+                                   "rejected_aligned_cases":  8,
+                                   "aligned_float_mismatches":  847442,
+                                   "GPU_FFT256_verified":  false,
+                                   "GPU_metric128_verified":  false
+                               }
 }

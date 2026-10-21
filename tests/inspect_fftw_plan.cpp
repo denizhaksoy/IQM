@@ -234,10 +234,10 @@ int main(int argc,char** argv) {
     if((argc==3 || argc==4) && (std::string(argv[1])=="--codelets" || std::string(argv[1])=="--second-axis")) {
         try { return codelets(argv[2],std::string(argv[1])=="--second-axis",argc==4?std::stoul(argv[3]):128); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
     }
-    if(argc!=4 && argc!=5 && argc!=6) { std::cerr<<"Usage: IQM-fftw-plan-test <export dir> <new output dir> <native single threads> [native wisdom] [FFT side64 or128]\n"; return 2; }
+    if(argc!=4 && argc!=5 && argc!=6) { std::cerr<<"Usage: IQM-fftw-plan-test <export dir> <new output dir> <native single threads> [native wisdom] [FFT side64,128 or256]\n"; return 2; }
     try {
         const unsigned N=argc==6?std::stoul(argv[5]):128;
-        if(N!=64&&N!=128) throw std::runtime_error("Unvalidated FFT inspection size");
+        if(N!=64&&N!=128&&N!=256) throw std::runtime_error("Unsupported diagnostic FFT size");
         const unsigned Half=N/2+1; const size_t Count=size_t(N)*N;
         const std::filesystem::path source(argv[1]), output(argv[2]);
         const int native_threads=std::stoi(argv[3]);

@@ -33,5 +33,15 @@ foreach($pair in $compile){
     if($LASTEXITCODE -ne 0){throw "SPIR-V validation failed:$($pair[1])"}
 }
 $hashes=foreach($pair in $compile){[ordered]@{file=$pair[1];sha256=(Get-FileHash -LiteralPath "$output/$($pair[1])").Hash}}
+$expected=Get-Content (Join-Path $PSScriptRoot 'REFERENCE_SHADER_HASHES.json') -Raw|ConvertFrom-Json
+foreach($entry in $hashes){
+    $pin=@($expected|Where-Object {$_.file -eq $entry.file})
+    if($pin.Count -ne 1 -or $pin[0].sha256 -ne $entry.sha256){throw "Generated shader differs from validated binary:$($entry.file)"}
+}
 $hashes|ConvertTo-Json|Set-Content "$output/shader_hashes.json"
+New-Item -ItemType Directory -Path "$output/licenses"|Out-Null
+Copy-Item "$root/tests/fftw_reference/COPYING" "$output/licenses/FFTW-COPYING"
+Copy-Item "$root/tests/math_reference/amd_win_libm/LICENSE.txt" "$output/licenses/AMD-LICENSE.txt"
+$version=(& "$VulkanBin/glslc.exe" --version) -join "`n"
+[ordered]@{reference_shaders=7;all_pinned_hashes_identical=$true;fftw_archive_required=$false;fftw_provenance='tests/fftw_reference/runtime/SOURCES.json';amd_provenance='tests/math_reference/SOURCES.json';compiler=$version;target_env='vulkan1.2';exceptional_math_inputs_supported=$false}|ConvertTo-Json|Set-Content "$output/reproduction.json"
 Write-Output "Generated7 reference runtime shaders:$output"
