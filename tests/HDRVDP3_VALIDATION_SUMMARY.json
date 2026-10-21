@@ -1,5 +1,5 @@
 {
-    "publication":  "Scoped checkpoints through6b18daa were pushed. Bounded API/runtime and source shader generators are locally committed;new commits are not pushed. Mixed main application integration remains local/uncommitted.",
+    "publication":  "Verified checkpoints through11797c1 were pushed to origin/feature/hdr-vdp3. New isolated inverse256 checkpoint is local;main application integration remains mixed.",
     "reference":  "Official HDR-VDP-3 v3.0.7",
     "date":  "2026-10-21",
     "branch":  "feature/hdr-vdp3",
@@ -603,5 +603,21 @@
                                    "aligned_float_mismatches":  847442,
                                    "GPU_FFT256_verified":  false,
                                    "GPU_metric128_verified":  false
-                               }
+                               },
+    "inverse256_checkpoint":  {
+                                  "path":  "validation/fft256_inverse_639281620198383169/COMPLETED.json",
+                                  "GPU_inverse_cases":  18,
+                                  "GPU_inverse_float_components":  2359296,
+                                  "GPU_inverse_mismatches":  0,
+                                  "independent_first_axis_cases":  18,
+                                  "independent_first_axis_float_components":  2359296,
+                                  "independent_first_axis_mismatches":  0,
+                                  "first_axis_reuses_same_GPU_runs":  true,
+                                  "float_controls":  "DenormPreserve32,RoundingModeRTE32",
+                                  "initial_wrong_twiddles_failed":  true,
+                                  "default_controls_first_axis_failed":  true,
+                                  "forward_FFT256_verified":  false,
+                                  "GPU_metric128_verified":  false,
+                                  "production_API_guards_changed":  false
+                              }
 }

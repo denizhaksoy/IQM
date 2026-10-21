@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <cmath>
 
 using Complex = float[2];
 struct FFTW {
@@ -218,7 +219,42 @@ static int r2c(const std::filesystem::path& output,const std::string& source) {
     }
     std::cout<<"R2C references saved to "<<output.string()<<'\n'; return 0;
 }
+static int inverse256_axis(const std::filesystem::path& source,const std::filesystem::path& output,
+    const std::filesystem::path& gpu) {
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh axis oracle directory required");
+    constexpr int n=256;constexpr size_t count=size_t(n)*n;
+    const auto input=read(source,n,2*n),actual=read(gpu,n,2*n);
+    FFTW api;api.threads(3);api.forget_wisdom();
+    Allocation in_mem(api,count*sizeof(Complex)),out_mem(api,count*sizeof(Complex));
+    auto* in=static_cast<Complex*>(in_mem.data);auto* out=static_cast<Complex*>(out_mem.data);
+    Plan plan{api,api.complex_many_plan(1,&n,n,in,nullptr,1,n,out,nullptr,1,n,1,64u|2u)};
+    if(!plan.data)throw std::runtime_error("Cannot create inverse256 axis plan");
+    char* printed=api.print(plan.data);const std::string text=printed;std::free(printed);
+    std::ofstream(output/"plan.txt")<<text;
+    if(text.find("t2_16")==std::string::npos||text.find("n1_16")==std::string::npos)
+        throw std::runtime_error("Axis oracle selected a different native graph");
+    for(size_t i=0;i<count;++i){in[i][0]=input[2*i];in[i][1]=input[2*i+1];}
+    api.execute(plan.data);
+    std::vector<std::array<float,2>> expected(count);size_t mismatches=0,subnormal_differences=0;double maximum=0;
+    for(size_t y=0;y<n;++y)for(size_t x=0;x<n;++x)for(size_t c=0;c<2;++c){
+        const float value=out[x*n+y][c];expected[y*n+x][c]=value;
+        const float got=actual[2*(y*n+x)+c];
+        if(got!=value){
+            if(mismatches<5)std::cout<<"axis0 index="<<2*(y*n+x)+c<<" gpu="<<std::setprecision(9)<<got<<" native="<<value<<'\n';
+            if((got==0||std::fpclassify(got)==FP_SUBNORMAL)&&(value==0||std::fpclassify(value)==FP_SUBNORMAL))++subnormal_differences;
+            maximum=std::max(maximum,std::abs(double(got)-value));++mismatches;
+        }
+    }
+    save(output/"axis0_expected.txt",expected,n);
+    std::cout<<"axis0 values="<<2*count<<" mismatches="<<mismatches<<'\n';
+    std::cout<<"axis0 subnormal_only_differences="<<subnormal_differences<<" max="<<std::setprecision(17)<<maximum<<'\n';
+    return mismatches?1:0;
+}
 int main(int argc,char** argv) {
+    if(argc==5&&std::string(argv[1])=="--inverse256-axis") {
+        try{return inverse256_axis(argv[2],argv[3],argv[4]);}
+        catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
+    }
     if((argc==3 || argc==4) && std::string(argv[1])=="--forward2d") {
         try { return transform2d(argv[2],argc==4?argv[3]:"",true); } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; return 1; }
     }

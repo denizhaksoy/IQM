@@ -2,6 +2,52 @@
 
 Last updated: 2026-10-21 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation: inverse256 GPU graph
+
+- User requested GitHub publication before continuing. Four existing commits
+  through11797c1 were successfully pushed to origin/feature/hdr-vdp3;local and
+  remote matched. New inverse work below is a separate local checkpoint.
+- Added isolated tests/hdrvdp3_fft256 target,source-backed inverse generator,
+  native synthetic fixtures andchecker. Native first axis is scalar16+n1_16 /
+  t2_16;second is inverse8+n1_8 /SIMD t3bv_32. Source codelet descriptors supply
+  twiddle powers1,3,9,15 and1,3,9,27. FFTW original sources,archive/member/LF
+  hashes andGPL notices preserved. No public API/core shader integration change.
+- Accepted preserve/RTE profile:18 fresh GPU executions compare2,359,296 float
+  components withzero numeric mismatches. Includes actual MTF/LA spectra,zero,
+  complex impulses,random scales1e-3/1/1e3,subnormal1e-40,boundary1e-38.
+  Native single ifft2 is the full inverse oracle. Normalization occurs once
+  atfinal axis1/65536;input column-major/interleaved,comparison explicitly
+  converts final storage torow-major/interleaved.
+- The same18 GPU first-axis exports independently compare2,359,296 components
+  exactly against native FFTW many-plan t2_16/n1_16. These are extra CPU oracle
+  checks onthe same GPU executions,not18 extra GPU runs. Numeric float equality
+  is checked without tolerance;signed-zero bit identity is not asserted.
+- Critical failure/fix:initial guessed twiddles failed130,048 components.
+  Descriptor-derived tables fixed that. Default-control shader then passed14
+  final inverse cases butfailed21,088 LA first-axis components,max1.5046e-36.
+  Partial software-denormal candidates remained inexact/one failed compilation;
+  rejected code is retained under validation,removed fromcommitted generator.
+  Device reports preserve32=1/flush32=1/rte32=1. Explicit SPIR-V DenormPreserve32
+  +RoundingModeRTE32 fixes all18 first-axis andfinal comparisons. Checker
+  rejects devices lacking those properties. No Float64/Int64 capability used.
+- Evidence:validation/fft256_inverse_639281620198383169/COMPLETED.json;pointer
+  validation/fft256_inverse_completed_path.txt. Accepted files:preserve_rte,
+  preserve_suite/records.json,axis0_preserve_results.json,accepted_source_hashes,
+  accepted_binary_hashes. Failed/default profiles kept separately,including
+  DEFAULT_CONTROLS_END_ONLY.json,ref.log,axis0_la_diagnose.log andsoftware dirs.
+  Drivers:run_fft256_inverse_preserve_suite.ps1 and
+  check_fft256_inverse_preserve_axes.ps1 under validation. Fresh dirs required.
+- See tests/FFT256_INVERSE_VALIDATION.md andtests/hdrvdp3_fft256/README.md.
+  The accepted seven32/64 reference shader pins remain unchanged. Staged test
+  shader blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,dirty VkFFT,main wrapper /
+  CMake experiments andall old reference files preserved. No GPU128 metric claim.
+
+Exact next step:translate/validate the real256 forward first-axis composite
+hc2cf_32/r2cf_32/r2cfII_32/r2cf_8;then complex forward main/tail graphs. Reuse
+explicit float controls andnative fixtures;do not assume one graph serves both
+axes. After full FFT256 integration,extend residual FFT beyond8x8 and128 map
+resize/masking/reductions. Keep API guards at32/64 until full-stage parity.
+
 ## Latest continuation: source-to-reference-shader reproduction
 
 - Committed32 scoped generator/source files in

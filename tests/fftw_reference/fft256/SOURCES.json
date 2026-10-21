@@ -1,0 +1,17 @@
+{
+    "source":  "https://www.fftw.org/fftw-3.3.10.tar.gz",
+    "archive_sha256":  "56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467",
+    "license":  "GPL-2.0-or-later;../COPYING",
+    "files":  [
+                  {
+                      "file":  "t2_16.c",
+                      "member":  "dft/scalar/codelets/t2_16.c",
+                      "sha256_lf":  "9B9A22BD114CE35ABB7DE8698A6402138FADEC87536DDA96B5373AC34AC31829"
+                  },
+                  {
+                      "file":  "t3bv_32.c",
+                      "member":  "dft/simd/common/t3bv_32.c",
+                      "sha256_lf":  "C687C73E9A878DEE304E14D83F3A4610DF9B486167C16A5814F041193EE6322E"
+                  }
+              ]
+}

@@ -1,5 +1,10 @@
 #128 image /256 FFT native frontier
 
+Follow-up:the inverse graph now passes isolated GPU/full-inverse andindependent
+first-axis tests with explicit float controls;see
+[inverse256 checkpoint](FFT256_INVERSE_VALIDATION.md). Forward256 andfull128
+metric support remain open. Native frontier results below retain their scope.
+
 The native planning fixture and read-only FFTW DLL inspector now support
 128x128 input /256x256 FFT as diagnostics. The public metric API and GPU
 backend guards remain at the previously verified square32/64 domain.

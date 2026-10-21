@@ -1,0 +1,44 @@
+# Isolated inverse256 experiment
+
+This project evaluates inverse256 independently of the bounded quality API.
+It does not enable forward FFT256 or full128x128 quality evaluation.
+
+The first native inverse axis uses sixteen scalar16 leaves followed by t2_16.
+The second uses32 inverse8 leaves followed by t3bv_32 SIMD twiddles. Original
+FFTW3.3.10 source and GPL-2.0-or-later attribution/COPYING are preserved.
+The added codelets have archive/member/LF-normalized hash provenance in
+tests/fftw_reference/fft256/SOURCES.json. Other leaves reuse the existing
+source-backed FFT128 generator. Twiddle powers are parsed from the original
+codelet descriptor,not inferred from transform length.
+
+```powershell
+cmake -S tests/hdrvdp3_fft256 -B <fresh-build>
+cmake --build <fresh-build> --config Release -j 2
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/hdrvdp3_fft256/compile_inverse.ps1 -OutputDirectory <fresh-shader> -VulkanBin <SDK-Bin>
+```
+
+The compiler preserves the GLSL graph and explicitly adds DenormPreserve32
+and RoundingModeRTE32 execution modes to SPIR-V,then validates the module.
+Original/default-control SPIR-V is retained. The checker queries the device's
+Float32 control properties and rejects unsupported devices before dispatch.
+These modes are defined in the [Khronos Vulkan SPIR-V environment](https://docs.vulkan.org/spec/latest/appendices/spirvenv.html).
+No Float64/Int64 capability or CPU output substitution is used.
+
+Input is a256x256 complex matrix stored column-major/interleaved. Both axes
+transpose storage;normalization occurs once at the final axis,1/65536.
+The checker explicitly converts final GPU storage to the native row-major
+expected layout. It saves the first-axis storage and final row-major output.
+Fresh export directories are mandatory.
+
+The checker accepts native-fixture directory,shader,ref|test andfresh export:
+`fft256-inverse-test <fixture> <shader.spv> ref <fresh-output>`.
+The fixture filenames are ref_mtf_stage2.txt andref_native_inverse.txt (or
+test equivalents). Synthetic complex matrices use these compatibility names;
+their metadata explicitly identifies them as inverse fixtures,not MTF data.
+`generate_fft256_inverse_reference.m` includes zero,complex impulse,normal
+random scales,subnormal random values andthe normal/subnormal boundary.
+
+The native DLL inspector's --inverse256-axis mode independently verifies the
+saved GPU first-axis output. It checks the selected many-plan fingerprint
+contains t2_16/n1_16 andnever substitutes its CPU results for GPU outputs.
+See tests/FFT256_INVERSE_VALIDATION.md for completed results and failed trials.

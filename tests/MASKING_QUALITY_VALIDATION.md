@@ -1,5 +1,11 @@
 # Masking and quality validation
 
+2026-10-21 inverse256 component:18 isolated GPU executions preserve2,359,296
+float components exactly;the same first-axis exports independently match the
+native FFTW oracle. Explicit DenormPreserve32/RTE32 is required;default-control
+LA first-axis differences are retained as failed evidence. Full GPU128 quality
+andforward FFT256 remain open. See [inverse checkpoint](FFT256_INVERSE_VALIDATION.md).
+
 2026-10-21 source-to-shader checkpoint:all7 reference shaders now regenerate
 from committed FFTW/AMD/helper sources with identical binary hashes. Clean
 build/direct32/64 API checks preserve203 numerical exports andscore bits;
