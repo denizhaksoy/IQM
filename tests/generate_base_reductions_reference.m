@@ -1,10 +1,17 @@
-% Independent native DC/mean/power10 references for64 or256 samples.
-1;args=argv();out=args{1};n=str2double(args{2});assert(any(n==[64,256]));
+% Independent native DC/mean/power10 references for64/128/256 samples.
+1;args=argv();out=args{1};n=str2double(args{2});assert(any(n==[64,128,256]));
 assert(!exist(out,'dir'));assert(mkdir(out));rng(2561920+n);
 fi=fopen(fullfile(out,'input.txt'),'w');fo=fopen(fullfile(out,'expected.txt'),'w');
 assert(fi>=0&&fo>=0);fprintf(fi,'512 %d\n',2*n);fprintf(fo,'512 %d\n',n+3);
 ff=-1;if n==256
  fftw('threads',3);fftw('swisdom','');ff=fopen(fullfile(out,'expected_fft16.txt'),'w');assert(ff>=0);fprintf(ff,'512 769\n');
+endif
+rectFiles=[];if n==128
+ fftw('threads',3);fftw('swisdom','');
+ for label={'8x16','16x8'}
+  handle=fopen(fullfile(out,['expected_fft' label{1} '.txt']),'w');assert(handle>=0);
+  fprintf(handle,'512 385\n');rectFiles(end+1)=handle;
+ endfor
 endif
 for k=0:511
  logs=single((rand(n,1)-.5)*10);
@@ -36,8 +43,18 @@ for k=0:511
    magnitudes=abs(spectrum);magnitudes(1,1)=0;index=find(magnitudes(:)==max(magnitudes(:)),1)-1;
    fprintf(ff,'%.17g\n',[real(row)';imag(row)']);fprintf(ff,'%.17g\n',magnitudes');fprintf(ff,'%d\n',index);
  endif
+ if n==128
+   for orientation=1:2
+     h=8;w=16;if orientation==2,h=16;w=8;endif
+     spectrum=fft2(reshape(centered,w,h).');row=reshape(spectrum.',[],1);
+     magnitudes=abs(spectrum);magnitudes(1,1)=0;index=find(magnitudes(:)==max(magnitudes(:)),1)-1;
+     fprintf(rectFiles(orientation),'%.17g\n',[real(row)';imag(row)']);
+     fprintf(rectFiles(orientation),'%.17g\n',magnitudes');fprintf(rectFiles(orientation),'%d\n',index);
+   endfor
+ endif
 endfor
 fclose(fi);fclose(fo);
 if ff>=0,fclose(ff);endif
+for handle=rectFiles,fclose(handle);endfor
 f=fopen(fullfile(out,'metadata.json'),'w');fputs(f,jsonencode(struct('scope','Independent native DC/base adaptation','samples',n,'cases',512,'precision','single','sum','native Octave mean(single)','residual_exponent_span_max',16,'residual_exponents',[-90,100],'log_domain',[-5,5],'log_exponent_span_max',16,'input_layout','per case residual vector thenlog vector','output_layout','centered vector,DC mean,log mean,power10')));fclose(f);
 fprintf('Native reductions:512 cases,N=%d,expected=%d scalars\n',n,512*(n+3));

@@ -1,6 +1,7 @@
 #include <vulkan_instance.h>
 #include <IQM/hdrvdp3/evaluation.h>
 #include <bit>
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -26,6 +27,52 @@ int main(int argc,char** argv) {
     try {
         poison_environment();
         IQM::Bin::VulkanInstance instance(true);
+        if(argc==3&&std::string(argv[1])=="--invalid-rectangles") {
+            const std::filesystem::path root(argv[2]);if(std::filesystem::exists(root))throw std::runtime_error("Fresh rejection path required");
+            EvaluationOptions options;options.fft.referenceShaderPath="not_accessed";
+            options.fft.referenceMathDirectory="not_accessed";options.mapShader="not_accessed";options.baseFFTShader="not_accessed";
+            unsigned rejected=0;
+            for(const auto& shape:std::array<std::array<unsigned,2>,4>{{{64,32},{32,64},{128,63},{63,128}}}){
+                LuminanceImage image{shape[0],shape[1],std::vector<float>(shape[0]*shape[1],10.f)};
+                try{evaluate_quality(instance,image,image,options,EvaluationTrace{root});}
+                catch(const std::invalid_argument& e){if(std::string(e.what()).find("Quality API requires equal square")==std::string::npos)throw;++rejected;continue;}
+                throw std::runtime_error("Unvalidated rectangular quality accepted");
+            }
+            for(const auto& shape:std::array<std::array<unsigned,2>,2>{{{128,64},{64,128}}}){
+                LuminanceImage image{shape[0],shape[1],std::vector<float>(shape[0]*shape[1],10.f)};
+                for(const auto& pair:std::array<std::array<double,2>,3>{{{60,24},{30,60},{30,60.001}}}){
+                    auto cfg=options;cfg.pixelsPerDegree=pair[0];cfg.observerAge=pair[1];
+                    try{evaluate_quality(instance,image,image,cfg,EvaluationTrace{root});}
+                    catch(const std::invalid_argument&){++rejected;continue;}
+                    throw std::runtime_error("Unvalidated rectangular viewing parameters accepted");
+                }
+                for(unsigned missing=0;missing<4;++missing){
+                    auto cfg=options;
+                    if(missing==0)cfg.fft.referenceShaderPath.clear();
+                    if(missing==1)cfg.fft.referenceMathDirectory.clear();
+                    if(missing==2)cfg.mapShader.clear();
+                    if(missing==3)cfg.baseFFTShader.clear();
+                    try{evaluate_quality(instance,image,image,cfg,EvaluationTrace{root});}
+                    catch(const std::invalid_argument&){++rejected;continue;}
+                    throw std::runtime_error("Missing rectangular runtime asset accepted");
+                }
+            }
+            if(rejected!=18||std::filesystem::exists(root))throw std::runtime_error("Rectangle rejection changed exports");
+            std::cout<<"API rejected rectangular dimensions/parameters/assets=18; no exports ordispatch\n";return 0;
+        }
+        if(argc==3&&std::string(argv[1])=="--invalid-128-parameters") {
+            const std::filesystem::path root(argv[2]);if(std::filesystem::exists(root))throw std::runtime_error("Fresh rejection path required");
+            LuminanceImage image{128,128,std::vector<float>(128*128,10.f)};unsigned rejected=0;
+            for(const auto& pair:std::array<std::array<double,2>,3>{{{60,24},{30,60},{30,60.001}}}){
+                EvaluationOptions options;options.pixelsPerDegree=pair[0];options.observerAge=pair[1];
+                options.fft.referenceShaderPath="not_accessed";options.fft.referenceMathDirectory="not_accessed";options.mapShader="not_accessed";options.baseFFTShader="not_accessed";
+                try{evaluate_quality(instance,image,image,options,EvaluationTrace{root});}
+                catch(const std::invalid_argument& e){if(std::string(e.what()).find("128@30ppd/age24")==std::string::npos)throw;++rejected;continue;}
+                throw std::runtime_error("Unvalidated128 viewing parameter accepted");
+            }
+            if(rejected!=3||std::filesystem::exists(root))throw std::runtime_error("128 parameter rejection changed exports");
+            std::cout<<"API128 rejected viewing parameters=3; no exports ordispatch\n";return 0;
+        }
         if(argc==3&&std::string(argv[1])=="--invalid-inputs") {
             const std::filesystem::path root(argv[2]);
             if(std::filesystem::exists(root))throw std::runtime_error("Fresh test directory required");

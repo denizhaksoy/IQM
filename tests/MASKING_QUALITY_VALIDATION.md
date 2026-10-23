@@ -1,5 +1,37 @@
 # Masking and quality validation
 
+2026-10-23 publish preparation: a selected-source snapshot with clean VkFFT
+builds the API and optional application target,regenerates19 pinned shaders,
+preserves620 smoke export hashes and passes35 rejection checks. Root multi-metric
+build experiments remain outside this scope. See
+[publish preparation](PUBLISH_READINESS.md).
+
+2026-10-23 application PFM entry: matching32/64/128square and64x128/128x64
+luminance files now select their dimensions directly,with an explicit
+IQM_QUALITY_RUNTIME package. Eleven application pairs preserve1,166 numerical
+exports;synthetic32/64 strict regressions andseven invalid-input checks pass.
+See [application checkpoint](APPLICATION_LUMINANCE_VALIDATION.md).
+
+2026-10-23 public rectangular API: evaluate_quality now accepts64x128/128x64
+at30ppd/age24 using explicit FFT64256/map16/base85 assets. A fresh normal build
+preserves official score bits and856 export hashes across8 pairs. Square
+32/64/128 regressions and35 rejection checks pass. See
+[public rectangular checkpoint](RECTANGULAR_PUBLIC_API_VALIDATION.md).
+This supersedes earlier public-rectangle-pending statements for these two sizes.
+
+2026-10-22 rectangular stress extension: six more full pairs (HDR ramp,
+impulse and identity in both orientations) pass 36 exact stage checks and
+official score bits. Identity gives zero error and Q=Q_JOD=10. All six runtime
+shaders regenerate with pinned identical hashes. Total full rectangular scope
+is eight pairs; public rectangle support remains pending. See
+[stress checkpoint](RECTANGULAR_STRESS_VALIDATION.md).
+
+2026-10-22 rectangular maps: ABI16 passes 696,320 masking and 487,424 resize
+Float32 values exactly, plus 174,080 binary64 mask values bitwise. First full
+64x128/128x64 diagnostic scores match official results bitwise; public API
+rectangles remain rejected. See [rectangular maps](RECTANGULAR_MAPS_VALIDATION.md)
+for scope and separate intermediate validation evidence.
+
 2026-10-21 inverse256 component:18 isolated GPU executions preserve2,359,296
 float components exactly;the same first-axis exports independently match the
 native FFTW oracle. Explicit DenormPreserve32/RTE32 is required;default-control
@@ -272,6 +304,25 @@ The [raw spectral/viewing continuation](RAW_SPECTRAL_VALIDATION.md) adds four
 application regressions. These scopes retain separate hashes and counts.
 The portable JSON retains these checkpoints separately; mixed application
 integration remains local, and the public metric API remains incomplete.
+
+## 128-square integration continuation (2026-10-22)
+
+The later [rectangular MTF/LA integration](RECTANGULAR_FILTER_VALIDATION.md)
+and [128-sample residual integration](RECTANGULAR_RESIDUAL_VALIDATION.md)
+add LocalAdaptFFT ABI64256 and explicit MapGPU ABI15/85 residual components.
+Rectangular masking/resize and continuous score validation remain open;
+the public quality API still requires its validated square dimensions.
+
+The later [rectangular component checkpoint](RECTANGULAR_COMPONENT_VALIDATION.md)
+validates sixteen SPYR dimension cases and isolated128x256/256x128 forward,
+inverse and8x16/16x8 residual FFTs. Continuous rectangular quality/API support
+still requires MTF/LA andMapGPU integration.
+
+The later [128 integration record](HDR128_INTEGRATION_VALIDATION.md) documents
+the explicit FFT256/map14/base82 runtime contracts and three historical full
+native stage/score checks. This extends the local quality API to128-square
+positive luminance at30ppd/age24. Earlier32/64 scope statements remain
+historical; other128 viewing conditions and general dimensions remain open.
 
 ## File-based luminance continuation (2026-10-20)
 

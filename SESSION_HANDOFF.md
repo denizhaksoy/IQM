@@ -1,6 +1,547 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-10-21 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-10-23 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Latest continuation: selected-source publish preparation
+
+- User agreed to prepare a scoped GitHub checkpoint before more CLI work.
+  No staging,commit,push,reset orclean performed. Original index remains only
+  the independently staged hdrvdp3_corrdn_test.glsl blob
+  1cf7baedb1d54be0ca8ad02d14485e510b0434e7 (93 addedlines). Its unstaged
+  edits and dirtyVkFFT/CMakeLists plusuntrackedglslang remain untouched.
+- Checkpoint:validation/publish_prepare_639283319336040304;
+  active/completed pointers validation/publish_prepare_{active,completed}_path.txt.
+  selected_paths.txt is the102-file proposed commit manifest;excluded_paths.txt
+  identifies other working changes toretain outside this change. Includes
+  runtime library/application wrapper,CMake source integration,generators/tests,
+  docs and.gitignore. Excludes bin/CMakeLists rootexperiments,mtfgpu test edits,
+  stagedshader,dirtysubmodule,localglslang,allvalidation/build/binary artifacts.
+- Exported HEAD688eff7085661c8f3427434e12c37b081e6f3ca7 via gitarchive,overlaid
+  onlyselectedfiles andclean VkFFT539be29f30ef40384f3ccd24d7884166f82cbef8
+  viaitsgitarchive. Notacommittedcheckout/worktree. Snapshot/selectedsource
+  hashes andscope manifests retained. No working submodule files copied.
+- Newoptional IQM_HDRVDP3_BUILD_APPLICATION in independent
+  tests/hdrvdp3_evaluation CMake buildsIQM-hdrvdp3 fromsame main,args,filematcher,
+  Vulkaninstance andwrapper,COMPILE_HDRVDP3 only. DefaultOFF;no rootbenchmark
+  CMake or othermetric/dependency workarounds. Both diagnostic flagsOFF.
+  Clean API/apptargets buildsuccessfully under snapshot/build;MSBuildapproved.
+  This doesnotvalidate fullrootmulti-metricbuild. README clearly states scope.
+- All19 runtime shaders regenerated fromsnapshot sources (7bounded,6square128,
+  6rectangle) withpinnedidenticalSHA256. No oldvalidationexports asshaderinputs.
+  Thirdparty source/license dependencies arecommitted HEADfiles.
+- Freshclean APIandapp smoke runs32square,64x128,128x64:6calls retain620
+  numerical export hashes (2*(96+107+107)),includingqualityfiles. APIscorebits
+  nativebaselineexact. InputPFMs/goldens/spectraldata from prioracceptedlocal
+  checkpoints,explicitexternaltestinputs;not newnativeoracle executions.
+  Thirtyfive invalidAPI cases pass. SMOKE_PASS/smoke_results andlogs preserved.
+- Firstsmokelaunch stopped becausePowerShell ErrorActionPreference=Stop
+  treatedinformational Vulkanstderr asNativeCommandError. Initialpartiallog
+  excluded;validate_clean_snapshot.ps1 usesContinue fornativecalls andchecks
+  exit/errors;fresh *_verified_* exports passed. No numerical changes/tolerance.
+- .gitignore nowcovers localvalidation/build-vs2026/build-hdrvdp3,CMakecache,
+  root.obj/.exe/.log outputs;files keptondisk. Proposedcommit message preserved
+  undercheckpoint. No automatic staging ofuntracked backups/binaries.
+- Docs:tests/PUBLISH_READINESS.md (cleanbuildcommands,scope/externalfixture
+  dependencies),MASKING_QUALITY_VALIDATION.md. Source snapshot finaldocs synced
+  aftertesting;production numerical sources unchanged after successfulbuild.
+
+Exact next step: reviewselected_paths.txt andperform the scopedcommit/push when
+requested. Preserve originalstagedshader bycommitting onlyselectedpaths;never
+usegitadd-all oracommitthatincludesunrelatedstagedcontent. The supportedclean
+buildcommand is cmake -S tests/hdrvdp3_evaluation -B build-hdrvdp3
+-DIQM_HDRVDP3_BUILD_APPLICATION=ON,then Release targetsIQM-quality-api-test and
+IQM-hdrvdp3. Rootmulti-metricbuild cleanup stays separate. After checkpoint
+publication,resume explicitCLI luminance/runtime/viewingarguments aspreviously
+planned. Historical acceptance below remains separatelyscoped.
+
+## Latest continuation: application PFM quality entry and runtime directory
+
+- Accepted checkpoint:validation/rectangular_app_639283313608789740;
+  active/completed pointers validation/rectangular_app_{active,completed}_path.txt.
+  Root COMPLETED/PASS,source/binary hashes andvalidated_binaries/IQM.exe preserved.
+- bin/shared/wrappers/hdrvdp3.cpp extracts run_quality_inputs helper. Explicit
+  IQM_LUMINANCE_REFERENCE/TEST request goes straight toquality instead of
+  unrelated component diagnostics. Bothpaths required. PFM dimensions select
+  matching32/64/128square or64x128/128x64;noimplicitresize. Synthetic entry
+  retains oldcomponenttests andIQM_SPYR_SIZE32/64 behavior,then samehelper.
+- New optional IQM_QUALITY_RUNTIME supplies explicit package paths and
+  column-first/native referenceFFT config. Bounded usesfft32/64.spv;extended
+  usesfft.spv;all usemap.spv,base.spv,math/. Ifomitted,legacyindividualbackend/
+  shaderenvironmentsettings remain. Viewing/spectralrules unchanged. Prints
+  absolute Quality export directory aftersuccess. Matchingpackage must bechosen;
+  thisisnotautomaticassetinstallation orarbitrarydimension support.
+- Two successful root IQM builds (initialshape/runtime,thenfilehelper);waited
+  forfinalcompletion beforelaunch. Buildlogs preserved;MSBuildescalationapproved.
+  FinalexeSHA25669C8AA7708C40C4457B0F7903EDE00F7FF56B63D0B6C38093CE37967B37707FE.
+- validate_application_quality.ps1 runs11 normalapplication PFM pairs:3square
+  plus8priorrectangularpairs. Allqualityfiles and1,166 nonpath/nontag text
+  exports matchacceptedreferences byhash (96+10*107). Staleinvalidsynthetic
+  size/backend settings deliberatelyignored forfile+runtime. file_cases/results
+  recordsoriginalfreshexports under validation/spyr_spatial_*. Nativeacceptance
+  inheritedthroughmatchingoutputs;not11newindependentnativepairs.
+- Sevennegativeapplicationrequests:missingpair(2),mismatchedsizes(1),invalid
+  rectangularppd60(2),unsupported3x2/64x32(2). Exitnonzero,noqualityexports,
+  noVulkanvalidationerrors. Fixtures/logs andinvalid_cases.json preserved.
+- Synthetic32/64 asymmetric/localized strictnative preprocessing/CSF/masking/D/
+  officialquality and13JNDstages pass.32Q=8.3328084945678711,JOD=8.9990530014038086;
+  64Q=9.1295385360717773,JOD=9.5646781921386719. IndependentABI13GPUchecker
+  32:62cases57,046floats exact+2,368binary64bits;64:74cases228,055floats exact+
+  9,536binary64bits. Checker frozenpreviousage_ppd60 verifiedbinary,hashrecorded.
+- Importantfailedtoolrun:default run_quality_validation.ps1 pointsobsolete
+  fft_publish_build checkerrequiringABI12.32nativecheckscompletedthenchecker
+  rejectedABI13asset. Failedsuite quality_gpu_base_fft_suite_32_selected_
+  639283315003038815 retained;its completedexport spyr_spatial_17927347033377657
+  passes correctABI13checker incheckpoint/synthetic32_checker13.log. No32suite
+  PASSfabricated.64usesexplicit -GPUChecker age_ppd60_639280954526250977/
+  verified_bin/IQM-map-gpu-test.exe andPASSatquality_gpu_base_fft_suite_selected_
+  639283315931737468. Needalwayspassmatchingchecker tolegacydriver.
+- Precision/layout/padding/DC unchanged:positiveFloat32PFMs,bottomupdisk/topdown
+  rowmajorAPI,localIntelArc,30ppd/age24/D65. MTFsymmetric/LAreplicatepostpadding,
+  inverseonce,columnmajorspectrumtranspose;rectresidual8x16/16x8no padding,
+  native mean/DC/firstmax. Signedzerobitclaimunasserted. NoCPUstage substitution.
+- Docs:tests/APPLICATION_LUMINANCE_VALIDATION.md,MASKING_QUALITY_VALIDATION.md.
+  Noreset/clean/commit/push/blanketshaderbuild;preexistingchanges/stagedshader/
+  dirtyVkFFT preserved. PublicAPIearlierchecks remainhistorical scope.
+
+Exact next step: provide normal CLI arguments for the luminance PFM pair,
+runtime package and viewing parameters instead of requiring environment setup;
+route them into the same explicit API without changing numbers. Check existing
+bin/IQM/args.cpp and shared Args first,keep allothermetricbehavior intact,and
+test argument errors plus representative32/64/128/rectangularpairs against this
+checkpoint. RGB,arbitrarydimensions,automaticruntimeinstallation andotherGPU
+coverage remain separate;boundedluminance path nowworks inactualapplication.
+
+## Latest continuation: bounded rectangular public quality API
+
+- Accepted checkpoint:validation/rectangular_public_639282926432216545;
+  active/completed pointers validation/rectangular_public_{active,completed}_path.txt.
+- evaluate_quality now permits64x128/128x64 onlyat30ppd/age24. Removed private
+  allow_rectangle switch;public and retained diagnostic wrapper call identical
+  implementation. Profile16 selection andexplicit FFT64256/base85 behavior
+  are unchanged from validated diagnostic path. Header documents public scope.
+- Fresh non-diagnostic CMake build in checkpoint/build,Release,with both
+  IQM_HDRVDP3_DIMENSION_DIAGNOSTIC and IQM_HDRVDP3_DIAGNOSTIC_128 OFF.
+  Configure/build completed successfully via approved MSBuild escalation.
+  Frozen executable in validated_binaries/;source/binary hashes preserved.
+- Eight public replays retain native score/error bits and107 numerical exports
+  each(total856),including asymmetric/localized,impulse/localized,HDR/localized,
+  identity inbothorientations. Environment deliberately poisoned by caller.
+  Prior independent native six-stage acceptance is inherited through matching
+  exports;native validators were not rerun and not counted as new native pairs.
+- First process stopped after4 completed64x128 cases;partial128x64 output remains
+  under public_pairs/ and is excluded. Fresh public_pairs_resumed/ holds all4
+  accepted128x64 cases. Root public_results.json combines exactly8 cases.
+  No accepted export overwrites or reuse. Root COMPLETED.json/PASS.txt records
+  final scope;noVUID/Validation Error/[ERROR] inaccepted numerical logs.
+- Current public square32/64/128 regressions pass fresh score bits and
+  96/107/107 numerical export hashes. Tests reject18 rectangular dimension,
+  viewing andmissingasset cases,3square128 parameters,14legacy cases(total35)
+  before evaluation dispatch/output overwrite. Unsupported/odd rectangles remain
+  rejected. Existing MapGPU ABI rejection coverage remains previous checkpoint.
+- generate_assets_rectangular.ps1 now labels the public bounded package;
+  checkpoint/runtime regenerates6 shaders with unchanged pinned hashes and
+  compiler/ABI/licenses metadata. First4public replays used bit-identical
+  priorruntime_reproduced;resumed4used newruntime. No shader numerical edits.
+- Reproduce public replays with validate_rectangular_public.ps1 -Executable
+  <normal-build/IQM-quality-api-test.exe> -RuntimeDirectory <runtime>
+  -OutputDirectory <fresh-dir>. Optional -Shapes h128_w64 resumes thatorientation
+  in a fresh directory. Default runsboth. Existing square regression script used.
+- Precision/input/viewing/layout/padding/DC equivalence remains previous8pairs:
+  positive Float32 absolute luminance,30ppd/age24/D65,local Intel Arc;MTF symmetric
+  andLAreplicate post-padding,inverse1/32768 once,column-major spectrum/filter
+  transpose,residual8x16/16x8 no padding,native mean/DC/firstmax. Binary64 masks.
+  No new signedzero-bit/device/RGB/general-size parity claim.
+- Docs:tests/RECTANGULAR_PUBLIC_API_VALIDATION.md andMASKING_QUALITY_VALIDATION.md.
+  No reset/clean/commit/push/blanketshaderbuild;allpreexistingchanges,stagedshader
+  anddirtyVkFFT retained. Historical public-square-only statements below are
+  superseded onlyfor64x128/128x64@30ppd/age24.
+
+Exact next step: integrate this bounded API and reproducible runtime package into
+the application luminance-file entry point. bin/shared/wrappers/hdrvdp3.cpp
+FullSpyrTest stillaccepts onlyIQM_SPYR_SIZE32/64 and enforces squarePFMs despite
+calling evaluate_quality. Preserve synthetic32/64 behavior;derive explicit file
+dimensions for supported32/64/128square and64x128/128x64,selectmatchingpinned
+runtimeassets,then validate normal application calls withfreshnativecomparison
+andlegacyregressions. Arbitraryimages/RGB/otherdimensions anddefaultinstallation
+remain separate work;no claim that the entire metric/product scope is complete.
+
+## Latest continuation: six rectangular stress pairs and reproducible package
+
+- Accepted checkpoint: `validation/rectangular_stress_639282921084448635`;
+  active/completed pointers: validation/rectangular_stress_active_path.txt and
+  validation/rectangular_stress_completed_path.txt. Fresh native_* and gpu_*
+  directories per pair; stages_*/PASS.txt and results.json record all checks.
+- Six new pairs: both64x128/128x64,impulse/localized,HDR-ramp/localized,
+  asymmetric/identity. All36 exact validators pass (preprocessing,SPYR,CSF,
+  masking,D,official quality). Native Q/Q_JOD bits match in every pair.
+  Prior2 asymmetric/localized pairs remain separate:total8 unique full pairs.
+- Scores (Q,Q_JOD):64x128 impulse(2.7487683296203613,3.4179229736328125),
+  HDR(8.3044567108154297,8.9771928787231445),identity(10,10);
+  128x64 impulse(2.3844747543334961,2.9913034439086914),
+  HDR(8.4348869323730469,9.0768861770629883),identity(10,10).
+  Both identity exports have five zero band errors and zero aggregate error.
+- Extended generate_rectangular_quality_reference.m with optional identity
+  transform;default localized behavior retained. New reusable full stress driver
+  tests/hdrvdp3_evaluation/validate_rectangular_stress.ps1 requires fresh root.
+- Added generate_assets_rectangular.ps1 and pinned
+  REFERENCE_SHADER_HASHES_RECTANGULAR.json. runtime_reproduced/ regenerates
+  all6 FFT64256/map16/base85/math shaders from repo sources with identical
+  accepted SHA256 hashes,plus licenses/compiler/ABI metadata;no prior validation
+  directory used as shader source. GPU stress uses frozen previous executable
+  and accepted binaries,bit-identical to the regenerated package.
+- Numerical engine/shaders/public API unchanged this session;no rebuilding or
+  redundant square regression. Prior checkpoint's96/107/107 public exporthash
+  and19 public/20map rejection acceptance remains historical,not a new run.
+  All accepted GPU logs free of VUID/Validation Error/[ERROR]. Root COMPLETED,
+  PASS,source/native/binary hashes preserve provenance. No failed stress cases.
+- Same input/precision/viewing/layout/padding/DC equivalence as prior checkpoint:
+  local Intel Arc,Float32,30ppd,age24,D65,native3threads/estimate with fresh
+  single FFTW wisdom per independent full chain. HDR input range1e-3..1e4;
+  localized change*single1.4+single.25. Identity pixels/PFMs equal. MTFsymmetric
+  andLAreplicate post-padding,inverse1/32768 once,column-major FFT spectrum;
+  residual8x16/16x8 unpadded,mean removal,DC magnitude zero,firstmax. Binary64
+  maskresize exact;float signedzero bit identity remains unasserted.
+- Docs:tests/RECTANGULAR_STRESS_VALIDATION.md,MASKING_QUALITY_VALIDATION.md.
+  Reproduce from workspace using validate_rectangular_stress.ps1
+  -OutputDirectory <fresh-root>;package using generate_assets_rectangular.ps1
+  -OutputDirectory <fresh-root> -VulkanBin C:/VulkanSDK/1.4.363.0/Bin.
+  No reset/clean/commit/push/submodule changes or blanket shader compilation.
+
+Exact next step: expose only64x128/128x64 at30ppd/age24 through public
+evaluate_quality using the now-reproducible explicit FFT64256/map16/base85
+package. Add invalid rectangular viewing/dimension/asset tests,build a
+non-diagnostic caller,compare public outputs/scores to these8 frozen full pairs,
+and rerun square32/64/128 regressions. Keep other rectangles/odd sizes/RGB and
+viewing parameters rejected. Public API is still square-only at this handoff.
+
+## Latest continuation: rectangular maps ABI16 and first full-quality diagnostic
+
+- Fresh checkpoint: `validation/rectangular_maps_639282910800030657`;
+  active pointer `validation/rectangular_maps_active_path.txt`.
+- Actual MapGPU ABI16 component checks pass: 128 masking cases/696,320
+  Float32 values;160 float-resize cases/487,424 values;64 binary-mask resize
+  cases/174,080 binary64 values. Zero numeric float differences and zero
+  binary64 bit differences. Float signed-zero bits not asserted. Shapes are
+  64x128/128x64 plus their half-resolution bands down to 8x16/16x8.
+- Added explicit RectangularMaps=16. Pool traversal follows longer axis;
+  FMA selection uses max(width,height)>=32. Explicit rectangular binary-mask
+  guards allow same-aspect dyadic downsampling only. ABI13/14/15 retained;
+  regenerated14/15 hashes unchanged. Map16 SHA256:
+  338EB96787DFAFFC10CC2034DCE767090C4379570C86A8EA3FA6C24E9A1D4614.
+- Diagnostic-only quality integration uses FFT64256, Map16 and residualFFT85,
+  explicit width/height for residual spectrum/first-max. evaluate_quality_impl
+  allows rectangles only for the CMake-gated diagnostic wrapper; public
+  evaluate_quality passes false and retains all previous guards.
+- Two independent official full references: asymmetric reference + localized
+  test*1.4+0.25,30ppd/age24/D65. Native quality pairs and bottom-up Float32 PFM
+  are in native_quality_h64_w128 and native_quality_h128_w64.
+  GPU full_fixed_h64_w128: Q=4.2055172920227051,Q_JOD=5.0616965293884277;
+  full_fixed_h128_w64: Q=3.6234698295593262,Q_JOD=4.4173946380615234.
+  Both match independent official score bits. Earlier full_* launch used
+  nonexistent ref.pfm (actual name reference.pfm), failed before evaluation;
+  failed logs preserved and fresh full_fixed_* used.
+- Important oracle finding: old tall-image preprocessing validator failed
+  with94/215 retinal mismatches because earlier JND FFT diagnostics populated
+  single FFTW wisdom. Fresh-process minimal MTF comparison matches exactly.
+  New explicit --fresh-fft-plans resets single wisdom/sets3threads immediately
+  before native preprocessing or official quality; no equality weakened.
+  Tall full preprocessing then passes all stages with zero differences.
+  Old quality validator also reused plans and produced Q=3.6234650611877441;
+  its failed evidence is preserved separately. Canonical exact stage logs use
+  exact_stages_h64_w128 and exact_stages_h128_w64 with the new six-check driver.
+  Both canonical six-check runs completed successfully: strict preprocessing,
+  SPYR,CSF,masking,D and official quality all exact. Root COMPLETED.json/PASS.txt
+  and validation/rectangular_maps_completed_path.txt identify accepted evidence.
+- Current public square32/64/128 replays pass score bits and96/107/107 numeric
+  export hashes;19 public invalid cases and20 MapGPU profile/domain contracts
+  pass. Exports/logs,source hashes and frozen validated executables preserved.
+- Reproduction: generate_rectangular_maps_reference.m;
+  generate_map16_shader.ps1;validate_rectangular_maps.ps1 (fresh outputs).
+  Build map128-api-test in fft256_inverse_639281620198383169/build and
+  IQM-quality-rectangular-diagnostic/IQM-quality-api-test in
+  spyr_dimensions_639282601672947206/build (Release,diagnostic config).
+  generate_rectangular_quality_reference.m generates independent full native
+  references. tests/hdrvdp3_evaluation/validate_rectangular_quality.ps1 runs
+  six exact validators with explicit native plan reset and fresh log directory.
+- Precision/layout/padding: Float32 local Octave3threads/estimate;row-major
+  exported maps,explicit column-major FFT spectrum/filter transpose;MTF symmetric
+  post-padding,LA replicate post-padding,inverse1/32768 once. Residual8x16/16x8
+  has no padding,native mean removal,DC magnitude zero and first-max selection.
+  Binary comparison-mask resize uses binary64/Q20 weights and bitwise checks.
+  No CPU substitution of numerical GPU stages. Scope is two unique full pairs
+  on local Intel Arc;no general dimensions/RGB/other devices claim.
+- Docs: tests/RECTANGULAR_MAPS_VALIDATION.md and MASKING_QUALITY_VALIDATION.md.
+  No reset/clean/commit/push/blanket shader rebuild; staged shader and dirty
+  VkFFT retained. Historical scope below remains historical.
+
+Exact next step: extend full rectangular diagnostic to impulse/HDR-ramp and identity pairs
+with fresh native/GPU exports before considering public rectangle support.
+Keep public guards until that validation and explicit packaging work complete.
+
+## Latest continuation:128-sample reductions and MapGPU residual ABI15/85
+
+- Fresh checkpoint:validation/rectangular_residual_639282893861381197;
+  completed pointer validation/rectangular_residual_completed_path.txt.
+  Interrupted first launch left anempty reductions128.log;fresh resumed
+  exports areidentified bycheckpoint/resumed_run_path.txt. No oldoutput reused.
+- Isolated512-case128-sample mean/DC/base-adaptation test compares67,072
+  Float32 outputs exactly. Two512-case DC->rectangularFFT->hypot/first-max
+  chains (8x16 and16x8) eachcompare328,192 scalars withzero numeric differences,
+  including131,072 centered interleaved values/explicit imaginaryzeros and
+  197,120 FFT/magnitude/index values. Allstages runinoneGPUcommandbuffer;
+  nointermediatehostreadback ornativestagesubstitution.
+- Added generate_rectangular_residual_shader.ps1 ABI84 and-MapABI variant85;
+  compile_rectangular_inverse.ps1 -Selection [-MapABI]. Reductiongenerator's
+  -Include128 andcompile_base16.ps1 -Reductions -Include128 areexplicit;
+  default64/256 shaderreproduction retainsSHA256
+  822C80471F082A0F07675278610622D0FE8D75A8C55D500EB367554625B61DE9.
+  GeneratedABI14 mapretains84620708FF2C431F1CFD7568FEB445248252B57DC1FCC19A149ADB7CAA8D9093.
+- MapGPU nowhasexplicit RectangularResiduals=15 profile andnew
+  base_spectrum_rectangular/base_selection_rectangular(input,width,height).
+  Bothrequire8x16/16x8 andABI15;FFTmodule requires85. DC/baseadaptation accept
+  128samples onlyin15;existing13/14 guards remain. Q40profile15 usesQ20
+  coefficients insharedbinaryresize,withoutwidening rectangularresizeguards.
+- ActualAPI validation:512 reductions compare66,560 values (API omitsDCmean);
+  eachorientationuses64 cases(first8controls+56distributed):32,832 values
+  includingcentered/DC,spectrum,magnitudes,index. Totalnew-domain132,224,
+  zero numericdifferences. APIcallsreadGPUoutputsback betweenmethods;the
+  isolatedchains above separatelyvalidate nointermediatereadback.
+- ABI13/14 legacy64/256 andABI15 samefixtures allpass331,776 additional
+  regressionvalues,keptseparatefromnewdomains. Existing256-sample
+  DC->FFT16/selection chainpasses655,872 values withfinalchecker.
+- Twelvelegacy and16newMapGPU profile/ABI/dimension/domain contracts reject.
+  FreshcurrentpublicAPI32/64/128 replays preserveQ/Q_JOD/errorbits and
+  96/107/107 numericexporthashes. NineteeninvalidAPIcases pass. NoVulkan
+  ERROR/Validation Error/VUID diagnostics inacceptedruns.
+- Scope:Float32,localOctave single3threads estimate;row-major interleaved,
+  noFFTpadding,unnormalizedforwardFFT;nativeDCmeanremoval,selectionmagnitude
+  DConlyzeroed,rawFFTretained. Residualnonzeroexponents[-90,100],span<=16;
+  logdomain[-5,5],span<=16. Zero/constant/cancellation/adjacentmean/extreme
+  controlsandrandominputs. Signedzerobitidentity unasserted. NoFloat64/Int64
+  shadercapabilities;preserve32/RTE32 required. Nofullrectangularscoreclaim.
+- Reproduction:generate_base_reductions_reference.m <fresh-native>128;
+  compile_base16.ps1 -Reductions -Include128;compile_rectangular_inverse.ps1
+  -Selection for84 or-Selection -MapABI for85;generate_map_rectangular_shader.ps1
+  for15 (allfreshOutputDirectory,VulkanBin asrequired). Build map128-api-test
+  andfft256-filter-test inexisting
+  validation/fft256_inverse_639281620198383169/build,Release. Run
+  tests/hdrvdp3_fft256/validate_rectangular_residual.ps1 and
+  validate_rectangular_map_residual.ps1 withcheckpointfixtures/shaders.
+  Publicregressions:tests/hdrvdp3_evaluation/validate_rectangular_regressions.ps1
+  withfreshoutputandcurrent spyr_dimensions_639282601672947206/build/Release/
+  IQM-quality-api-test.exe. Buildlogs incheckpoint;MSBuild approvedescalations.
+- Acceptedmap15SHA256:2DA5ECB9C861CB395AF4933ED504D3374412F594C4117C72A662E043FBECE111;
+  base85:D95DE048BF5C68C1C9C38BB7D34CDF78966EB0BB8583DBF03507032409E99EDE.
+  RootCOMPLETED/PASS,isolated/map_api/public_regression manifests,source/native/
+  binaryhashes andvalidatedexecutablecopies preserved. Pre-extension executables
+  alsopreserved. Finalsourcehashes addcomment/docchanges onlyafterbuild.
+- Docs:tests/RECTANGULAR_RESIDUAL_VALIDATION.md;MASKING_QUALITY_VALIDATION.md
+  linksbothnewrectangularcheckpoints. Stagedshader,dirtyVkFFT,allpriorchanges
+  andreferences preserved;noreset/commit/push/blanketshaderbuild.
+
+Exact next step:generate native rectangularbinary64comparison-mask resize,
+ Float32CSF/adaptationresize andmutualmasking/pooling fixtures for64x128/128x64
+ andtheir32x64/16x32/8x16/talltransposebands. Validate underanexplicitnew
+ rectangularmapcontract whilepreserving13/14/15. Currentpoolshader assumes
+ squaretraversal andpc.height>=32 forFMA:width-long16x32 needslonger-axis
+ traversal/FMAselection,so donotjustremoveguards. Thenintegrate rectangular
+ dominantfrequency/CSF/pupil/pooling andcontinuousnativeQ/Q_JOD. Publicquality
+ rectangles remainrejected;generaloddFFT/non-dyadicdoublemaskweights remainopen.
+
+## Latest continuation:rectangular MTF/LA integrated into LocalAdaptFFT
+
+- Evidence:validation/rectangular_filter_639282611436713337,completed pointer
+  validation/rectangular_filter_completed_path.txt. Native sixfixtures cover
+ 64x128/128x64,asymmetric/impulse/HDR ramp1e-3..1e4,ref/test factor1.05,
+ 30ppd,single3threads estimate. Official staged outputs assert equality to
+ fast_conv_fft/hdrvdp_local_adapt beforeaccepting native fixtures.
+- Isolated24 chains pass6,488,064 GPU Float32 values and786,432 rounded host
+ filter coefficients exactly. Fourcomplexstages plusfinalR32 output,noCPU
+ stage substitution,noDC removal;MTF symmetric post/LA replicate post padding,
+ inverseonce1/32768,column-major spectrum with explicit filter transpose.
+- Added combined shader ABI64256 (forward8/9,inverse3/4). ReproductionSHA256
+ 5A8C4BE851DC6BE0ABE6B150397DE8B5179ED59A37A07D65756FE5FEFCD2C558.
+ Float32preserve/RTE,noFloat64/Int64;oldshaderpins unchanged.
+- LocalAdaptFFT nowaccepts explicitreference64x128/128x64 at30ppd withmath
+ assets andABI64256. Axislength/batches andfiltertranspose areexplicit.
+ DefaultVkFFT andsquarepaths retained. Privateevaluation helperacceptsexplicit
+ dimensions fortheCMake-gated diagnostic caller;qualityAPI guards unchanged.
+- Actualproduction LocalAdaptFFT repeatsall24 cases successfully in
+ production_fixed/:same6,488,064 GPUvalues/786,432 filtervalues,zero numeric
+ differences. These arenot additionaluniqueinputs. Initialproduction/failed
+ testreader parsingtinyGaussian doublecoefficients asfloat;allGPUstages/output
+ ofthatcase matched. Fixedreader usesdouble->float;failedartifacts retained.
+- Current-source publicAPI32/64/128 regressions preserveQ/Q_JOD/errorbits and
+ 96/107/107 numericexporthashes. NineteeninvalidAPIcases andthreewrongFFT
+ ABIcontracts rejectcorrectly. NoVulkanerrors inacceptedruns. RootCOMPLETED/
+ PASS,source/native/binaryhashes,buildlogs,combinedreproduction andguards saved.
+- Newtests:generate_rectangular_filter_reference.m;
+ generate_rectangular_reference_shader.ps1;verify_filter_dimensions.cpp;
+ hdrvdp3_fft256/validate_rectangular_filter.ps1 (-ThroughLocalAdapt);
+ hdrvdp3_evaluation/validate_rectangular_regressions.ps1. Compilecombined via
+ compile_rectangular_inverse.ps1 -Combined inafreshdirectory. Build actual
+ caller inexisting spyr_dimensions_639282601672947206/build withCMake dimension
+ optionON,targetIQM-filter-dimension-test;publiccallerIQM-quality-api-test.
+- Addednative128-sample fixtureoption togenerate_base_reductions_reference.m.
+ Checkpoint/native_reductions128 contains512 reductioncases andtwo512-case
+ expectedFFT8x16/16x8+magnitude/first-index matrices. Referenceonly,notGPU pass.
+- Docs:tests/RECTANGULAR_FILTER_VALIDATION.md. Existingstaged/unstagedfiles,
+ dirtyVkFFT,oldreferences preserved;noreset/commit/push/blanketshaderbuild.
+
+Exact next step:validate128-sample GPU DC/base-adaptation,thenconnectrectangular
+ residualFFT+nativehypot+firstmax underanexplicitMapGPUcontract (retainABI13/14).
+ Rectangular resize/masking/CSF/pooling andcontinuousnativeQ/Q_JOD remainopen.
+ Do notliftqualityAPIguards fromthesecomponentchecks. GeneraloddFFT and
+ non-dyadicdoublemaskcoefficients remainopen.
+
+## Latest continuation:rectangular SPYR and forward/inverse/residual FFT
+
+- Added CMake-gated IQM_HDRVDP3_DIMENSION_DIAGNOSTIC and
+  IQM-spyr-dimension-test. A test-only entrypoint in evaluation.cpp uses
+  actual production SPYR coefficients/run_corrdn_gpu dispatch. Default API
+  has no new entrypoint orwidened guards. Enabled /EHsc in standalone
+  evaluation library/test tofix missing exception-unwind build warnings.
+- Fresh checkpoint:validation/spyr_dimensions_639282601672947206, completed
+  pointer validation/spyr_dimensions_completed_path.txt. All16 SPYR cases
+  (eight rectangle/odd shapes at30/60ppd) match339,328 native single get_band
+  values exactly. Added native input exports togenerate_dimension_frontier.m.
+  Inputs10+cos(x/17)+sin(y/23),reflect1,pyramid height ppd-limited.
+- Initial gpu_* comparisons failed because test compared raw GPU bands with
+  normalized native get_band. Fixed comparison with exact power-of-two
+  normalization raw/2^band. Accepted normalized_* allpass. Initial logs/exports
+  preserved/excluded;no production arithmetic fix orsilent tolerance.
+- Added source-backed rectangular forward ABI256128,inverse ABI128256 and
+  residual ABI83 generators pluscompile_rectangular_inverse.ps1 (-Forward,
+  -Base ordefault inverse). Existing128/256/bounded shader pins unchanged.
+  Checker fft256-inverse-test nowhas explicit --rectangular-forward,
+  --rectangular-inverse and--rectangular-base modes;legacy modes retained.
+- Native generate_rectangular_fft_reference.m calls proven Octave extension
+  andasserts its output equals ordinary fft2/ifft2 beforeaccepting plans.
+  Shapes128x256,256x128,8x16,16x8;single3threads,estimate. Source/native/binary
+  hashes,plans andfixtures preserved. Synthetic deterministic random matrices,
+  oneper shape;not actual MTF/LA inputs andnotbroad-range validation.
+- GPU forward2cases/131072 components,inverse2cases/131072,residual real
+  FFT2cases/512:262656 components,zero numeric mismatches. NoFloat64/Int64;
+  preserve32/RTE32 required. FFT input already sized,no padding/DC processing;
+  shader column-major interleaved,checker converts row-major fixture input and
+  output. Inverse normalization once1/32768 inaxis2. No signed-zero bitclaim.
+- Exact forward256x128 plan uses n1fv_128 for40vectors andt3fv_8+n2fv_16 for
+  3tails pereach43-vector thread partition;128x256 uses t3fv_16+n2fv_16.
+  Existing generators already included allneeded source-backed codelets.
+- Final checker replays ofbothforward/inverse rectangles pass (4replays,
+  excluded fromunique counts). Final checker residual2cases pass. Legacy256
+  impulse forward+inverse regressions also pass,131072 components each.
+  No Vulkan ERROR/Validation Error/VUID diagnostics acrossaccepted runs.
+  Checkpoint COMPLETED.json/PASS.txt records scopes,hashes andexcludedfailure.
+- Reproduce:cmake -S tests/hdrvdp3_evaluation -B <fresh-build>
+  -DIQM_HDRVDP3_DIMENSION_DIAGNOSTIC=ON;build IQM-spyr-dimension-test.
+  Generate native dimensions withtests/generate_dimension_frontier.m,then
+  IQM-spyr-dimension-test native-case ppd band-count fresh-output.
+  Generate FFT fixtures withtests/generate_rectangular_fft_reference.m out
+  validation/octave_plan_probe_639277410904713098. Compile eachshader innew
+  directory via tests/hdrvdp3_fft256/compile_rectangular_inverse.ps1,with
+  -Forward/-Base asneeded. Build fft256-inverse-test fromexisting isolated
+  validation/fft256_inverse_639281620198383169/build;call native-case shader
+  ref fresh-output --rectangular-inverse/--rectangular-forward/--rectangular-base.
+- CMake configure initiallycouldnotdetect compiler insandbox;approved retry
+  andMSBuild builds succeeded. No compile_shaders.sh,noreset/commit/push;
+  staged shader,dirtyVkFFT,oldreferences andallunrelated changes preserved.
+  Docs:tests/RECTANGULAR_COMPONENT_VALIDATION.md.
+
+Exact next step:compose rectangular MTF/LA prepare-filter-finish using the
+accepted two-axis shaders,actual R32 images andnative128x256/256x128 padding;
+compare allstages andfilters before LocalAdaptFFT integration. Thenextend
+MapGPU viaexplicitnewcontract for128-sample residual DC/base-adaptation,
+8x16/16x8 first-max/frequency andrectangular resize/masking. Current ABI14
+reduction normalization andselection layouts assumesquare64/256samples;
+do notmerelyremoveguards. Continuous fullquality/publicrectangles remain
+unvalidated. General oddFFT andnon-dyadic doublemaskcoefficients remainopen.
+
+## Latest continuation:128 impulse/one-ULP stress and dimension frontier
+
+- Added impulse and competing_axes transforms to generate_quality128_reference.m
+  and reusable tests/run_quality128_stress.ps1. Rebuilt current isolated128
+  diagnostic successfully before running it (approved MSBuild escalation).
+- Fresh evidence:validation/quality128_stress_639282594471943896, pointer
+  validation/quality128_stress_completed_path.txt. Two new input pairs pass
+  all six native checks each,12 total,zero numeric mismatches. Impulse Q/JOD
+  6.7128562927246094/7.6113557815551758;competing_axes
+  0.98083019256591797/1.2951202392578125. Final score bits exact;no Vulkan errors.
+  Scope128square,30ppd,age24,D65,single luminance. FFT256 column-major,
+  inverse1/65536 once,MTF symmetric/LA replicate padding;residual DC mean
+  removed andselection magnitude DC zero. Signed-zero stage bits unasserted.
+- Strengthened validate_difference_maps.m:assert native/GPU first-max index,
+  not only radial frequency. Both pass:index32 impulse,index33 competing axes
+  (one-based). Native competing maxima5018.5791015625/5018.57861328125 differ
+  by exactly one Float32 ULP. ranking_audit.json independently checks this.
+- Fresh32/64 public regressions pass:96/107 numeric exports hash-identical
+  to golden assets,native score bits exact;14 invalid-input cases pass.
+  Evidence:checkpoint/bounded_regression. Executed existing
+  validation/recheck_bounded_after_map14.ps1 -Root <that fresh directory>.
+- New generate_dimension_frontier.m produced16 native SPYR band fixtures
+  (eight rectangular/odd shapes at30/60ppd). Native geometry only,no GPU score
+  claim. Residuals include8x16,16x8,8x9,9x8,10x12,12x10,16x17,17x16.
+  Evidence:checkpoint/dimension_frontier/geometry.json andband exports.
+- Reproduction: powershell -NoProfile -ExecutionPolicy Bypass -File
+  tests/run_quality128_stress.ps1 -OutputDirectory <fresh> -DiagnosticExecutable
+  validation/map128_api_639281996762386676/diagnostic_build/Release/IQM-quality128-diagnostic.exe
+  -Assets validation/map128_api_639281996762386676/runtime128
+  -SpectralDirectory validation/asset_generation_639281159480285385/assets_verified/spectral
+  -SourceExport validation/continuation128_639282590525981729/full128_localized.
+  Current runner additionally verifies shader pins andasserts one-ULP ranking;
+  it was extended during this run. Separate POSTRUN_AUDIT.json checks those
+  conditions;initial hashes andfinal_source_hashes retained. Numerical
+  validator changes preceded their execution. No full suite rerun implied.
+- Updated HDR128_INTEGRATION_VALIDATION.md. All prior staged/unstaged changes,
+  references anddirty VkFFT preserved;no commit/push orblanket shader rebuild.
+
+Exact next step:validate rectangular64x128/128x64 SPYR GPU bands against the
+new dimension_frontier fixtures,then build explicit rectangular FFT128x256
+andresidual8x16 contracts. Keep public guards unchanged until continuous
+preprocessing/map/score parity passes. Arbitrary ratios also need a replacement
+for exact-Q20 binary mask coefficients;do not silently approximate. Start with
+power-of-two rectangles beforeodd/general sizes. The previous128 stress
+next-step below is now complete within the measured scope.
+
+## Latest continuation: recovered128 integration and fresh public replay
+
+- The previous top entry was stale: existing local code already connects
+  FFT256 graphs8/9+3/4, explicit MapGPU ABI14/Q20 masks, base FFT ABI82,
+  256-sample reductions and ppd-limited SPYR height. Public evaluate_quality
+  permits128-square at30ppd/age24 only. Bounded ABI13 remains separate.
+- Recovered historical evidence at validation/map128_api_639281996762386676:
+  three full128 native stage suites and public replays with107 identical
+  numerical exports each. These are previous-session results, not new runs.
+- Freshly rebuilt IQM-quality-api-test successfully, then ran localized128
+  input in validation/continuation128_639282590525981729. All six native checks
+  passed: strict preprocessing, SPYR, CSF, masking, difference and official
+  quality. Zero numerical mismatches; Q=5.024019718170166,
+  Q_JOD=5.937023639678955, pooled error=2.635451316833496; API score bits exact.
+  All107 numerical exports hash-identical to the prior public replay.
+  No Vulkan ERROR/Validation Error/VUID diagnostics. No stage signed-zero
+  bit-identity claim. This is one replay, not an additional unique input pair.
+- Fresh checkpoint has COMPLETED.json/PASS.txt, input/source/binary hashes,
+  gpu.log, six native logs, stage_results and replay_comparison.json.
+  Pointer: validation/continuation128_completed_path.txt. Single luminance,
+  D65,128square,30ppd,age24; symmetric MTF/replicate LA padding to256square,
+  once inverse1/65536; residual mean removal and magnitude-only selection DC.
+- Build command: cmake --build
+  validation/evaluation_api_639281145664415302/isolated_build --config Release
+  --target IQM-quality-api-test. Initial sandbox FileTracker E_ACCESSDENIED;
+  approved elevated retry completed before execution. Native command:
+  powershell -NoProfile -ExecutionPolicy Bypass -File
+  validation/validate_full128_stages.ps1 -Root <fresh checkpoint>
+  -CaseName full128_localized. Octave exit warning accompanies successful0.
+- Added tests/HDR128_INTEGRATION_VALIDATION.md and linked it from
+  MASKING_QUALITY_VALIDATION.md. No numerical code changes this session.
+  Existing staged/unstaged artifacts and dirty VkFFT preserved; no commit/push.
+
+Exact next step: broaden128 full-stage input coverage with a fresh independent
+native impulse/near-tie residual case using the pinned128 assets, then verify
+32/64 public regressions before any further scope change. Keep128@60ppd and
+other ages rejected until separately validated. General dimensions, RGB-native,
+full-frame and other-device parity remain unresolved. Historical next-step
+sections below describe older checkpoints and do not supersede this entry.
 
 ## Latest continuation:128 reduction/masking/resize components
 

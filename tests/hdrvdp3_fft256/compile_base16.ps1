@@ -1,8 +1,12 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory,[Parameter(Mandatory=$true)][string]$VulkanBin,[switch]$Reductions)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[Parameter(Mandatory=$true)][string]$VulkanBin,[switch]$Reductions,[switch]$MapABI,[switch]$Include128)
 $ErrorActionPreference='Stop'
+if($Reductions -and $MapABI){throw 'MapABI applies only to the base16 FFT'}
+if($Include128 -and !$Reductions){throw 'Include128 applies only to reductions'}
 $stem=if($Reductions){'reductions'}else{'base16'}
 $generator=if($Reductions){'generate_base_reductions_shader.ps1'}else{'generate_base16_fft_shader.ps1'}
-& "$PSScriptRoot/../$generator" -OutputDirectory $OutputDirectory
+if($Include128){& "$PSScriptRoot/../$generator" -OutputDirectory $OutputDirectory -Include128}
+elseif($MapABI){& "$PSScriptRoot/../$generator" -OutputDirectory $OutputDirectory -MapABI}
+else{& "$PSScriptRoot/../$generator" -OutputDirectory $OutputDirectory}
 $out=(Resolve-Path -LiteralPath $OutputDirectory).Path
 & "$VulkanBin/glslc.exe" "$out/$stem.comp" -o "$out/default_controls.spv" --target-env=vulkan1.2
 if($LASTEXITCODE){throw 'GLSL compilation failed'}

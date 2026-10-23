@@ -596,6 +596,14 @@ struct LocalAdaptFFT::Impl {
     std::string parityMathDirectory;
 
     void initializeParity(const std::string& path) {
+        const bool rectangular=fftWidth!=fftHeight;
+        const unsigned expectedABI=rectangular?64256u:256u;
+        if(fftWidth==256||fftHeight==256){
+            const auto properties=physicalDevice.getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();
+            const auto& controls=properties.get<vk::PhysicalDeviceFloatControlsProperties>();
+            if(!controls.shaderDenormPreserveFloat32||!controls.shaderRoundingModeRTEFloat32)
+                throw std::invalid_argument("FFT256 reference requires Float32 preserve/RTE controls");
+        }
         const unsigned bytes=fftWidth*fftHeight*2*sizeof(float);
         createBuffer(bytes,vk::BufferUsageFlagBits::eStorageBuffer,
             vk::MemoryPropertyFlagBits::eDeviceLocal,parityScratch,parityScratchMemory);
@@ -604,6 +612,18 @@ struct LocalAdaptFFT::Impl {
         if(size<=0 || size%4) throw std::runtime_error("Invalid reference FFT shader: "+path);
         std::vector<uint32_t> code(static_cast<size_t>(size)/4); file.seekg(0);
         if(!file.read(reinterpret_cast<char*>(code.data()),size)) throw std::runtime_error("Truncated reference FFT shader");
+        if(fftWidth==256||fftHeight==256){
+            if(code.size()<5||code[0]!=0x07230203u)throw std::invalid_argument("Invalid FFT256 SPIR-V header");
+            uint32_t contract=0;bool matched=false;
+            for(size_t i=5;i<code.size();){const auto count=code[i]>>16,op=code[i]&65535u;
+                if(!count||i+count>code.size())throw std::invalid_argument("Invalid FFT256 SPIR-V instruction");
+                if(op==71&&count==4&&code[i+2]==1&&code[i+3]==31)contract=code[i+1];i+=count;
+            }
+            for(size_t i=5;i<code.size();i+=code[i]>>16)
+                if((code[i]&65535u)==50&&(code[i]>>16)==4&&code[i+2]==contract&&code[i+3]==expectedABI)matched=true;
+            if(!contract||!matched)throw std::invalid_argument(rectangular?
+                "Rectangular FFT reference requires shader ABI64256":"FFT256 reference requires shader ABI256");
+        }
         auto module=IQM::GPU::VulkanRuntime::createShaderModule(device,code);
         paritySetLayout=IQM::GPU::VulkanRuntime::createDescLayout(device,
             {{vk::DescriptorType::eStorageBuffer,1},{vk::DescriptorType::eStorageBuffer,1}});
@@ -630,7 +650,11 @@ struct LocalAdaptFFT::Impl {
         for(unsigned axis=0;axis<2;++axis) {
             const unsigned set=(inverse?2:0)+axis;
             cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute,*parityLayout,0,{*paritySets[set]},{});
-            const std::array<uint32_t,4> push{fftWidth,(!inverse && axis==1)?fftWidth/2+1:fftWidth,
+            const bool rectangular=fftWidth!=fftHeight;
+            const unsigned length=rectangular?(axis==0?fftHeight:fftWidth):fftWidth;
+            const unsigned batches=rectangular?(axis==0?fftWidth:fftHeight):
+                ((!inverse&&axis==1)?fftWidth/2+1:fftWidth);
+            const std::array<uint32_t,4> push{length,batches,
                 inverse?(axis==0?3u:4u):(axis==0?8u:9u),0};
             cmd.pushConstants(*parityLayout,vk::ShaderStageFlagBits::eCompute,0,16,push.data());
             cmd.dispatch((push[1]+31)/32,1,1);
@@ -1025,6 +1049,13 @@ void recordFinish(const vk::raii::CommandBuffer& commandBuffer, FFTFilterMode mo
         auto kernel = generateGaussianKernel2D(sigma, fftWidth, fftHeight);
         if (mode == FFTFilterMode::OpticalMTF) {
             generate_mtf_filter(kernel.data(), fftWidth, fftHeight, ppd);
+        }
+        if(fftWidth!=fftHeight&&!parityShaderPath.empty()) {
+            // Reference spectra use column-major storage. Rectangular radial
+            // filters must be transposed explicitly before upload.
+            const auto rowMajor=kernel;
+            for(unsigned y=0;y<fftHeight;++y)for(unsigned x=0;x<fftWidth;++x)
+                kernel[x*fftHeight+y]=rowMajor[y*fftWidth+x];
         }
 
         const vk::DeviceSize bytes =
@@ -1951,7 +1982,11 @@ LocalAdaptFFT::~LocalAdaptFFT() = default;
 
 void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
     const bool parity=!input.referenceShaderPath.empty();
-    if(input.width!=input.height || (input.width!=32&&input.width!=64))
+    const bool rectangular=parity&&input.ppd==30.0f&&!input.referenceMathDirectory.empty()&&
+        ((input.width==128&&input.height==64)||(input.width==64&&input.height==128));
+    const bool supported_size=input.width==32||input.width==64||
+        (parity&&input.width==128&&input.ppd==30.0f);
+    if(!rectangular&&(input.width!=input.height || !supported_size))
         throw std::invalid_argument("Unvalidated FFT filter input dimensions");
     if(input.width==32&&!parity)
         throw std::invalid_argument("32x32 FFT filter currently requires the reference backend");

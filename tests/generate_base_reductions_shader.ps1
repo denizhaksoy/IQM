@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[switch]$Include128)
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $OutputDirectory){throw 'Fresh output required'}
 New-Item -ItemType Directory -Path $OutputDirectory|Out-Null
@@ -32,4 +32,8 @@ void main(){
     output_data.words[outbase+n+2u]=floatBitsToUint(nativePower(10.0,logmean));
 }
 '@
+if($Include128){
+    $shader=$shader.Replace('(n!=64u&&n!=256u)','(n!=64u&&n!=128u&&n!=256u)')
+    $shader=$shader.Replace('n==64u?1.0/64.0:1.0/256.0','n==64u?1.0/64.0:(n==128u?1.0/128.0:1.0/256.0)')
+}
 [IO.File]::WriteAllText("$OutputDirectory/reductions.comp",$shader,[Text.UTF8Encoding]::new($false))

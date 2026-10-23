@@ -4,17 +4,28 @@
  */
 
 #include <iostream>
+#include <iomanip>
+#include <limits>
 #include <vector>
 #include <cmath>
 #include <fstream>
+#include <filesystem>
+#include <chrono>
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 #include "hdrvdp3.h"
 #include <IQM/hdrvdp3/csf.h>
+#include <IQM/hdrvdp3/spectral.h>
+#include <IQM/hdrvdp3/luminance.h>
+#include <IQM/hdrvdp3/resize.h>
+#include <IQM/hdrvdp3/quality.h>
+#include <IQM/hdrvdp3/map_gpu.h>
 #include "../../shared/debug_utils.h"
 #include "../../shared/vulkan_res.h"
 #include <IQM/hdrvdp3/spyr.h>
 #include <IQM/hdrvdp3/jnd.h>
+#include <IQM/hdrvdp3/mtf.h>
 
 namespace IQM::Bin {
 
@@ -214,11 +225,14 @@ static std::vector<float> cpu_corrdn_ref(
 }
 
 // Save reference output to file (for generating Octave references)
-static void save_reference(const std::string& filename, const std::vector<float>& data, unsigned rows, unsigned cols) {
+template<class T> static void save_reference(const std::string& filename, const std::vector<T>& data, unsigned rows, unsigned cols) {
     std::ofstream file(filename);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open reference file for writing: " + filename);
     }
+
+    file << std::setprecision(std::numeric_limits<T>::max_digits10);
+
     file << rows << " " << cols << "\n";
     for (unsigned i = 0; i < data.size(); ++i) {
         file << data[i] << "\n";
@@ -273,7 +287,9 @@ HDRVDP3TestResources hdrvdp3_test_init_res(unsigned width, unsigned height, cons
     res.imageOutput->width = width;
     res.imageOutput->height = height;
 
-    constexpr vk::DeviceSize bufferSize = 64 * 64 * sizeof(float);  // Support up to 64x64
+    const vk::DeviceSize bufferSize = vk::DeviceSize(width) * height * sizeof(float);
+    if (!width || !height || bufferSize > std::numeric_limits<unsigned>::max())
+        throw std::invalid_argument("Invalid corrDn staging dimensions");
     auto [stgInBuf, stgInMem] = VulkanResource::createBuffer(
         *instance.device(), *instance.physicalDevice(),
         static_cast<unsigned>(bufferSize),
@@ -518,7 +534,7 @@ static std::vector<float> run_corrdn_gpu(
     int filter_size,
     const std::vector<float>& input_data,
     unsigned width, unsigned height,
-    int step)
+    int step,bool use_non_fma = false)
 {
     const unsigned outWidth = (width + step - 1) / step;
     const unsigned outHeight = (height + step - 1) / step;
@@ -543,6 +559,7 @@ static std::vector<float> run_corrdn_gpu(
         .step_y = step,
         .start_x = 0,
         .start_y = 0,
+        .use_non_fma = use_non_fma,
     };
     
     const vk::CommandBufferBeginInfo beginInfo = {
@@ -574,6 +591,17 @@ static std::vector<float> run_corrdn_gpu(
     instance.waitForFence(computeFence);
     
     auto result = hdrvdp3_test_copy_back(instance, res, outWidth, outHeight);
+    // Native single conv2 uses32-element vector blocks on the longer axis.
+    // Keep arithmetic in distinct shaders; merge only already-rounded values.
+    const unsigned axis_length=std::max(width,height);
+    if(!use_non_fma && axis_length%32!=0) {
+        const auto tail=run_corrdn_gpu(instance,corrdn,filter_coeffs,filter_size,
+            input_data,width,height,step,true);
+        const unsigned vector_end=(axis_length/32)*32;
+        for(unsigned y=0;y<outHeight;++y) for(unsigned x=0;x<outWidth;++x)
+            if((width>height?x:y)*step>=vector_end)
+                result.outputData[y*outWidth+x]=tail[y*outWidth+x];
+    }
     return result.outputData;
 }
 
@@ -679,7 +707,87 @@ static void run_spyr_level1_test(
     std::cout << "==================================================" << std::endl;
 }
 
+static HDRVDP3FFTConfig fft_config_from_environment(unsigned side);
+
+static void run_quality_inputs(const VulkanInstance& instance);
 void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
+    // Explicit luminance files are a quality request; unrelated component
+    // diagnostics remain in the historical synthetic entry point.
+    if(const char* path=std::getenv("IQM_LUMINANCE_REFERENCE");path&&*path){
+        run_quality_inputs(instance);return;
+    }
+    if(const char* path=std::getenv("IQM_LUMINANCE_TEST");path&&*path){
+        run_quality_inputs(instance);return;
+    }
+    if(const char* fixture=std::getenv("IQM_FFT_SIZE_FIXTURE");fixture&&*fixture){
+        const auto directory=std::filesystem::path("validation")/("fft_size_pipeline_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count()));
+        std::filesystem::create_directories(directory);
+        for(const std::string label:{"ref","test"}){
+            std::ifstream input(std::filesystem::path(fixture)/(label+"_luminance.txt"));
+            unsigned h,w;if(!(input>>h>>w)||h!=w||(h!=32&&h!=64))throw std::runtime_error("FFT size probe requires32x32 or64x64 fixture");
+            std::vector<float> values(w*h);for(float& v:values)if(!(input>>v)||!std::isfinite(v))throw std::runtime_error("Invalid FFT size probe input");
+            const auto retinal=compute_fft_filter_gpu(instance,values,30.0f,IQM::HDRVDP3::FFTFilterMode::OpticalMTF,(directory/(label+"_mtf_")).string());
+            save_reference((directory/(label+"_retinal.txt")).string(),retinal,h,w);
+            if(const char* shader=std::getenv("IQM_MAP_SHADER");shader&&*shader){
+                IQM::HDRVDP3::MapGPU maps(instance,shader);
+                const auto adapt_input=maps.adaptation_input(retinal);
+                const auto adaptation=compute_fft_filter_gpu(instance,adapt_input,30.0f,IQM::HDRVDP3::FFTFilterMode::LocalAdaptation,(directory/(label+"_la_")).string());
+                save_reference((directory/(label+"_adapt_input.txt")).string(),adapt_input,h,w);
+                save_reference((directory/(label+"_adaptation.txt")).string(),adaptation,h,w);
+            }
+        }
+        std::ofstream(directory/"source.txt")<<fixture<<'\n';
+        std::cout<<"FFT size pipeline directory: "<<directory.string()<<'\n';
+        return;
+    }
+    // Isolated dimension probe: raw single SPYR input, no MTF/JND/quality.
+    // Keep unsupported full-metric backend guards intact.
+    if (const char* probe = std::getenv("IQM_SPYR_DIMENSION_PROBE"); probe && std::string(probe)=="1") {
+        const auto directory = std::filesystem::path("validation") /
+            ("spyr_dimensions_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()));
+        std::filesystem::create_directories(directory);
+        const char* probe_pattern_env=std::getenv("IQM_SPYR_PROBE_PATTERN");
+        const std::string probe_pattern=probe_pattern_env?probe_pattern_env:"asymmetric";
+        if(probe_pattern!="asymmetric"&&probe_pattern!="impulse"&&probe_pattern!="random")
+            throw std::invalid_argument("Unknown IQM_SPYR_PROBE_PATTERN");
+        std::ofstream(directory/"pattern.txt") << probe_pattern << '\n';
+        const unsigned sizes[][2]={{32,32},{48,48},{64,64},{96,96},{128,128},{49,65},{64,96},{65,49},{96,64}};
+        IQM::HDRVDP3::Spyr::Filters filters{lo0filt_matlab,hi0filt_matlab,lofilt_matlab,bfilt1_matlab,1};
+        IQM::HDRVDP3::Spyr pyramid(*instance.device(),filters);
+        std::ofstream manifest(directory/"cases.txt");
+        for (const auto& size:sizes) {
+            const unsigned h=size[0],w=size[1];
+            const auto name=std::to_string(h)+"x"+std::to_string(w);
+            const auto output=directory/name;
+            std::filesystem::create_directories(output);
+            std::vector<float> input(w*h);
+            uint32_t random_state=0x12345678u;
+            for(unsigned y=0;y<h;++y) for(unsigned x=0;x<w;++x) {
+                input[y*w+x]=100.0f+0.125f*float(int((3*x+7*y+x*y)%101)-50);
+                if(probe_pattern=="impulse") {
+                    input[y*w+x]=100.0f;
+                    if((x==0&&y==7)||(x==w-1&&y==h-2)) input[y*w+x]=125.0f;
+                    if(x==w/3&&y==2*h/3) input[y*w+x]=75.0f;
+                } else if(probe_pattern=="random") {
+                    random_state=1664525u*random_state+1013904223u;
+                    input[y*w+x]=float(1u+(random_state>>12))*(1.0f/1024.0f);
+                }
+            }
+            save_reference((output/"input.txt").string(),input,h,w);
+            // Official min(ceil(log2(ppd))-2,maxPyrHt(...)), ppd=30.
+            const auto result=pyramid.compute(input,w,h,instance,
+                [&](const IQM::VulkanInstance& inst,IQM::HDRVDP3::CorrDn& cdn,
+                    const float* filter,int filter_size,const std::vector<float>& data,
+                    unsigned width,unsigned height,int step,bool non_fma) {
+                    return run_corrdn_gpu(inst,cdn,filter,filter_size,data,width,height,step,non_fma);
+                },(output/"gpu_band").string(),3);
+            std::ofstream info(output/"parameters.txt");
+            info << "30 " << result.pyr_height << ' ' << result.bands.size() << '\n';
+            manifest << name << '\n';
+        }
+        std::cout << "SPYR dimension directory: " << directory.string() << '\n';
+        return;
+    }
     IQM::HDRVDP3::CorrDn corrdn(*instance.device());
     
     const unsigned width = 32;
@@ -778,796 +886,142 @@ void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
     } catch (const std::exception& e) {
         std::cout << "  ERROR in steerable pyramid test: " << e.what() << std::endl;
     }
-// Run full steerable pyramid test using Spyr class (64x64)
+    run_quality_inputs(instance);
+}
+static void run_quality_inputs(const VulkanInstance& instance) {
     std::cout << "\n==================================================" << std::endl;
     std::cout << "HDR-VDP-3 Full Steerable Pyramid Validation (64x64)" << std::endl;
     std::cout << "==================================================" << std::endl;
     
     try {
-        // Generate 64x64 test input
-        const unsigned width64 = 64;
-        const unsigned height64 = 64;
-        auto input_data_64 = generate_test_input(width64, height64);
-
-        // Synthetic reference/test pair for HDR-VDP-3 integration.
-        const auto reference_image = input_data_64;
-
-        auto test_image = reference_image;
-
-        // Apply a controlled 5% luminance increase.
-        for (auto& pixel : test_image) {
-            pixel *= 1.05f;
-        }
-
-        std::cout << "Reference first pixel: "
-                << reference_image.front() << std::endl;
-
-        std::cout << "Test first pixel: "
-                << test_image.front() << std::endl;
-
-        // Compute local adaptation from the same luminance image
-        // used by the JND -> SPYR pipeline.
-        auto reference_adaptation = compute_local_adaptation_gpu(
-            instance,
-            reference_image,
-            30.0f
-        );
-
-        auto test_adaptation = compute_local_adaptation_gpu(
-            instance,
-            test_image,
-            30.0f
-        );
-
-        std::vector<float> adaptation_map(reference_adaptation.size());
-
-        if (reference_adaptation.size() != test_adaptation.size()) {
-            throw std::runtime_error("Adaptation map dimensions mismatch");
-        }
-
-        for (std::size_t i = 0; i < adaptation_map.size(); ++i) {
-            adaptation_map[i] = 0.5f * (
-                reference_adaptation[i] + test_adaptation[i]
-            );
-        }
-
-        std::cout << "\n--- HDR-VDP-3 Integration ---" << std::endl;
-        std::cout << "Local adaptation pixels: "
-                << adaptation_map.size() << std::endl;
-
-        std::cout << "First input luminance: "
-                << input_data_64.front() << " cd/m^2" << std::endl;
-
-        std::cout << "First adapted luminance: "
-                << adaptation_map.front() << " cd/m^2" << std::endl;
-        
-        // CSF integration: first steerable pyramid band
-        const double ppd = 30.0;
-        const double band_frequency =
-            IQM::HDRVDP3::compute_band_frequency(1, ppd);
-
-        const auto csf_lut =
-            IQM::HDRVDP3::create_csf_lut(band_frequency);
-
-        const double first_csf =
-            IQM::HDRVDP3::sample_csf_lut(
-                csf_lut,
-                static_cast<double>(adaptation_map.front())
-            );
-
-        std::cout << "Band 1 frequency: "
-                << band_frequency << " cycles/degree" << std::endl;
-
-        std::cout << "First pixel CSF sensitivity: "
-                << first_csf << std::endl;
-        
-        // Convert the luminance image into photoreceptor JND responses.
-// The input must represent absolute luminance in cd/m^2.
-const auto jnd_lut = IQM::HDRVDP3::create_jnd_lut();
-
-std::vector<float> jnd_image(input_data_64.size());
-
-for (std::size_t i = 0; i < input_data_64.size(); ++i) {
-    jnd_image[i] = static_cast<float>(
-        IQM::HDRVDP3::luminance_to_jnd_response(
-            jnd_lut,
-            static_cast<double>(input_data_64[i])
-        )
-    );
-}
-
-std::cout << "JND transformed first pixel: "
-          << jnd_image.front() << std::endl;
-          save_reference("C:/temp/jnd_image_64.txt", jnd_image, height64, width64);
-
-        // Create Spyr instance with sp0Filters
-        IQM::HDRVDP3::Spyr::Filters filters = {
-            .lo0filt = lo0filt_matlab,
-            .hi0filt = hi0filt_matlab,
-            .lofilt = lofilt_matlab,
-            .bfilts = bfilt1_matlab,  // Only first orientation (81 values)
-            .num_orientations = 1
-        };
-        
-        Spyr spyr(*instance.device(), filters);
-        
-        // Compute pyramid using Spyr class with run_corrdn_gpu as the callback
-        std::cout << "\n--- Computing full steerable pyramid (64x64) ---" << std::endl;
-        auto result = spyr.compute(jnd_image, width64, height64, instance,
-                                   [&](const IQM::VulkanInstance& inst, IQM::HDRVDP3::CorrDn& cdn,
-                                       const float* filter_coeffs, int filter_size,
-                                       const std::vector<float>& input_data,
-                                       unsigned w, unsigned h, int step) {
-            return run_corrdn_gpu(inst, cdn, filter_coeffs, filter_size, input_data, w, h, step);
-        });
-
-                // Convert test image to JND responses.
-        std::vector<float> test_jnd_image(test_image.size());
-
-        for (std::size_t i = 0; i < test_image.size(); ++i) {
-            test_jnd_image[i] = static_cast<float>(
-                IQM::HDRVDP3::luminance_to_jnd_response(
-                    jnd_lut,
-                    static_cast<double>(test_image[i])
-                )
-            );
-        }
-
-        // Compute SPYR for the test image.
-        auto test_result = spyr.compute(
-            test_jnd_image,
-            width64,
-            height64,
-            instance,
-            [&](const IQM::VulkanInstance& inst,
-                IQM::HDRVDP3::CorrDn& cdn,
-                const float* filter_coeffs,
-                int filter_size,
-                const std::vector<float>& input_data,
-                unsigned w,
-                unsigned h,
-                int step) {
-                return run_corrdn_gpu(
-                    inst, cdn, filter_coeffs, filter_size,
-                    input_data, w, h, step
-                );
+            // Generate 64x64 spatially varying luminance images
+            const char* size_env=std::getenv("IQM_SPYR_SIZE");
+            const std::string size_text=size_env?size_env:"64";
+            unsigned width64 = size_text=="32"?32:64;
+            unsigned height64 = width64;
+            const char* reference_path=std::getenv("IQM_LUMINANCE_REFERENCE");
+            const char* test_path=std::getenv("IQM_LUMINANCE_TEST");
+            const bool file_input=reference_path&&*reference_path;
+            if(file_input!=bool(test_path&&*test_path))throw std::invalid_argument("Both luminance PFM paths are required");
+            IQM::HDRVDP3::LuminanceImage reference_file,test_file;
+            if(file_input) {
+                reference_file=IQM::HDRVDP3::load_luminance_pfm(reference_path);
+                test_file=IQM::HDRVDP3::load_luminance_pfm(test_path);
+                width64=reference_file.width;height64=reference_file.height;
+                const bool square=width64==height64&&(width64==32||width64==64||width64==128);
+                const bool rectangle=(width64==128&&height64==64)||(width64==64&&height64==128);
+                if((!square&&!rectangle)||test_file.width!=width64||test_file.height!=height64)
+                    throw std::invalid_argument("PFM pair requires matching32/64/128square or64x128/128x64 dimensions;no automatic resizing");
             }
-        );
+            else if(size_text!="32"&&size_text!="64")throw std::invalid_argument("Unvalidated IQM_SPYR_SIZE");
 
-        // Remove the DC component from the residual lowpass bands.
-        // Matches hdrvdp_visual_pathway.m in HDR-VDP-3.
-        auto remove_residual_dc = [](auto& pyramid) {
-            auto& residual = pyramid.bands.back().data;
-
-            if (residual.empty()) {
-                return;
+            // Reference: spatially varying luminance (9.5 to 10.5 cd/m^2)
+            std::vector<float> input_data_64=file_input?reference_file.pixels:std::vector<float>(width64*height64);
+            const char* pattern_env = std::getenv("IQM_SPYR_PATTERN");
+            const std::string pattern = file_input?"file":(pattern_env ? pattern_env : "diagonal");
+            if (!file_input && pattern != "diagonal" && pattern != "asymmetric" && pattern != "impulse" && pattern != "hdr_ramp" && pattern != "hdr_edges" && pattern != "sinusoidal_x" && pattern != "sinusoidal_y") {
+                throw std::invalid_argument("Unknown IQM_SPYR_PATTERN: " + pattern);
             }
+            std::cout << "SPYR input pattern: " << pattern << '\n';
 
-            double sum = 0.0;
-            for (float value : residual) {
-                sum += static_cast<double>(value);
-            }
-
-            const float mean = static_cast<float>(
-                sum / static_cast<double>(residual.size())
-            );
-
-            for (float& value : residual) {
-                value -= mean;
-            }
-        };
-
-
-        // Compare reference and test SPYR bands.
-        std::cout << "\n--- Reference vs Test SPYR ---" << std::endl;
-
-        for (std::size_t b = 0; b < result.bands.size(); ++b) {
-            const auto& ref_band = result.bands[b];
-            const auto& tst_band = test_result.bands[b];
-
-            if (ref_band.width != tst_band.width ||
-                ref_band.height != tst_band.height ||
-                ref_band.data.size() != tst_band.data.size()) {
-                throw std::runtime_error("SPYR band dimensions mismatch");
-            }
-
-            double sum_abs_diff = 0.0;
-            double max_abs_diff = 0.0;
-
-            for (std::size_t i = 0; i < ref_band.data.size(); ++i) {
-            const double normalization = std::ldexp(1.0, static_cast<int>(b));
-
-            const double diff = std::abs(
-                static_cast<double>(tst_band.data[i]) -
-                static_cast<double>(ref_band.data[i])
-            ) / normalization;
-
-                sum_abs_diff += diff;
-                max_abs_diff = std::max(max_abs_diff, diff);
-            }
-
-            const double mean_abs_diff =
-                sum_abs_diff / ref_band.data.size();
-
-            std::cout << "Band " << b
-                    << ": MeanAbsDiff=" << mean_abs_diff
-                    << ", MaxAbsDiff=" << max_abs_diff
-                    << std::endl;
-        }
-
-        // Preserve the raw residual lowpass for Octave pyramid validation.
-        const std::vector<float> raw_residual_band = result.bands.back().data;
-
-        remove_residual_dc(result);
-        remove_residual_dc(test_result);
-
-        // Build CSF sensitivity maps for each SPYR band.
-        // Integration test: one luminance image, not yet a reference/test pair.
-        std::vector<std::vector<float>> csf_maps;
-        csf_maps.reserve(result.bands.size());
-
-        for (std::size_t b = 0; b < result.bands.size(); ++b) {
-            const auto& band = result.bands[b];
-
-            // Use the raw residual band for Octave validation.
-            const std::vector<float>& band_data =
-                (b == result.bands.size() - 1)
-                    ? raw_residual_band
-                    : band.data;
-
-            const double frequency =
-                IQM::HDRVDP3::compute_band_frequency(
-                    static_cast<int>(b) + 1, 30.0
-                );
-
-            const auto lut = IQM::HDRVDP3::create_csf_lut(frequency);
-
-            std::vector<float> csf_map(band.width * band.height);
-
-            for (unsigned y = 0; y < band.height; ++y) {
-                for (unsigned x = 0; x < band.width; ++x) {
-
-                   // Resize log10(local adaptation luminance) using bilinear interpolation.
-                    // TODO: Match Octave imresize antialiasing for downsampling.
-
-                    const double source_x =
-                        (static_cast<double>(x) + 0.5) * width64 / band.width - 0.5;
-
-                    const double source_y =
-                        (static_cast<double>(y) + 0.5) * height64 / band.height - 0.5;
-
-                    const double clamped_x =
-                        std::clamp(source_x, 0.0, static_cast<double>(width64 - 1));
-
-                    const double clamped_y =
-                        std::clamp(source_y, 0.0, static_cast<double>(height64 - 1));
-
-                    const unsigned x0 = static_cast<unsigned>(std::floor(clamped_x));
-                    const unsigned y0 = static_cast<unsigned>(std::floor(clamped_y));
-
-                    const unsigned x1 = std::min(x0 + 1, width64 - 1);
-                    const unsigned y1 = std::min(y0 + 1, height64 - 1);
-
-                    const double wx = clamped_x - x0;
-                    const double wy = clamped_y - y0;
-
-                    auto log_luminance = [&](unsigned px, unsigned py) {
-                        const double L = adaptation_map[py * width64 + px];
-
-                        return std::log10(std::clamp(L, 1e-5, 1e5));
-                    };
-
-                    const double l00 = log_luminance(x0, y0);
-                    const double l10 = log_luminance(x1, y0);
-                    const double l01 = log_luminance(x0, y1);
-                    const double l11 = log_luminance(x1, y1);
-
-                    const double log_L =
-                        (1.0 - wy) * ((1.0 - wx) * l00 + wx * l10) +
-                        wy * ((1.0 - wx) * l01 + wx * l11);
-
-                    const double luminance = std::pow(10.0, log_L);
-
-                    csf_map[y * band.width + x] =
-                        static_cast<float>(
-                            IQM::HDRVDP3::sample_csf_lut(lut, luminance)
+            if(!file_input) for (unsigned y = 0; y < height64; ++y) {
+                for (unsigned x = 0; x < width64; ++x) {
+                    input_data_64[y * width64 + x] =
+                        10.0f + 0.1f * static_cast<float>(
+                            static_cast<int>((x + y) % 11) - 5
                         );
+                    if (pattern == "asymmetric") {
+                        input_data_64[y * width64 + x] = 10.0f + 0.01f *
+                            static_cast<float>(static_cast<int>(
+                                (3 * x + 7 * y + x * y) % 101) - 50);
+                    } else if (pattern == "sinusoidal_x" || pattern == "sinusoidal_y") {
+                        const double primary=pattern=="sinusoidal_x"?x:y;
+                        const double secondary=pattern=="sinusoidal_x"?y:x;
+                        input_data_64[y*width64+x]=static_cast<float>(10.0+std::sin(2*std::acos(-1.0)*primary/32.0)+0.25*std::cos(2*std::acos(-1.0)*secondary/16.0));
+                    } else if (pattern == "hdr_ramp") {
+                        const float t=static_cast<float>(3*x+2*y)/static_cast<float>(3*(width64-1)+2*(height64-1));
+                        input_data_64[y*width64+x]=std::pow(10.0f,-3.0f+7.0f*t);
+                    } else if (pattern == "hdr_edges") {
+                        const float levels[]={0.001f,0.01f,0.1f,1.0f,10.0f,100.0f,1000.0f,10000.0f};
+                        input_data_64[y*width64+x]=levels[((x/(width64/8))+(y/(height64/4)))%8];
+                    } else if (pattern == "impulse") {
+                        // Edge impulses exercise reflect1; the off-center impulse
+                        // also exposes an accidental transpose or sampling shift.
+                        input_data_64[y * width64 + x] = 10.0f;
+                        if (x == 0 && y == 7) input_data_64[y * width64 + x] = 10.5f;
+                        if (x == (19*width64)/64 && y == (43*height64)/64) input_data_64[y * width64 + x] = 9.5f;
+                        if (x == width64-1 && y == height64-3) input_data_64[y * width64 + x] = 10.25f;
+                    }
                 }
             }
 
-            std::cout << "CSF Band " << b
-                    << ": " << band.width << "x" << band.height
-                    << ", frequency=" << frequency
-                    << " cpd, first sensitivity=" << csf_map.front()
-                    << std::endl;
+            const auto reference_image = input_data_64;
 
-            csf_maps.push_back(std::move(csf_map));
-        }
-
-        std::cout << "\n--- CSF-Weighted Band Differences ---" << std::endl;
-
-for (std::size_t b = 0; b < result.bands.size(); ++b) {
-    const auto& ref_band = result.bands[b];
-    const auto& tst_band = test_result.bands[b];
-    const auto& csf = csf_maps[b];
-
-    if (ref_band.data.size() != tst_band.data.size() ||
-        ref_band.data.size() != csf.size()) {
-        throw std::runtime_error("CSF-weighted band size mismatch");
-    }
-
-    const double normalization =
-        std::ldexp(1.0, static_cast<int>(b));
-
-    double sum_weighted_diff = 0.0;
-    double max_weighted_diff = 0.0;
-
-    for (std::size_t i = 0; i < ref_band.data.size(); ++i) {
-        const double normalized_diff =
-            std::abs(
-                static_cast<double>(tst_band.data[i]) -
-                static_cast<double>(ref_band.data[i])
-            ) / normalization;
-
-        const double weighted_diff =
-            normalized_diff * static_cast<double>(csf[i]);
-
-        sum_weighted_diff += weighted_diff;
-        max_weighted_diff = std::max(max_weighted_diff, weighted_diff);
-    }
-
-    const double mean_weighted_diff =
-        sum_weighted_diff / ref_band.data.size();
-
-    std::cout << "Band " << b
-              << ": MeanWeightedDiff=" << mean_weighted_diff
-              << ", MaxWeightedDiff=" << max_weighted_diff
-              << std::endl;
-}
-        
-        std::cout << "\n--- Raw Mutual Masking Activity ---" << std::endl;
-
-std::vector<std::vector<float>> mutual_masking_maps;
-mutual_masking_maps.reserve(result.bands.size());
-
-for (std::size_t b = 0; b < result.bands.size(); ++b) {
-    const auto& ref_band = result.bands[b];
-    const auto& tst_band = test_result.bands[b];
-
-    if (ref_band.data.size() != tst_band.data.size()) {
-        throw std::runtime_error("Mutual masking band size mismatch");
-    }
-
-    const double normalization =
-        std::ldexp(1.0, static_cast<int>(b));
-    
-    double ref_sum_abs = 0.0;
-    double ref_max_abs = 0.0;
-
-    for (float value : ref_band.data) {
-        const double normalized =
-            std::abs(static_cast<double>(value)) / normalization;
-
-        ref_sum_abs += normalized;
-        ref_max_abs = std::max(ref_max_abs, normalized);
-    }
-
-    std::cout << "DEBUG Pyramid Band " << b
-            << ": RefMeanAbs=" << ref_sum_abs / ref_band.data.size()
-            << " RefMaxAbs=" << ref_max_abs
-            << std::endl;
-
-    std::vector<float> mask(ref_band.data.size());
-
-    double sum_mask = 0.0;
-    double max_mask = 0.0;
-
-    for (std::size_t i = 0; i < mask.size(); ++i) {
-        const double ref_value =
-            std::abs(static_cast<double>(ref_band.data[i])) /
-            normalization;
-
-        const double test_value =
-            std::abs(static_cast<double>(tst_band.data[i])) /
-            normalization;
-
-        const double activity = std::min(ref_value, test_value);
-
-        mask[i] = static_cast<float>(activity);
-
-        sum_mask += activity;
-        max_mask = std::max(max_mask, activity);
-    }
-
-    std::cout << "Band " << b
-              << ": MeanMask=" << sum_mask / mask.size()
-              << ", MaxMask=" << max_mask
-              << std::endl;
-
-    // Default HDR-VDP-3 mutual masking pooling:
-// do_si_gauss = false
-// do_pu_dilate = false
-// masking_norm = 0 -> p = 1
-// masking_pool_size = 3
-//
-// Octave conv2(..., 'same') uses zero padding.
-
-std::vector<float> pooled_mask(mask.size(), 0.0f);
-
-for (unsigned y = 0; y < ref_band.height; ++y) {
-    for (unsigned x = 0; x < ref_band.width; ++x) {
-
-        double sum = 0.0;
-
-        for (int dy = -1; dy <= 1; ++dy) {
-            for (int dx = -1; dx <= 1; ++dx) {
-
-                const int nx = static_cast<int>(x) + dx;
-                const int ny = static_cast<int>(y) + dy;
-
-                if (nx >= 0 &&
-                    ny >= 0 &&
-                    nx < static_cast<int>(ref_band.width) &&
-                    ny < static_cast<int>(ref_band.height)) {
-
-                    sum += mask[
-                        static_cast<std::size_t>(ny) * ref_band.width +
-                        static_cast<std::size_t>(nx)
-                    ];
-                }
+            // Validation cases keep the original 5% brighter default.
+            auto test_image = file_input?test_file.pixels:reference_image;
+            const char* transform_env=std::getenv("IQM_SPYR_TEST_TRANSFORM");
+            const std::string transform=file_input?"file":(transform_env?transform_env:"brighter");
+            if(!file_input&&transform!="brighter"&&transform!="identical"&&transform!="localized"&&transform!="stronger"&&transform!="localized_stronger"&&transform!="phase_shift"&&transform!="threshold_below"&&transform!="threshold_nominal"&&transform!="threshold_above")
+                throw std::invalid_argument("Unknown IQM_SPYR_TEST_TRANSFORM");
+            float threshold_gain=1.001f;
+            if(transform=="threshold_below") threshold_gain=std::nextafter(1.001f,0.0f);
+            if(transform=="threshold_above") threshold_gain=std::nextafter(1.001f,2.0f);
+            if(!file_input) for(unsigned y=0;y<height64;++y) for(unsigned x=0;x<width64;++x) {
+                if(transform=="brighter") test_image[y*width64+x]*=1.05f;
+                else if(transform=="stronger") test_image[y*width64+x]*=1.5f;
+                else if((transform=="localized"||transform=="localized_stronger") && x>=width64/2&&x<width64/2+8&&y>=13&&y<21) test_image[y*width64+x]*=(transform=="localized"?1.05f:2.0f);
+                else if(transform=="phase_shift") test_image[y*width64+x]=reference_image[((y+8)%height64)*width64+(x+8)%width64];
+                else if(transform.rfind("threshold_",0)==0) test_image[y*width64+x]*=threshold_gain;
             }
-        }
 
-        pooled_mask[y * ref_band.width + x] =
-            static_cast<float>(sum / 9.0);
-    }
-}
-
-        double pooled_sum = 0.0;
-        double pooled_max = 0.0;
-
-        for (float value : pooled_mask) {
-            pooled_sum += value;
-            pooled_max = std::max(pooled_max, static_cast<double>(value));
-        }
-
-        std::cout << "Band " << b
-                << ": MeanPooledMask=" << pooled_sum / pooled_mask.size()
-                << ", MaxPooledMask=" << pooled_max
-                << std::endl;
-
-        mutual_masking_maps.push_back(std::move(pooled_mask));
-}
-
-        std::cout << "\n--- HDR-VDP-3 Masking Denominator ---" << std::endl;
-
-const double masking_q = std::pow(10.0, 0.108934275615);
-const double k_mask_self = std::pow(10.0, 1.41846291721);
-const double k_mask_xn = std::pow(10.0, 0.136877512403);
-
-std::vector<std::vector<float>> n_mask_maps;
-n_mask_maps.reserve(mutual_masking_maps.size());
-
-// Resize one masking map to the dimensions of another band.
-// Bilinear approximation; Octave imresize antialiasing is not yet matched.
-auto resize_mask = [&](std::size_t source_band,
-                       unsigned target_width,
-                       unsigned target_height) {
-
-    const auto& src = mutual_masking_maps[source_band];
-
-    const unsigned src_width = result.bands[source_band].width;
-    const unsigned src_height = result.bands[source_band].height;
-
-    std::vector<float> resized(target_width * target_height);
-
-    for (unsigned y = 0; y < target_height; ++y) {
-        for (unsigned x = 0; x < target_width; ++x) {
-
-            const double sx = std::clamp(
-                (static_cast<double>(x) + 0.5) * src_width /
-                    target_width - 0.5,
-                0.0,
-                static_cast<double>(src_width - 1)
-            );
-
-            const double sy = std::clamp(
-                (static_cast<double>(y) + 0.5) * src_height /
-                    target_height - 0.5,
-                0.0,
-                static_cast<double>(src_height - 1)
-            );
-
-            const unsigned x0 = static_cast<unsigned>(std::floor(sx));
-            const unsigned y0 = static_cast<unsigned>(std::floor(sy));
-            const unsigned x1 = std::min(x0 + 1, src_width - 1);
-            const unsigned y1 = std::min(y0 + 1, src_height - 1);
-
-            const double wx = sx - x0;
-            const double wy = sy - y0;
-
-            const double v00 = src[y0 * src_width + x0];
-            const double v10 = src[y0 * src_width + x1];
-            const double v01 = src[y1 * src_width + x0];
-            const double v11 = src[y1 * src_width + x1];
-
-            const double value =
-                (1.0 - wy) * ((1.0 - wx) * v00 + wx * v10) +
-                wy * ((1.0 - wx) * v01 + wx * v11);
-
-            resized[y * target_width + x] =
-                static_cast<float>(std::max(value, 0.0));
-        }
-    }
-
-    return resized;
-};
-
-const std::size_t band_count = mutual_masking_maps.size();
-
-for (std::size_t b = 0; b < band_count; ++b) {
-
-    const unsigned width = result.bands[b].width;
-    const unsigned height = result.bands[b].height;
-
-    const auto& self_mask = mutual_masking_maps[b];
-
-    std::vector<float> neighbor_mask(width * height, 0.0f);
-
-    // Previous frequency band.
-    if (b > 0) {
-        const auto previous = resize_mask(b - 1, width, height);
-
-        for (std::size_t i = 0; i < neighbor_mask.size(); ++i) {
-            neighbor_mask[i] += previous[i];
-        }
-    }
-
-    // Next frequency band, excluding the final lowpass band.
-    if (b + 2 < band_count) {
-        const auto next = resize_mask(b + 1, width, height);
-
-        for (std::size_t i = 0; i < neighbor_mask.size(); ++i) {
-            neighbor_mask[i] += next[i];
-        }
-    }
-
-    std::vector<float> n_mask(width * height);
-
-    double sum_n_mask = 0.0;
-    double max_n_mask = 0.0;
-
-    for (std::size_t i = 0; i < n_mask.size(); ++i) {
-
-        const double self_term =
-            k_mask_self *
-            std::pow(std::abs(static_cast<double>(self_mask[i])),
-                     masking_q);
-
-        const double neighbor_term =
-            k_mask_xn *
-            std::pow(std::abs(static_cast<double>(neighbor_mask[i])),
-                     masking_q);
-
-        const double value = self_term + neighbor_term;
-
-        n_mask[i] = static_cast<float>(value);
-
-        sum_n_mask += value;
-        max_n_mask = std::max(max_n_mask, value);
-    }
-
-    std::cout << "Band " << b
-              << ": MeanNMask=" << sum_n_mask / n_mask.size()
-              << ", MaxNMask=" << max_n_mask
-              << std::endl;
-
-    n_mask_maps.push_back(std::move(n_mask));
-}
-
-        std::cout << "\n--- HDR-VDP-3 Masked Difference Bands ---" << std::endl;
-
-const double masking_p = std::pow(10.0, 0.3424);
-const double psych_slope = std::pow(10.0, 0.34);
-const double pf = psych_slope / masking_p;
-
-std::vector<std::vector<float>> d_band_maps;
-d_band_maps.reserve(result.bands.size());
-
-for (std::size_t b = 0; b < result.bands.size(); ++b) {
-    const auto& ref = result.bands[b].data;
-    const auto& tst = test_result.bands[b].data;
-    const auto& csf = csf_maps[b];
-    const auto& nmask = n_mask_maps[b];
-
-    if (ref.size() != tst.size() ||
-        ref.size() != csf.size() ||
-        ref.size() != nmask.size()) {
-        throw std::runtime_error("D-band size mismatch");
-    }
-
-    const double normalization = std::ldexp(1.0, static_cast<int>(b));
-
-    std::vector<float> d_map(ref.size());
-
-    double sum_abs_d = 0.0;
-    double max_abs_d = 0.0;
-
-    for (std::size_t i = 0; i < ref.size(); ++i) {
-        const double band_diff =
-            (static_cast<double>(tst[i]) -
-             static_cast<double>(ref[i])) / normalization;
-
-        const double ex_diff =
-            std::copysign(std::pow(std::abs(band_diff), masking_p),
-                          band_diff);
-
-        const double sensitivity = std::max(
-            static_cast<double>(csf[i]), 1e-12
-        );
-
-        // Temporary validation against HDR-VDP-3 v3.0.7 reference.
-        // Base band uses a scalar CSF computed at its dominant FFT frequency.
-        const bool is_base_band = (b == result.bands.size() - 1);
-
-        const double n_ncsf = is_base_band
-            ? 1.522517668677
-            : 1.0 / sensitivity;
-
-        if (is_base_band && i == 0) {
-            std::cout << "DEBUG BaseBand:"
-                    << " OldN_nCSF=" << 1.0 / sensitivity
-                    << " NewN_nCSF=" << n_ncsf
-                    << " NMask=" << nmask[i]
-                    << " CSFTerm=" << std::pow(n_ncsf, 2.0 * masking_p)
-                    << " MaskTerm=" << std::pow(static_cast<double>(nmask[i]), 2.0)
-                    << std::endl;
-        }
-
-        const double denominator = std::sqrt(
-            std::pow(n_ncsf, 2.0 * masking_p) +
-            std::pow(static_cast<double>(nmask[i]), 2.0)
-        );
-
-        const double D = ex_diff / denominator;
-
-        const double final_d =
-            std::copysign(std::pow(std::abs(D), pf), D);
-
-        d_map[i] = static_cast<float>(final_d);
-
-        sum_abs_d += std::abs(final_d);
-        max_abs_d = std::max(max_abs_d, std::abs(final_d));
-    }
-
-    std::cout << "Band " << b
-              << ": MeanAbsD=" << sum_abs_d / d_map.size()
-              << ", MaxAbsD=" << max_abs_d
-              << std::endl;
-
-    d_band_maps.push_back(std::move(d_map));
-}
-
-        std::cout << "\n--- HDR-VDP-3 Preliminary Quality Score ---"
-          << std::endl;
-
-const double minkowski_p = 0.8;
-
-double q_err = 0.0;
-
-for (std::size_t b = 0; b < d_band_maps.size(); ++b) {
-
-    const auto& d_map = d_band_maps[b];
-
-    if (d_map.empty()) {
-        throw std::runtime_error("Empty D-band");
-    }
-
-    double sum = 0.0;
-
-    for (float value : d_map) {
-        sum += std::pow(
-            std::abs(static_cast<double>(value)),
-            minkowski_p
-        );
-    }
-
-    const double band_error = std::pow(
-        sum / static_cast<double>(d_map.size()),
-        1.0 / minkowski_p
-    );
-
-    q_err += band_error /
-             static_cast<double>(d_band_maps.size());
-
-    std::cout << "Band " << b
-              << ": QualityError=" << band_error
-              << std::endl;
-}
-
-        const double quality_floor = -4.0;
-        const double max_q = 10.0;
-
-        const double Q =
-            max_q + quality_floor -
-            std::log(std::exp(quality_floor) + q_err);
-
-        const double Q_JOD =
-            10.0 -
-            0.5200 * std::pow(std::max(10.0 - Q, 0.0), 1.2812);
-
-        std::cout << "Q_err=" << q_err << std::endl;
-        std::cout << "Q=" << Q << std::endl;
-        std::cout << "Q_JOD=" << Q_JOD << std::endl;
-
-        // Load Octave references for each band
-        std::cout << "\n--- Comparing against Octave references ---" << std::endl;
-        
-        // Helper to load Octave reference (transposed)
-        auto load_octave_ref = [&](const std::string& filename, unsigned& out_w, unsigned& out_h) {
-            int ref_rows, ref_cols;
-            auto data = load_reference(filename, ref_rows, ref_cols);
-            std::vector<float> transposed(ref_cols * ref_rows);
-            for (int r = 0; r < ref_rows; ++r) {
-                for (int c = 0; c < ref_cols; ++c) {
-                    transposed[c * ref_rows + r] = data[r * ref_cols + c];
-                }
-            }
-            out_w = ref_rows;
-            out_h = ref_cols;
-            return transposed;
+        // All environment parsing and synthetic/file preparation stay in the
+        // harness. The library call receives explicit inputs and configuration.
+        auto setting=[](const char* name,const char* fallback="") {
+            const char* value=std::getenv(name);return std::string(value?value:fallback);
         };
-        
-        // Compare each band
-        for (size_t b = 0; b < result.bands.size() && b < result.pind.size(); ++b) {
-            unsigned ref_w, ref_h;
-            std::string ref_file = "C:/temp/oct_jnd_spyr64_band" + std::to_string(b) + ".txt";
-            auto octave_ref = load_octave_ref(ref_file, ref_w, ref_h);
-            
-            auto& band = result.bands[b];
-
-            const std::vector<float>& band_data =
-            (b == result.bands.size() - 1)
-                ? raw_residual_band
-                : band.data;
-
-            if (band.width != (unsigned)ref_w || band.height != (unsigned)ref_h) {
-                std::cout << "  Band " << b << ": Size mismatch! GPU: " << band.width << "x" << band.height
-                          << " Octave: " << ref_w << "x" << ref_h << std::endl;
-            }
-            
-            int compare_count = std::min(
-                static_cast<int>(band_data.size()),
-                static_cast<int>(octave_ref.size())
-            );
-
-            float max_abs_error = 0.0f;
-            float rmse_sum = 0.0f;
-
-            for (int i = 0; i < compare_count; ++i) {
-                float diff = band_data[i] - octave_ref[i];
-
-                max_abs_error = std::max(max_abs_error, std::abs(diff));
-                rmse_sum += diff * diff;
-            }
-
-            float rmse = std::sqrt(rmse_sum / compare_count);
-            
-            std::cout << "  Band " << b << " (" << band.width << "x" << band.height << ")"
-                      << "  MaxAbsErr=" << max_abs_error << "  RMSE=" << rmse << std::endl;
-            
-            // Print corners
-            if (band.width > 0 && band.height > 0 && compare_count > 0) {
-                std::cout << "    Corners: TL GPU=" << band.data[0] << " Oct=" << octave_ref[0]
-                          << " TR GPU=" << band.data[band.width-1] << " Oct=" << octave_ref[band.width-1]
-                          << " BL GPU=" << band.data[(band.height-1)*band.width] << " Oct=" << octave_ref[(band.height-1)*band.width]
-                          << " BR GPU=" << band.data[(band.height-1)*band.width + band.width-1] 
-                          << " Oct=" << octave_ref[(band.height-1)*band.width + band.width-1] << std::endl;
+        const auto runtime=setting("IQM_QUALITY_RUNTIME");
+        if(runtime.empty()&&(setting("IQM_PREPROCESSING","none")!="fft" || setting("IQM_MAP_BACKEND","cpu")!="vulkan" || setting("IQM_FFT_BACKEND","vkfft")!="reference"))
+            throw std::invalid_argument("Quality API harness requires reference FFT preprocessing and Vulkan maps");
+        IQM::HDRVDP3::EvaluationOptions options;
+        const auto ppd=setting("IQM_PIX_PER_DEGREE","30"),age=setting("IQM_OBSERVER_AGE","24");
+        if(ppd!="30"&&ppd!="60")throw std::invalid_argument("Unvalidated IQM_PIX_PER_DEGREE");
+        if(age!="24"&&age!="60"&&age!="60.001")throw std::invalid_argument("Unvalidated observer age");
+        options.pixelsPerDegree=std::stod(ppd);options.observerAge=std::stod(age);
+        if(runtime.empty()) {
+            options.fft=fft_config_from_environment(width64);
+            options.mapShader=setting("IQM_MAP_SHADER");
+            options.baseFFTShader=setting("IQM_BASE_FFT_SHADER");
+        } else {
+            const std::filesystem::path assets(runtime);
+            options.fft.columnFirst=true;
+            options.fft.referenceShaderPath=(assets/(width64==height64&&width64!=128?"fft"+std::to_string(width64)+".spv":"fft.spv")).string();
+            options.fft.referenceMathDirectory=(assets/"math").string();
+            options.mapShader=assets/"map.spv";options.baseFFTShader=assets/"base.spv";
+        }
+        options.spectralDataDirectory=setting("IQM_SPECTRAL_DATA");
+        const auto sampled_path=setting("IQM_SPECTRAL_SAMPLES");
+        if(!sampled_path.empty()) {
+            if(!options.spectralDataDirectory.empty())throw std::invalid_argument("Choose raw or resampled spectral inputs");
+            std::ifstream input(sampled_path);size_t count;
+            if(!(input>>count)||count!=420)throw std::invalid_argument("Expected pinned420-point native spectral fixture");
+            auto& samples=options.spectralSamples.emplace();
+            samples.wavelength.resize(count);samples.emission.resize(count);samples.sensitivity.resize(count);
+            for(size_t i=0;i<count;++i){
+                if(!(input>>samples.wavelength[i]>>samples.emission[i]))throw std::invalid_argument("Truncated spectra");
+                for(double& value:samples.sensitivity[i])if(!(input>>value))throw std::invalid_argument("Truncated sensitivity");
             }
         }
-        
+        const auto export_dir=std::filesystem::path("validation")/(
+            "spyr_spatial_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count()));
+        const auto evaluated=IQM::HDRVDP3::evaluate_quality(instance,
+            IQM::HDRVDP3::LuminanceImage{width64,height64,reference_image},
+            IQM::HDRVDP3::LuminanceImage{width64,height64,test_image},options,
+            IQM::HDRVDP3::EvaluationTrace{export_dir,file_input?"pfm_absolute_luminance":"synthetic",pattern,transform});
+        std::cout<<"Quality API returned Q="<<evaluated.scores.Q<<" Q_JOD="<<evaluated.scores.Q_JOD<<'\n';
+        std::cout<<"Quality export directory: "<<std::filesystem::absolute(export_dir).string()<<'\n';
     } catch (const std::exception& e) {
         std::cout << "  ERROR in full pyramid test: " << e.what() << std::endl;
+        throw;
     }
     
     std::cout << "\n==================================================" << std::endl;
@@ -1930,6 +1384,103 @@ std::vector<float> compute_local_adaptation_gpu(
     auto result = local_adapt_test_copy_back(instance, res);
 
     return result.outputData;
+}
+
+static HDRVDP3FFTConfig fft_config_from_environment(unsigned side) {
+    HDRVDP3FFTConfig config;
+    const char* axis_env = std::getenv("IQM_FFT_AXIS_ORDER");
+    const std::string axis_order = axis_env ? axis_env : "row";
+    if(axis_order!="row" && axis_order!="column")throw std::invalid_argument("Unknown IQM_FFT_AXIS_ORDER: "+axis_order);
+    config.columnFirst=axis_order=="column";
+    const char* twiddle_env=std::getenv("IQM_FFT_TWIDDLES");
+    const std::string twiddles=twiddle_env?twiddle_env:"native";
+    if(twiddles!="native" && twiddles!="lut")throw std::invalid_argument("Unknown IQM_FFT_TWIDDLES: "+twiddles);
+    config.useTwiddleLUT=twiddles=="lut";
+    const char* backend_env=std::getenv("IQM_FFT_BACKEND");
+    const std::string backend=backend_env?backend_env:"vkfft";
+    if(backend!="vkfft" && backend!="reference")throw std::invalid_argument("Unknown FFT backend: "+backend);
+    if(backend=="reference") {
+        const char* shader=std::getenv(side==32?"IQM_FFT_REFERENCE_SHADER64":"IQM_FFT_REFERENCE_SHADER");
+        if(!shader || !*shader)throw std::invalid_argument("Reference FFT requires IQM_FFT_REFERENCE_SHADER");
+        config.referenceShaderPath=shader;
+    }
+    const char* math=std::getenv("IQM_FFT_MATH_SHADER_DIR");
+    if(math && *math)config.referenceMathDirectory=math;
+    return config;
+}
+
+std::vector<float> compute_fft_filter_gpu(const IQM::VulkanInstance& instance,
+    const std::vector<float>& input, float ppd, IQM::HDRVDP3::FFTFilterMode mode,
+    const std::string& trace_prefix) {
+    return compute_fft_filter_gpu(instance,input,ppd,mode,
+        fft_config_from_environment(input.size()==32*32?32:64),trace_prefix);
+}
+
+std::vector<float> compute_fft_filter_gpu(const IQM::VulkanInstance& instance,
+    const std::vector<float>& input, float ppd, IQM::HDRVDP3::FFTFilterMode mode,
+    const HDRVDP3FFTConfig& config, const std::string& trace_prefix) {
+    const unsigned side=input.size()==32*32?32:64,fft_side=2*side;
+    if (input.size() != side*side)
+        throw std::invalid_argument("FFT filter currently requires32x32 or64x64 input");
+    IQM::HDRVDP3::LocalAdaptFFT filter(*instance.device(), *instance.physicalDevice());
+    auto res = hdrvdp3_test_init_res(side, side, instance);
+    hdrvdp3_test_upload(instance, res, input);
+    IQM::HDRVDP3::LocalAdaptFFTInput args{};
+    args.device = instance.device(); args.physicalDevice = instance.physicalDevice();
+    args.cmdBuf = &*instance.cmdBuf(); args.cmdPool = &*instance.cmdPool();
+    args.queue = &*instance.queue();
+    args.ivInput = &res.imageInput->imageView; args.ivOutput = &res.imageOutput->imageView;
+    args.ppd = ppd; args.mode = mode;args.width=side;args.height=side;
+    args.columnFirst=config.columnFirst;
+    args.useTwiddleLUT=config.useTwiddleLUT;
+    args.referenceShaderPath=config.referenceShaderPath;
+    args.referenceMathDirectory=config.referenceMathDirectory;
+    const vk::DeviceSize snapshotBytes = fft_side * fft_side * 2 * sizeof(float);
+    // Declare memory before buffer so the bound buffer is destroyed first.
+    vk::raii::DeviceMemory traceMemory = nullptr;
+    vk::raii::Buffer traceBuffer = nullptr;
+    if (!trace_prefix.empty()) {
+        auto allocation = VulkanResource::createBuffer(*instance.device(), *instance.physicalDevice(),
+            static_cast<unsigned>(snapshotBytes * 4), vk::BufferUsageFlagBits::eTransferDst,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+        traceBuffer = std::move(allocation.first); traceMemory = std::move(allocation.second);
+        traceBuffer.bindMemory(traceMemory, 0); args.traceBuffer = &traceBuffer;
+    }
+    instance.cmdBuf()->reset();
+    instance.cmdBuf()->begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    filter.compute(args);
+    instance.cmdBuf()->end();
+    vk::CommandBuffer cmd = *instance.cmdBuf();
+    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eComputeShader;
+    vk::SubmitInfo submit{};
+    submit.waitSemaphoreCount=1; submit.pWaitSemaphores=&*res.uploadDone;
+    submit.pWaitDstStageMask=&waitStage; submit.commandBufferCount=1;
+    submit.pCommandBuffers=&cmd; submit.signalSemaphoreCount=1;
+    submit.pSignalSemaphores=&*res.computeDone;
+    vk::raii::Fence fence(*instance.device(), vk::FenceCreateInfo{});
+    instance.queue()->submit(submit,fence); instance.waitForFence(fence);
+    if (!trace_prefix.empty()) {
+        const float* mapped = static_cast<const float*>(traceMemory.mapMemory(0, snapshotBytes * 4));
+        for (unsigned stage = 0; stage < 4; ++stage) {
+            const float* begin = mapped + stage * fft_side * fft_side * 2;
+            save_reference(trace_prefix + "stage" + std::to_string(stage) + ".txt",
+                std::vector<float>(begin, begin + fft_side * fft_side * 2), fft_side, 2*fft_side);
+        }
+        traceMemory.unmapMemory();
+        std::vector<float> kernel(fft_side * fft_side);
+        if (mode == IQM::HDRVDP3::FFTFilterMode::OpticalMTF) {
+            IQM::HDRVDP3::generate_mtf_filter(kernel.data(), fft_side, fft_side, ppd);
+        } else {
+            const double sigma = std::pow(10.0, -0.781367) * ppd;
+            for (unsigned y=0; y<fft_side; ++y) for (unsigned x=0; x<fft_side; ++x) {
+                const double kx=(std::fmod(0.5+double(x)/fft_side,1.0)-0.5)*(2*3.14159265358979323846);
+                const double ky=(std::fmod(0.5+double(y)/fft_side,1.0)-0.5)*(2*3.14159265358979323846);
+                kernel[y*fft_side+x]=static_cast<float>(std::exp(-0.5*(kx*kx+ky*ky)*sigma*sigma));
+            }
+        }
+        save_reference(trace_prefix + "filter.txt", kernel, fft_side, fft_side);
+    }
+    return hdrvdp3_test_copy_back(instance,res,side,side).outputData;
 }
 
 } // namespace IQM::Bin

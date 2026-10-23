@@ -76,6 +76,8 @@ struct LocalAdaptFFTInput {
     bool useTwiddleLUT = false; // Numerical experiment: precomputed roots of unity.
     // Explicit test-only backend: runtime SPIR-V generated from the licensed
     // FFTW parity fixtures. Empty retains VkFFT. Requires columnFirst=true.
+    // Rectangular64x128/128x64 uses explicit combined ABI64256,ppd30 and
+    // reference math assets;this low-level contract does not widen quality API.
     std::string referenceShaderPath;
     // Optional explicit numerical math shaders, reference backend only.
     std::string referenceMathDirectory;

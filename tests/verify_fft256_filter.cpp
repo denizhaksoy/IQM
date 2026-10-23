@@ -76,7 +76,7 @@ static size_t compare(Buffer& b,const std::vector<float>& expected,const Path& d
     const auto* actual=static_cast<const float*>(b.memory.mapMemory(0,b.bytes));size_t bad=0;double maximum=0;
     std::ofstream f(dump);f<<h<<' '<<w<<'\n'<<std::setprecision(9);
     for(size_t i=0;i<expected.size();++i){
-        const auto ci=i/2;const size_t index=transpose?2*((ci%256)*256+ci/256)+i%2:i;
+        const auto ci=i/2;const size_t index=transpose?2*((ci%(w/2))*h+ci/(w/2))+i%2:i;
         const float v=actual[index];f<<v<<'\n';
         if(!std::isfinite(v)||v!=expected[i]){if(bad<3)std::cout<<dump.filename()<<" index="<<i<<" gpu="<<v<<" native="<<expected[i]<<'\n';++bad;maximum=std::max(maximum,std::abs(double(v)-expected[i]));}
     }b.memory.unmapMemory();std::cout<<dump.filename()<<" values="<<expected.size()<<" mismatches="<<bad<<" max="<<maximum<<'\n';return bad;
@@ -98,8 +98,8 @@ static int base16(const Path& source,const Path& shader,const Path& output){
     const auto bad=compare(out,expected,output/"base16_output.txt",64,769,false);
     std::cout<<"base16 values=49216 mismatches="<<bad<<'\n';return bad?1:0;
 }
-static int base_reductions(const Path& source,const Path& shader,const Path& output,unsigned n,const Path& fftShader={}){
-    if(n!=64&&n!=256)throw std::runtime_error("Reduction sample count must be64 or256");
+static int base_reductions(const Path& source,const Path& shader,const Path& output,unsigned n,const Path& fftShader={},unsigned residualWidth=16){
+    if(n!=64&&n!=128&&n!=256)throw std::runtime_error("Reduction sample count must be64/128/256");
     const auto input=read(source/"input.txt",512,2*n),expected=read(source/"expected.txt",512,n+3);
     for(unsigned batch=0;batch<512;++batch)for(unsigned kind=0;kind<2;++kind){
         int minimum=1000,maximum=-1000;
@@ -114,11 +114,13 @@ static int base_reductions(const Path& source,const Path& shader,const Path& out
     const auto props=instance.physicalDevice()->getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();
     const auto& controls=props.get<vk::PhysicalDeviceFloatControlsProperties>();
     if(!controls.shaderDenormPreserveFloat32||!controls.shaderRoundingModeRTEFloat32)throw std::runtime_error("Required float controls unsupported");
-    const bool chain=!fftShader.empty();if(chain&&n!=256)throw std::runtime_error("Only residual16 chain supported");
+    const bool chain=!fftShader.empty();if(chain&&n!=256&&!(n==128&&(residualWidth==8||residualWidth==16)))throw std::runtime_error("Unvalidated residual chain");
     auto in=buffer(instance,unsigned(input.size()*4)),out=buffer(instance,unsigned((chain?512*2*n:expected.size())*4));upload(in,input);
     const auto sb=vk::DescriptorType::eStorageBuffer;Kernel kernel(instance,shader,{sb,sb},32);kernel.bind(instance,0,in);kernel.bind(instance,1,out);
     std::unique_ptr<Kernel> fft;Buffer spectrum;std::vector<float> expectedSpectrum;
-    if(chain){expectedSpectrum=read(source/"expected_fft16.txt",512,769);spectrum=buffer(instance,unsigned(expectedSpectrum.size()*4));
+    const unsigned spectrumWidth=3*n+1;
+    if(chain){const auto filename=n==256?"expected_fft16.txt":"expected_fft"+std::to_string(n/residualWidth)+"x"+std::to_string(residualWidth)+".txt";
+        expectedSpectrum=read(source/filename,512,spectrumWidth);spectrum=buffer(instance,unsigned(expectedSpectrum.size()*4));
         fft=std::make_unique<Kernel>(instance,fftShader,std::vector<vk::DescriptorType>{sb,sb});fft->bind(instance,0,out);fft->bind(instance,1,spectrum);
     }
     vk::CommandBuffer cmd=**instance.cmdBuf();cmd.begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
@@ -127,12 +129,12 @@ static int base_reductions(const Path& source,const Path& shader,const Path& out
     cmd.bindPipeline(vk::PipelineBindPoint::eCompute,*kernel.pipeline);cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute,*kernel.layout,0,{*kernel.set},{});
     const std::array<uint32_t,8> push{512,chain?1u:0u,n,0,0,0,0,0};cmd.pushConstants(*kernel.layout,vk::ShaderStageFlagBits::eCompute,0,32,push.data());cmd.dispatch(8,1,1);
     vk::MemoryBarrier after{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead|(chain?vk::AccessFlagBits::eShaderRead:vk::AccessFlags{})};cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eHost|(chain?vk::PipelineStageFlagBits::eComputeShader:vk::PipelineStageFlags{}),{}, {after},{},{});
-    if(chain)fft->run(cmd,{16,512,0,0},16);
+    if(chain)fft->run(cmd,{n/residualWidth,512,n==128?residualWidth:0u,0},16);
     cmd.end();vk::SubmitInfo submit{.commandBufferCount=1,.pCommandBuffers=&cmd};vk::raii::Fence fence(device,vk::FenceCreateInfo{});instance.queue()->submit(submit,fence);instance.waitForFence(fence);
     if(chain){
         std::vector<float> centered(512*2*n,0);for(size_t batch=0;batch<512;++batch)for(size_t k=0;k<n;++k)centered[batch*2*n+2*k]=expected[batch*(n+3)+k];
         auto bad=compare(out,centered,output/"centered_interleaved.txt",512,2*n,false);
-        bad+=compare(spectrum,expectedSpectrum,output/"fft_selection.txt",512,769,false);
+        bad+=compare(spectrum,expectedSpectrum,output/"fft_selection.txt",512,spectrumWidth,false);
         std::cout<<"DC_FFT_selection values="<<centered.size()+expectedSpectrum.size()<<" mismatches="<<bad<<'\n';return bad?1:0;
     }
     const auto bad=compare(out,expected,output/"reductions.txt",512,n+3,false);
@@ -237,6 +239,7 @@ static int resize_float128(const Path& source,const Path& shader,const Path& out
     std::cout<<"resize_float128 values="<<total<<" mismatches="<<bad<<'\n';return bad?1:0;
 }
 int main(int argc,char** argv){try{
+    if(argc==7&&std::string(argv[1])=="--rectangular-reductions-chain")return base_reductions(argv[2],argv[3],argv[5],128,argv[4],unsigned(std::stoul(argv[6])));
     if(argc==6&&std::string(argv[1])=="--resize-mask128")return resize_mask128(argv[2],argv[3],argv[4],unsigned(std::stoul(argv[5])));
     if(argc==5&&std::string(argv[1])=="--resize-float128")return resize_float128(argv[2],argv[3],argv[4]);
     if(argc==5&&std::string(argv[1])=="--resize-mask128")return resize_mask128(argv[2],argv[3],argv[4]);
@@ -245,35 +248,41 @@ int main(int argc,char** argv){try{
     if(argc==6&&std::string(argv[1])=="--base-reductions-chain")return base_reductions(argv[2],argv[3],argv[5],256,argv[4]);
     if(argc==6&&std::string(argv[1])=="--base-reductions")return base_reductions(argv[2],argv[3],argv[4],unsigned(std::stoul(argv[5])));
     if(argc==5&&std::string(argv[1])=="--base16")return base16(argv[2],argv[3],argv[4]);
-    if(argc!=8)throw std::runtime_error("Usage: fixture forward.spv inverse.spv math_dir ref|test mtf|la fresh_export");
+    const bool rectangular=argc==9&&std::string(argv[8])=="--rectangular";
+    if(argc!=8&&!rectangular)throw std::runtime_error("Usage: fixture forward.spv inverse.spv math_dir ref|test mtf|la fresh_export [--rectangular]");
     const Path source(argv[1]),math(argv[4]),output(argv[7]);const std::string label(argv[5]),mode(argv[6]);
     if((label!="ref"&&label!="test")||(mode!="mtf"&&mode!="la"))throw std::runtime_error("Invalid mode/label");
     if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh export directory required");
     const bool mtf=mode=="mtf";const std::string tag=label+"_"+mode;
-    const auto input=read(source/(label+(mtf?"_luminance.txt":"_adapt_input.txt")),128,128);
-    auto filter=read(source/(mode+"_filter_double.txt"),256,256);std::vector<float> generated(65536);
-    if(mtf)IQM::HDRVDP3::generate_mtf_filter(generated.data(),256,256,30);
+    unsigned h=128,w=128;if(rectangular){std::ifstream shape(source/(label+"_luminance.txt"));if(!(shape>>h>>w)||!((h==64&&w==128)||(h==128&&w==64)))throw std::runtime_error("Unvalidated rectangular dimensions");}
+    const unsigned fh=2*h,fw=2*w,n=fh*fw,pixels=h*w;
+    const auto input=read(source/(label+(mtf?"_luminance.txt":"_adapt_input.txt")),h,w);
+    auto filter=read(source/(mode+"_filter_double.txt"),fh,fw);std::vector<float> generated(n);
+    if(mtf)IQM::HDRVDP3::generate_mtf_filter(generated.data(),fw,fh,30);
     else{
         const double sigma=std::pow(10.0,-0.781367)*30;
-        for(unsigned y=0;y<256;++y)for(unsigned x=0;x<256;++x){
-            const double kx=(std::fmod(0.5+double(x)/256,1.0)-0.5)*(2*3.14159265358979323846);
-            const double ky=(std::fmod(0.5+double(y)/256,1.0)-0.5)*(2*3.14159265358979323846);
-            generated[y*256+x]=float(std::exp(-0.5*(kx*kx+ky*ky)*sigma*sigma));
+        for(unsigned y=0;y<fh;++y)for(unsigned x=0;x<fw;++x){
+            const double kx=(std::fmod(0.5+double(x)/fw,1.0)-0.5)*(2*3.14159265358979323846);
+            const double ky=(std::fmod(0.5+double(y)/fh,1.0)-0.5)*(2*3.14159265358979323846);
+            generated[y*fw+x]=float(std::exp(-0.5*(kx*kx+ky*ky)*sigma*sigma));
         }
     }
     size_t filterBad=0;for(size_t i=0;i<filter.size();++i)if(filter[i]!=generated[i])++filterBad;
-    std::cout<<"filter float32 values=65536 mismatches="<<filterBad<<'\n';if(filterBad)throw std::runtime_error("Generated filter mismatch");
+    std::cout<<"filter float32 values="<<n<<" mismatches="<<filterBad<<'\n';if(filterBad)throw std::runtime_error("Generated filter mismatch");
+    // Spectrum is column-major;upload independently generated coefficients in
+    // that same layout. Square radial kernels previously hid this distinction.
+    auto rowFilter=generated;for(unsigned y=0;y<fh;++y)for(unsigned x=0;x<fw;++x)generated[x*fh+y]=rowFilter[y*fw+x];
     VulkanInstance instance(true);const auto& device=*instance.device();
     const auto props=instance.physicalDevice()->getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();
     const auto& controls=props.get<vk::PhysicalDeviceFloatControlsProperties>();
     if(!controls.shaderDenormPreserveFloat32||!controls.shaderRoundingModeRTEFloat32)throw std::runtime_error("Required float controls unsupported");
-    auto imageInfo=vk::ImageCreateInfo{.imageType=vk::ImageType::e2D,.format=vk::Format::eR32Sfloat,.extent={128,128,1},.mipLevels=1,.arrayLayers=1,
+    auto imageInfo=vk::ImageCreateInfo{.imageType=vk::ImageType::e2D,.format=vk::Format::eR32Sfloat,.extent={w,h,1},.mipLevels=1,.arrayLayers=1,
         .samples=vk::SampleCountFlagBits::e1,.tiling=vk::ImageTiling::eOptimal,
         .usage=vk::ImageUsageFlagBits::eStorage|vk::ImageUsageFlagBits::eTransferSrc|vk::ImageUsageFlagBits::eTransferDst,.initialLayout=vk::ImageLayout::eUndefined};
     auto imageIn=VulkanResource::createImage(device,*instance.physicalDevice(),imageInfo),imageOut=VulkanResource::createImage(device,*instance.physicalDevice(),imageInfo);
-    auto uploadBuffer=buffer(instance,65536),download=buffer(instance,65536),kernel=buffer(instance,262144);
+    auto uploadBuffer=buffer(instance,pixels*4),download=buffer(instance,pixels*4),kernel=buffer(instance,n*4);
     upload(uploadBuffer,input);upload(kernel,generated);
-    auto prepared=buffer(instance,524288),scratch=buffer(instance,524288),forward=buffer(instance,524288),filtered=buffer(instance,524288),inverseScratch=buffer(instance,524288),inverse=buffer(instance,524288);
+    auto prepared=buffer(instance,n*8),scratch=buffer(instance,n*8),forward=buffer(instance,n*8),filtered=buffer(instance,n*8),inverseScratch=buffer(instance,n*8),inverse=buffer(instance,n*8);
     const auto sb=vk::DescriptorType::eStorageBuffer,si=vk::DescriptorType::eStorageImage;
     Kernel prep(instance,math/"prepare.spv",{si,sb}),f0(instance,argv[2],{sb,sb}),f1(instance,argv[2],{sb,sb}),mul(instance,math/"multiply.spv",{sb,sb,sb}),i0(instance,argv[3],{sb,sb}),i1(instance,argv[3],{sb,sb}),finish(instance,math/"finish.spv",{sb,si});
     prep.bind(instance,0,imageIn.imageView);prep.bind(instance,1,prepared);
@@ -287,22 +296,26 @@ int main(int argc,char** argv){try{
     for(unsigned j=0;j<2;++j)init[j]=vk::ImageMemoryBarrier{.dstAccessMask=vk::AccessFlagBits::eTransferWrite|vk::AccessFlagBits::eShaderWrite,.oldLayout=vk::ImageLayout::eUndefined,.newLayout=vk::ImageLayout::eGeneral,
         .srcQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.dstQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.image=j?*imageOut.image:*imageIn.image,.subresourceRange=range};
     cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe,vk::PipelineStageFlagBits::eTransfer|vk::PipelineStageFlagBits::eComputeShader,{}, {},{},init);
-    vk::BufferImageCopy copy{.imageSubresource={vk::ImageAspectFlagBits::eColor,0,0,1},.imageExtent={128,128,1}};
+    vk::BufferImageCopy copy{.imageSubresource={vk::ImageAspectFlagBits::eColor,0,0,1},.imageExtent={w,h,1}};
     cmd.copyBufferToImage(*uploadBuffer.handle,*imageIn.image,vk::ImageLayout::eGeneral,{copy});
     vk::MemoryBarrier uploaded{.srcAccessMask=vk::AccessFlagBits::eTransferWrite|vk::AccessFlagBits::eHostWrite,.dstAccessMask=vk::AccessFlagBits::eShaderRead};
     cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer|vk::PipelineStageFlagBits::eHost,vk::PipelineStageFlagBits::eComputeShader,{}, {uploaded},{},{});
-    const std::array<uint32_t,4> params{256,256,mtf?1u:0u,1};
-    prep.run(cmd,params,16,16);f0.run(cmd,{256,256,3,0},8);f1.run(cmd,{256,129,4,0},5);
-    mul.run(cmd,{256,256,0,0},16,16);i0.run(cmd,{256,256,3,0},8);i1.run(cmd,{256,256,4,0},8);finish.run(cmd,params,8,8);
+    const std::array<uint32_t,4> params{fw,fh,mtf?1u:0u,1};
+    prep.run(cmd,params,(fw+15)/16,(fh+15)/16);
+    f0.run(cmd,{fh,fw,rectangular?8u:3u,0},(fw+31)/32);
+    f1.run(cmd,{fw,rectangular?fh:(fh/2+1),rectangular?9u:4u,0},(fh/2+32)/32);
+    mul.run(cmd,{fh,fw,0,0},(fh+15)/16,(fw+15)/16);
+    i0.run(cmd,{fh,fw,3,0},(fw+31)/32);i1.run(cmd,{fw,fh,4,0},(fh+31)/32);
+    finish.run(cmd,params,(w+15)/16,(h+15)/16);
     cmd.copyImageToBuffer(*imageOut.image,vk::ImageLayout::eGeneral,*download.handle,{copy});
     vk::MemoryBarrier downloaded{.srcAccessMask=vk::AccessFlagBits::eTransferWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead};
     cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,vk::PipelineStageFlagBits::eHost,{}, {downloaded},{},{});
     cmd.end();vk::SubmitInfo submit{.commandBufferCount=1,.pCommandBuffers=&cmd};vk::raii::Fence fence(device,vk::FenceCreateInfo{});instance.queue()->submit(submit,fence);instance.waitForFence(fence);
     size_t bad=0;
-    bad+=compare(prepared,read(source/(tag+"_stage0.txt"),256,512),output/"stage0.txt",256,512,false);
-    bad+=compare(forward,read(source/(label+(mtf?"_native_forward.txt":"_la_native_forward.txt")),256,512),output/"stage1_row_major.txt",256,512,true);
-    bad+=compare(filtered,read(source/(tag+"_stage2.txt"),256,512),output/"stage2.txt",256,512,false);
-    bad+=compare(inverse,read(source/(label+(mtf?"_native_inverse.txt":"_la_native_inverse.txt")),256,512),output/"stage3_row_major.txt",256,512,true);
-    bad+=compare(download,read(source/(label+(mtf?"_retinal.txt":"_adaptation.txt")),128,128),output/"output.txt",128,128,false);
-    std::cout<<"filter_chain GPU values=540672 mismatches="<<bad<<'\n';return bad?1:0;
+    bad+=compare(prepared,read(source/(tag+"_stage0.txt"),fh,2*fw),output/"stage0.txt",fh,2*fw,false);
+    bad+=compare(forward,read(source/(label+(mtf?"_native_forward.txt":"_la_native_forward.txt")),fh,2*fw),output/"stage1_row_major.txt",fh,2*fw,true);
+    bad+=compare(filtered,read(source/(tag+"_stage2.txt"),fh,2*fw),output/"stage2.txt",fh,2*fw,false);
+    bad+=compare(inverse,read(source/(label+(mtf?"_native_inverse.txt":"_la_native_inverse.txt")),fh,2*fw),output/"stage3_row_major.txt",fh,2*fw,true);
+    bad+=compare(download,read(source/(label+(mtf?"_retinal.txt":"_adaptation.txt")),h,w),output/"output.txt",h,w,false);
+    std::cout<<"filter_chain GPU values="<<8*n+pixels<<" mismatches="<<bad<<'\n';return bad?1:0;
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 2;}}

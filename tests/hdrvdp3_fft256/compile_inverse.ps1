@@ -1,12 +1,13 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$VulkanBin='',[switch]$Forward)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$VulkanBin='',[switch]$Forward,[switch]$Combined)
 $ErrorActionPreference='Stop'
+if($Forward -and $Combined){throw 'Select Forward orCombined'}
 if(Test-Path -LiteralPath $OutputDirectory){throw 'Fresh output directory required'}
 if(!$VulkanBin){
     if($env:VULKAN_SDK){$VulkanBin=Join-Path $env:VULKAN_SDK 'Bin'}
     else{$VulkanBin=Split-Path (Get-Command glslc.exe -ErrorAction Stop).Source -Parent}
 }
 $tests=Split-Path $PSScriptRoot -Parent
-$direction=if($Forward){'forward'}else{'inverse'}
+$direction=if($Combined){'reference'}elseif($Forward){'forward'}else{'inverse'}
 & "$tests/generate_fft256_${direction}_shader.ps1" -OutputDirectory $OutputDirectory
 $output=(Resolve-Path -LiteralPath $OutputDirectory).Path
 & "$VulkanBin/glslc.exe" "$output/${direction}256.comp" -o "$output/default_controls.spv" --target-env=vulkan1.2

@@ -10,12 +10,20 @@ namespace IQM { class VulkanInstance; }
 namespace IQM::HDRVDP3 {
 struct MaskingMapsGPU { std::vector<float> raw,pooled; };
 struct BaseSelectionGPU { std::vector<float> magnitudes; std::size_t index; };
+// Explicit extended map contract;full128 quality support is30ppd/age24 only.
+enum class MapGPUProfile : unsigned { Bounded=13, Extended128Components=14, RectangularResiduals=15, RectangularMaps=16 };
 // Synchronous parity backend. Host prepares filter/LUT coefficients;
 // GPU evaluates adaptation preparation/pupil, resize/CSF, masking/D and quality.
-// Shader must be generated with tests/generate_power_shaders.ps1 (ABI13).
+// Default uses generate_power_shaders.ps1 (ABI13). The explicit extended
+// component profile uses generate_map128_shader.ps1 (ABI14),Q20 masks and
+// compile_base16.ps1 -MapABI (ABI82) for16x16 residual FFTs.
+// ABI15 adds128-sample reductions andexplicit8x16/16x8 residual APIs (FFT85).
+// ABI16 additionally permits the validated 2:1 rectangular masking/resize bands.
+// Public rectangular quality is limited to64x128/128x64 at30ppd/age24.
 class MapGPU {
 public:
-    MapGPU(const IQM::VulkanInstance& instance,const std::string& shader_path);
+    MapGPU(const IQM::VulkanInstance& instance,const std::string& shader_path,
+        MapGPUProfile profile=MapGPUProfile::Bounded);
     ~MapGPU();
     std::vector<float> resize(const std::vector<float>& input,int h,int w,int nh,int nw);
     std::vector<float> sample_csf(const std::vector<float>& log_luminance,const CSFLUT& lut);
@@ -37,9 +45,13 @@ public:
     // Returns once-rounded mean log10 luminance and its native single power10.
     std::array<float,2> base_adaptation(const std::vector<float>& log_luminance);
     BaseSelectionGPU base_selection(const std::vector<float>& interleaved);
+    // ABI15/16 only;explicit8x16/16x8 row-major residual contracts.
+    BaseSelectionGPU base_selection_rectangular(const std::vector<float>& interleaved,unsigned width,unsigned height);
+    std::vector<float> base_spectrum_rectangular(const std::vector<float>& input,const std::string& shader_path,unsigned width,unsigned height);
     // Each result is clamped log10 luminance followed by four native parameters.
     std::vector<std::array<float,5>> base_csf_parameters(const std::vector<float>& luminance);
-    // Exact double result for binary64x64 masks and square8/16/32/64 outputs.
+    // Default:binary32/64-square masks,square8/16/32/64 outputs,Q16 weights.
+    // Extended profile additionally permits128-square input/output,Q20 weights.
     std::vector<double> resize_comparison_mask(const std::vector<double>& input,int h,int w,int nh,int nw);
     std::vector<float> base_spectrum(const std::vector<float>& input,const std::string& shader_path);
     MaskingMapsGPU mutual_masking(const std::vector<float>& reference,const std::vector<float>& test,int h,int w,float normalization);

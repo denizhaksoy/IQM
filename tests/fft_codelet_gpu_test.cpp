@@ -34,14 +34,17 @@ static std::vector<float> read(const std::filesystem::path& path,unsigned& batch
 int main(int argc,char** argv) {
     if(argc!=3 && argc!=4) { std::cerr<<"Usage: IQM-fft-codelet-test <reference dir> <shader.spv> [--second-axis|--inverse2d|--r2c|--forward-second|--forward-tail|--forward2d]\n"; return 2; }
     const bool second=argc==4 && std::string(argv[3])=="--second-axis";
-    const bool full=argc==4 && std::string(argv[3])=="--inverse2d";
+    const bool size64=argc==4 && (std::string(argv[3])=="--inverse64"||std::string(argv[3])=="--forward64");
+    const bool full=argc==4 && (std::string(argv[3])=="--inverse2d"||std::string(argv[3])=="--inverse64");
     const bool realForward=argc==4 && std::string(argv[3])=="--r2c";
     const bool forwardSecond=argc==4 && std::string(argv[3])=="--forward-second";
     const bool forwardTail=argc==4 && std::string(argv[3])=="--forward-tail";
-    const bool forwardFull=argc==4 && std::string(argv[3])=="--forward2d";
-    if(argc==4 && !second && !full && !realForward && !forwardSecond && !forwardTail && !forwardFull) return 2;
+    const bool forwardFull=argc==4 && (std::string(argv[3])=="--forward2d"||std::string(argv[3])=="--forward64");
+    const bool math=argc==4 && std::string(argv[3])=="--float-math";
+    const bool multiply=argc==4 && std::string(argv[3])=="--float-multiply";
+    if(argc==4 && !second && !full && !realForward && !forwardSecond && !forwardTail && !forwardFull && !math && !multiply) return 2;
     const bool twoPass=full||forwardFull;
-    const unsigned selectedGraph=forwardFull?8:forwardTail?7:forwardSecond?6:realForward?5:full?3:second?2:1;
+    const unsigned selectedGraph=multiply?11:math?10:forwardFull?8:forwardTail?7:forwardSecond?6:realForward?5:full?3:second?2:1;
     try {
         IQM::Bin::VulkanInstance instance(true);
         const auto& device=*instance.device();
@@ -59,13 +62,14 @@ int main(int argc,char** argv) {
         const vk::DescriptorSetLayout rawLayouts[]={rawLayout,rawLayout};
         auto sets=vk::raii::DescriptorSets(device,vk::DescriptorSetAllocateInfo{.descriptorPool=*pool,.descriptorSetCount=2,.pSetLayouts=rawLayouts});
         bool selectedPathMatches=true;
-        for(unsigned size:{8u,16u,128u}) {
-            if(selectedGraph!=1 && size!=128) continue;
+        for(unsigned size:{8u,16u,64u,128u}) {
+            if(selectedGraph==1 && size==64) continue;
+            if(selectedGraph!=1 && size!=(size64?64u:128u)) continue;
             unsigned batches,n,refBatches,refN;
             auto input=read(std::filesystem::path(argv[1])/("input"+std::to_string(size)+".txt"),batches,n);
             const auto expected=read(std::filesystem::path(argv[1])/((selectedGraph>=5?"forward":"inverse")+std::to_string(size)+".txt"),refBatches,refN);
             if(n!=size || refN!=n || refBatches!=batches) throw std::runtime_error("Reference shape mismatch");
-            if(twoPass && batches%128) throw std::runtime_error("2D fixtures must contain complete 128x128 matrices");
+            if(twoPass && batches%size) throw std::runtime_error("2D fixtures must contain complete square matrices");
             if(realForward || forwardFull) for(size_t i=1;i<input.size();i+=2)
                 if(input[i]!=0) throw std::runtime_error("Real forward FFT requires zero imaginary input");
             const unsigned bufferBytes=static_cast<unsigned>(input.size()*sizeof(float));
@@ -89,7 +93,7 @@ int main(int argc,char** argv) {
                     instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eComputeShader,{}, {between},{},{});
                     instance.cmdBuf()->bindDescriptorSets(vk::PipelineBindPoint::eCompute,*layout,0,{*sets[1]},{});
                     push.graph=forwardFull?9:4;
-                    if(forwardFull) push.batches=(batches/128)*65;
+                    if(forwardFull) push.batches=(batches/size)*(size/2+1);
                     instance.cmdBuf()->pushConstants<Push>(*layout,vk::ShaderStageFlagBits::eCompute,0,push);
                     instance.cmdBuf()->dispatch((push.batches+31)/32,1,1);
                 }
@@ -100,13 +104,23 @@ int main(int argc,char** argv) {
                 vk::raii::Fence fence(device,vk::FenceCreateInfo{}); instance.queue()->submit(submit,fence); instance.waitForFence(fence);
                 const float* actual=static_cast<const float*>(out.memory.mapMemory(0,bufferBytes));
                 size_t mismatches=0,first=0; double maxError=0,sumSquared=0;
+                size_t mathCounts[2]={0,0},exportCounts[2]={0,0};
                 for(size_t i=0;i<expected.size();++i) {
                     if(!std::isfinite(actual[i])) throw std::runtime_error("Nonfinite GPU output");
                     const double delta=static_cast<double>(actual[i])-expected[i];
-                    if(delta!=0) {if(!mismatches) first=i; ++mismatches;}
+                    if(delta!=0) {
+                        if(math) {
+                            ++mathCounts[i%2];
+                            if(i/2>=4 && i/2<24580) ++exportCounts[i%2];
+                            if(mismatches<8) std::cout<<std::setprecision(17)<<"math index="<<i/2<<" component="<<i%2<<" input="<<input[i]<<" actual="<<actual[i]<<" expected="<<expected[i]<<'\n';
+                        }
+                        if(!mismatches) first=i; ++mismatches;
+                    }
                     maxError=std::max(maxError,std::abs(delta)); sumSquared+=delta*delta;
                 }
                 out.memory.unmapMemory();
+                if(math) std::cout<<"math log mismatches="<<mathCounts[0]<<" exported="<<exportCounts[0]
+                    <<" exp mismatches="<<mathCounts[1]<<" exported="<<exportCounts[1]<<'\n';
                 if(graph==selectedGraph && fused==0) selectedSizeMatches=mismatches==0;
                 std::cout<<std::setprecision(17)<<(selectedGraph>=5?"forward n=":"inverse n=")<<n<<" batches="<<batches<<" graph="<<graph<<" fused="<<fused
                     <<" max="<<maxError<<" RMSE="<<std::sqrt(sumSquared/expected.size())<<" mismatches="<<mismatches<<" first="<<first<<'\n';

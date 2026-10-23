@@ -363,24 +363,30 @@ static std::vector<float> run_corrdn_gpu(
 
 std::vector<float> compute_fft_filter_gpu(const IQM::VulkanInstance& instance,
     const std::vector<float>& input, float ppd, IQM::HDRVDP3::FFTFilterMode mode,
-    const FFTExecutionConfig& config, const std::string& trace_prefix) {
-    const unsigned side=input.size()==32*32?32:64,fft_side=2*side;
-    if (input.size() != side*side)
-        throw std::invalid_argument("FFT filter currently requires32x32 or64x64 input");
+    const FFTExecutionConfig& config, const std::string& trace_prefix,
+    unsigned width=0,unsigned height=0) {
+    unsigned side=input.size()==32*32?32:input.size()==64*64?64:0;
+    if(input.size()==128*128)side=128;
+    if(!width&&!height){width=side;height=side;}
+    const bool square=width==height&&(width==32||width==64||width==128);
+    const bool rectangle=(width==128&&height==64)||(width==64&&height==128);
+    if((!square&&!rectangle)||input.size()!=size_t(width)*height)
+        throw std::invalid_argument("Unvalidated FFT filter dimensions");
+    const unsigned fft_width=2*width,fft_height=2*height;
     IQM::HDRVDP3::LocalAdaptFFT filter(*instance.device(), *instance.physicalDevice());
-    auto res = init_filter_resources(side, side, instance);
+    auto res = init_filter_resources(width, height, instance);
     upload_filter_input(instance, res, input);
     IQM::HDRVDP3::LocalAdaptFFTInput args{};
     args.device = instance.device(); args.physicalDevice = instance.physicalDevice();
     args.cmdBuf = &*instance.cmdBuf(); args.cmdPool = &*instance.cmdPool();
     args.queue = &*instance.queue();
     args.ivInput = &res.imageInput->imageView; args.ivOutput = &res.imageOutput->imageView;
-    args.ppd = ppd; args.mode = mode;args.width=side;args.height=side;
+    args.ppd = ppd; args.mode = mode;args.width=width;args.height=height;
     args.columnFirst=config.columnFirst;
     args.useTwiddleLUT=config.useTwiddleLUT;
     args.referenceShaderPath=config.referenceShaderPath;
     args.referenceMathDirectory=config.referenceMathDirectory;
-    const vk::DeviceSize snapshotBytes = fft_side * fft_side * 2 * sizeof(float);
+    const vk::DeviceSize snapshotBytes = fft_width * fft_height * 2 * sizeof(float);
     // Declare memory before buffer so the bound buffer is destroyed first.
     vk::raii::DeviceMemory traceMemory = nullptr;
     vk::raii::Buffer traceBuffer = nullptr;
@@ -407,34 +413,61 @@ std::vector<float> compute_fft_filter_gpu(const IQM::VulkanInstance& instance,
     if (!trace_prefix.empty()) {
         const float* mapped = static_cast<const float*>(traceMemory.mapMemory(0, snapshotBytes * 4));
         for (unsigned stage = 0; stage < 4; ++stage) {
-            const float* begin = mapped + stage * fft_side * fft_side * 2;
+            const float* begin = mapped + stage * fft_width * fft_height * 2;
             save_reference(trace_prefix + "stage" + std::to_string(stage) + ".txt",
-                std::vector<float>(begin, begin + fft_side * fft_side * 2), fft_side, 2*fft_side);
+                std::vector<float>(begin, begin + fft_width * fft_height * 2), fft_height, 2*fft_width);
         }
         traceMemory.unmapMemory();
-        std::vector<float> kernel(fft_side * fft_side);
+        std::vector<float> kernel(fft_width * fft_height);
         if (mode == IQM::HDRVDP3::FFTFilterMode::OpticalMTF) {
-            IQM::HDRVDP3::generate_mtf_filter(kernel.data(), fft_side, fft_side, ppd);
+            IQM::HDRVDP3::generate_mtf_filter(kernel.data(), fft_width, fft_height, ppd);
         } else {
             const double sigma = std::pow(10.0, -0.781367) * ppd;
-            for (unsigned y=0; y<fft_side; ++y) for (unsigned x=0; x<fft_side; ++x) {
-                const double kx=(std::fmod(0.5+double(x)/fft_side,1.0)-0.5)*(2*3.14159265358979323846);
-                const double ky=(std::fmod(0.5+double(y)/fft_side,1.0)-0.5)*(2*3.14159265358979323846);
-                kernel[y*fft_side+x]=static_cast<float>(std::exp(-0.5*(kx*kx+ky*ky)*sigma*sigma));
+            for (unsigned y=0; y<fft_height; ++y) for (unsigned x=0; x<fft_width; ++x) {
+                const double kx=(std::fmod(0.5+double(x)/fft_width,1.0)-0.5)*(2*3.14159265358979323846);
+                const double ky=(std::fmod(0.5+double(y)/fft_height,1.0)-0.5)*(2*3.14159265358979323846);
+                kernel[y*fft_width+x]=static_cast<float>(std::exp(-0.5*(kx*kx+ky*ky)*sigma*sigma));
             }
         }
-        save_reference(trace_prefix + "filter.txt", kernel, fft_side, fft_side);
+        save_reference(trace_prefix + "filter.txt", kernel, fft_height, fft_width);
     }
-    return read_filter_output(instance,res,side,side).outputData;
+    return read_filter_output(instance,res,width,height).outputData;
 }
 
 } // namespace
-EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
+#ifdef IQM_HDRVDP3_DIMENSION_DIAGNOSTIC
+std::vector<float> diagnostic_fft_dimensions(const IQM::VulkanInstance& instance,
+    const std::vector<float>& input,unsigned width,unsigned height,FFTFilterMode mode,
+    const std::string& shader,const std::string& math,const std::string& prefix) {
+    FFTExecutionConfig config;config.referenceShaderPath=shader;config.referenceMathDirectory=math;
+    return compute_fft_filter_gpu(instance,input,30.0f,mode,config,prefix,width,height);
+}
+// Isolated test entrypoint: shares production coefficients and dispatch,
+// without widening evaluate_quality's validated dimension contract.
+SpyrResult diagnostic_spyr_dimensions(const IQM::VulkanInstance& instance,
+    const std::vector<float>& input,unsigned width,unsigned height,double ppd) {
+    if(!width||!height||input.size()!=size_t(width)*height||(ppd!=30&&ppd!=60))
+        throw std::invalid_argument("Invalid dimension diagnostic input");
+    Spyr::Filters filters{lo0filt_matlab,hi0filt_matlab,lofilt_matlab,bfilt1_matlab,1};
+    Spyr spyr(*instance.device(),filters);
+    const auto limit=static_cast<unsigned>(std::ceil(std::log2(ppd))-2);
+    return spyr.compute(input,width,height,instance,
+        [](const IQM::VulkanInstance& inst,CorrDn& cdn,const float* coefficients,
+            int size,const std::vector<float>& values,unsigned w,unsigned h,int step,bool non_fma) {
+            return run_corrdn_gpu(inst,cdn,coefficients,size,values,w,h,step,non_fma);
+        },"",limit);
+}
+#endif
+static EvaluationResult evaluate_quality_impl(const IQM::VulkanInstance& instance,
     const LuminanceImage& reference,const LuminanceImage& test,
     const EvaluationOptions& options,const EvaluationTrace& trace) {
     const unsigned width64=reference.width,height64=reference.height;
-    if(width64!=height64||(width64!=32&&width64!=64)||test.width!=width64||test.height!=height64)
-        throw std::invalid_argument("Quality API requires equal square32/64 images");
+    const bool supported_size=width64==32||width64==64||
+        (width64==128&&options.pixelsPerDegree==30&&options.observerAge==24);
+    const bool rectangle=options.pixelsPerDegree==30&&options.observerAge==24&&
+        ((width64==128&&height64==64)||(width64==64&&height64==128));
+    if((!rectangle&&(width64!=height64||!supported_size))||test.width!=width64||test.height!=height64)
+        throw std::invalid_argument("Quality API requires equal square32/64 or128@30ppd/age24 images, or64x128/128x64@30ppd/age24");
     const auto count=static_cast<size_t>(width64)*height64;
     if(reference.pixels.size()!=count||test.pixels.size()!=count)
         throw std::invalid_argument("Luminance pixel count mismatch");
@@ -452,6 +485,8 @@ EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
     const auto& pattern=trace.pattern;
     const auto& transform=trace.transform;
         const double viewing_ppd=options.pixelsPerDegree;
+        const auto pyramid_height=std::min(Spyr::max_pyr_height(width64,height64,13),
+            static_cast<unsigned>(std::ceil(std::log2(viewing_ppd))-2));
         const double observer_age=options.observerAge;
         const double visual_area=static_cast<double>(width64)*height64/(viewing_ppd*viewing_ppd);
         auto spectral_matrix=IQM::HDRVDP3::D65_AGE24_LMR;
@@ -475,7 +510,7 @@ EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
         std::ofstream(export_dir/"spectral_source.txt")<<((raw_data_path&&*raw_data_path)?"raw_d65":((samples_path&&*samples_path)?"resampled_d65":"legacy_age24"))<<'\n';
         std::ofstream(export_dir/"input_size.txt")<<height64<<' '<<width64<<'\n';
         std::ofstream(export_dir/"pixels_per_degree.txt")<<viewing_ppd<<'\n';
-        std::ofstream(export_dir/"band_count.txt")<<(Spyr::max_pyr_height(width64,height64,13)+2)<<'\n';
+        std::ofstream(export_dir/"band_count.txt")<<(pyramid_height+2)<<'\n';
         std::ofstream(export_dir / "test_transform.txt") << transform << '\n';
         const char* map_backend_env="vulkan";
         const std::string map_backend=map_backend_env?map_backend_env:"cpu";
@@ -484,7 +519,10 @@ EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
         std::unique_ptr<IQM::HDRVDP3::MapGPU> gpu_maps;
         if(map_backend=="vulkan") {
             if(!map_shader_env || !*map_shader_env) throw std::invalid_argument("IQM_MAP_SHADER is required for Vulkan maps");
-            gpu_maps=std::make_unique<IQM::HDRVDP3::MapGPU>(instance,map_shader_env);
+            auto map_profile=IQM::HDRVDP3::MapGPUProfile::Bounded;
+            if(width64==128)map_profile=IQM::HDRVDP3::MapGPUProfile::Extended128Components;
+            if(rectangle)map_profile=IQM::HDRVDP3::MapGPUProfile::RectangularMaps;
+            gpu_maps=std::make_unique<IQM::HDRVDP3::MapGPU>(instance,map_shader_env,map_profile);
         }
         std::ofstream(export_dir / "map_backend.txt") << map_backend << '\n';
         std::ofstream(export_dir / "map_shader.txt") << (map_shader_env?map_shader_env:"") << '\n';
@@ -511,9 +549,9 @@ EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
         auto test_retinal = test_image;
         if (preprocessing == "fft") {
             reference_retinal = compute_fft_filter_gpu(instance, reference_image, static_cast<float>(viewing_ppd),
-                IQM::HDRVDP3::FFTFilterMode::OpticalMTF, fft_config, (export_dir / "ref_mtf_").string());
+                IQM::HDRVDP3::FFTFilterMode::OpticalMTF, fft_config, (export_dir / "ref_mtf_").string(),width64,height64);
             test_retinal = compute_fft_filter_gpu(instance, test_image, static_cast<float>(viewing_ppd),
-                IQM::HDRVDP3::FFTFilterMode::OpticalMTF, fft_config, (export_dir / "test_mtf_").string());
+                IQM::HDRVDP3::FFTFilterMode::OpticalMTF, fft_config, (export_dir / "test_mtf_").string(),width64,height64);
         }
         auto reference_adapt_input = reference_retinal;
         auto test_adapt_input = test_retinal;
@@ -531,10 +569,10 @@ EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
         // Compute local adaptation from the same luminance image
         // used by the JND -> SPYR pipeline.
         auto reference_adaptation = preprocessing == "fft"
-            ? compute_fft_filter_gpu(instance, reference_adapt_input, static_cast<float>(viewing_ppd), IQM::HDRVDP3::FFTFilterMode::LocalAdaptation, fft_config, (export_dir / "ref_la_").string())
+            ? compute_fft_filter_gpu(instance, reference_adapt_input, static_cast<float>(viewing_ppd), IQM::HDRVDP3::FFTFilterMode::LocalAdaptation, fft_config, (export_dir / "ref_la_").string(),width64,height64)
             : throw std::logic_error("Quality API requires FFT preprocessing");
         auto test_adaptation = preprocessing == "fft"
-            ? compute_fft_filter_gpu(instance, test_adapt_input, static_cast<float>(viewing_ppd), IQM::HDRVDP3::FFTFilterMode::LocalAdaptation, fft_config, (export_dir / "test_la_").string())
+            ? compute_fft_filter_gpu(instance, test_adapt_input, static_cast<float>(viewing_ppd), IQM::HDRVDP3::FFTFilterMode::LocalAdaptation, fft_config, (export_dir / "test_la_").string(),width64,height64)
             : throw std::logic_error("Quality API requires FFT preprocessing");
 
         const float ref_reduction = gpu_maps?gpu_maps->pupil_trace(reference_adaptation,width64,height64,visual_area,observer_age)[3]:
@@ -662,7 +700,7 @@ std::cout << "JND transformed first pixel: "
                     inst, cdn, filter_coeffs, filter_size,
                     input_data, w, h, step, use_non_fma
                 );
-            }, (export_dir / "gpu_ref_band").string());
+            }, (export_dir / "gpu_ref_band").string(),pyramid_height);
 
                 // Convert test image to JND responses.
         std::vector<float> test_jnd_image(test_image.size());
@@ -698,7 +736,7 @@ std::cout << "JND transformed first pixel: "
                     inst, cdn, filter_coeffs, filter_size,
                     input_data, w, h, step, use_non_fma
                 );
-            }, (export_dir / "gpu_test_band").string()
+            }, (export_dir / "gpu_test_band").string(),pyramid_height
         );
 
         // Remove the DC component from the residual lowpass bands.
@@ -1109,7 +1147,9 @@ for (std::size_t b = 0; b < result.bands.size(); ++b) {
         const double base_ppd=IQM::HDRVDP3::compute_band_frequency(static_cast<int>(b)+1,viewing_ppd)*4;
         double freq;
         if(gpu_base_fft) {
-            const auto selection=gpu_maps->base_selection(gpu_maps->base_spectrum(difference,base_fft_env));
+            const auto selection=band.width==band.height?
+                gpu_maps->base_selection(gpu_maps->base_spectrum(difference,base_fft_env)):
+                gpu_maps->base_selection_rectangular(gpu_maps->base_spectrum_rectangular(difference,base_fft_env,band.width,band.height),band.width,band.height);
             freq=IQM::HDRVDP3::dominant_frequency_from_index(selection.index,band.width,band.height,base_ppd);
             std::ofstream(export_dir / "base_gpu_selection.txt") << selection.index+1 << '\n';
         } else freq=IQM::HDRVDP3::dominant_frequency(difference,band.width,band.height,base_ppd);
@@ -1185,4 +1225,16 @@ std::cout << "Q_err=" << scores.error << "\nQ=" << scores.Q << "\nQ_JOD=" << sco
 
     return {scores,std::move(band_errors)};
 }
+EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
+    const LuminanceImage& reference,const LuminanceImage& test,
+    const EvaluationOptions& options,const EvaluationTrace& trace) {
+    return evaluate_quality_impl(instance,reference,test,options,trace);
+}
+#ifdef IQM_HDRVDP3_DIMENSION_DIAGNOSTIC
+EvaluationResult diagnostic_quality_rectangular(const IQM::VulkanInstance& instance,
+    const LuminanceImage& reference,const LuminanceImage& test,
+    const EvaluationOptions& options,const EvaluationTrace& trace) {
+    return evaluate_quality_impl(instance,reference,test,options,trace);
+}
+#endif
 } // namespace IQM::HDRVDP3

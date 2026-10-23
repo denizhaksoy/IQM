@@ -38,7 +38,10 @@ struct EvaluationResult {
     std::vector<float> bandErrors;
 };
 // Synchronous quality path: positive finite top-down row-major cd/m^2 inputs,
-// equal square32/64 dimensions, ppd30/60, ages24/60/60.001. Explicit native
+// Equal square32/64 dimensions:ppd30/60,ages24/60/60.001.
+// Additionally128-square at30ppd/age24,withFFT ABI256,map ABI14,base FFT ABI82.
+// Additionally64x128/128x64 at30ppd/age24,withFFT ABI64256,map ABI16,base FFT ABI85.
+// Other128/rectangular viewing parameters remain rejected before dispatch. Explicit native
 // reference FFT and Vulkan map/base FFT assets are required. No environment
 // reads, synthetic generation, implicit IO conversion or automatic resizing.
 // Exceptions propagate to the caller. VulkanInstance must be used exclusively

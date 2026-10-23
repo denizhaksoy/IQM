@@ -8,6 +8,7 @@
 
 #include <IQM/hdrvdp3/corrdn.h>
 #include <IQM/hdrvdp3/local_adapt.h>
+#include <IQM/hdrvdp3/evaluation.h>
 #include "../../shared/vulkan.h"
 #include "../../shared/vulkan_res.h"
 #include "../../shared/io.h"
@@ -56,6 +57,14 @@ namespace IQM::Bin {
     };
 
     void hdrvdp3_test_run(const IQM::Bin::Args& args, const IQM::VulkanInstance& instance);
+    // Explicit FFT execution settings. Environment parsing belongs to the harness.
+    using HDRVDP3FFTConfig = IQM::HDRVDP3::FFTExecutionConfig;
+    std::vector<float> compute_fft_filter_gpu(const IQM::VulkanInstance& instance,
+        const std::vector<float>& input, float ppd, IQM::HDRVDP3::FFTFilterMode mode,
+        const HDRVDP3FFTConfig& config, const std::string& trace_prefix);
+    std::vector<float> compute_fft_filter_gpu(const IQM::VulkanInstance& instance,
+        const std::vector<float>& input, float ppd, IQM::HDRVDP3::FFTFilterMode mode,
+        const std::string& trace_prefix = "");
     HDRVDP3TestResources hdrvdp3_test_init_res(unsigned width, unsigned height, const IQM::VulkanInstance& instance);
     void hdrvdp3_test_upload(const IQM::VulkanInstance& instance, const HDRVDP3TestResources& res, const std::vector<float>& inputData);
     HDRVDP3TestResult hdrvdp3_test_copy_back(const IQM::VulkanInstance& instance, const HDRVDP3TestResources& res, unsigned outWidth, unsigned outHeight);

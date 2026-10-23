@@ -26,17 +26,28 @@ uint32_t pixels(int h,int w) {
         throw std::invalid_argument("Invalid GPU map dimensions");
     return uint32_t(h)*uint32_t(w);
 }
+bool rectangular_band(int h,int w) {
+    return ((h==8||h==16||h==32||h==64)&&w==2*h)||
+        ((w==8||w==16||w==32||w==64)&&h==2*w);
+}
 struct Push { uint32_t count,mode,width,height,out_width,out_height,taps,plan_offset; };
 }
 struct MapGPU::State {
     const IQM::VulkanInstance& instance;
+    const uint32_t abi;
     vk::raii::ShaderModule module=nullptr;
     vk::raii::DescriptorPool pool=nullptr;
     vk::raii::DescriptorSetLayout set_layout=nullptr;
     vk::raii::PipelineLayout layout=nullptr;
     vk::raii::Pipeline pipeline=nullptr;
-    State(const IQM::VulkanInstance& owner,const std::string& shader_path,uint32_t expected_abi=13):instance(owner) {
+    State(const IQM::VulkanInstance& owner,const std::string& shader_path,uint32_t expected_abi=13):instance(owner),abi(expected_abi) {
         const auto& device=*instance.device();
+        if(expected_abi==14||expected_abi==15||expected_abi==16||expected_abi==82||expected_abi==85){
+            const auto properties=instance.physicalDevice()->getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();
+            const auto& controls=properties.get<vk::PhysicalDeviceFloatControlsProperties>();
+            if(!controls.shaderDenormPreserveFloat32||!controls.shaderRoundingModeRTEFloat32)
+                throw std::invalid_argument("Extended reference shader requires Float32 preserve/RTE controls");
+        }
         std::ifstream file(shader_path,std::ios::binary|std::ios::ate);
         auto bytes=file.tellg(); if(bytes<=0||bytes%4) throw std::runtime_error("Invalid map shader");
         std::vector<uint32_t> code(static_cast<size_t>(bytes)/4); file.seekg(0);
@@ -106,7 +117,11 @@ struct MapGPU::State {
         return execute(words,{pixels(nh,nw),horizontal?0u:1u,uint32_t(w),uint32_t(h),uint32_t(nw),uint32_t(nh),uint32_t(plan.taps),offset});
     }
 };
-MapGPU::MapGPU(const IQM::VulkanInstance& instance,const std::string& shader_path):state(std::make_unique<State>(instance,shader_path)){}
+MapGPU::MapGPU(const IQM::VulkanInstance& instance,const std::string& shader_path,MapGPUProfile profile) {
+    if(profile!=MapGPUProfile::Bounded&&profile!=MapGPUProfile::Extended128Components&&profile!=MapGPUProfile::RectangularResiduals&&profile!=MapGPUProfile::RectangularMaps)
+        throw std::invalid_argument("Unknown GPU map profile");
+    state=std::make_unique<State>(instance,shader_path,uint32_t(profile));
+}
 MapGPU::~MapGPU()=default;
 std::vector<float> MapGPU::resize(const std::vector<float>& input,int h,int w,int nh,int nw) {
     if(input.size()!=pixels(h,w)) throw std::invalid_argument("GPU resize input shape mismatch"); pixels(nh,nw);
@@ -224,22 +239,22 @@ std::vector<double> MapGPU::comparison_mask(const std::vector<float>& reference,
     return std::vector<double>(values.begin(),values.end());
 }
 std::vector<float> MapGPU::remove_residual_dc(const std::vector<float>& input) {
-    if(input.size()!=64) throw std::invalid_argument("GPU residual DC currently requires64 samples");
+    if(input.size()!=64&&!(state->abi==14&&input.size()==256)&&!((state->abi==15||state->abi==16)&&(input.size()==128||input.size()==256))) throw std::invalid_argument("Unvalidated GPU residual sample count");
     int minimum=1000,maximum=-1000; std::vector<uint32_t> words;
     for(float value:input) {
         if(!std::isfinite(value)) throw std::invalid_argument("Nonfinite GPU residual");
         if(value!=0.0f) { const int e=std::ilogb(std::abs(value)); minimum=std::min(minimum,e); maximum=std::max(maximum,e); }
         words.push_back(std::bit_cast<uint32_t>(value));
     }
-    // At most24+16+6=46 significant bits in any partial sum. Native double
+    // At most24+16+log2(count)=46..48 significant bits. Native double
     // summation is exact in this domain; the compensated float pair retains it.
     // Restrict exponents so additions/subtractions cannot flush subnormals.
     if(maximum!=-1000&&(maximum-minimum>16||minimum < -90||maximum>100))
         throw std::invalid_argument("GPU DC input exceeds validated exponent domain");
-    return state->execute(words,{64,19,0,0,0,0,0,0});
+    const auto n=uint32_t(input.size());return state->execute(words,{n,19,n,0,0,0,0,0});
 }
 std::array<float,2> MapGPU::base_adaptation(const std::vector<float>& input) {
-    if(input.size()!=64) throw std::invalid_argument("GPU base adaptation currently requires64 samples");
+    if(input.size()!=64&&!(state->abi==14&&input.size()==256)&&!((state->abi==15||state->abi==16)&&(input.size()==128||input.size()==256))) throw std::invalid_argument("Unvalidated GPU base adaptation sample count");
     int minimum=1000,maximum=-1000; std::vector<uint32_t> words;
     for(float value:input) {
         if(!std::isfinite(value)||value < -5.0f||value > 5.0f)
@@ -247,30 +262,35 @@ std::array<float,2> MapGPU::base_adaptation(const std::vector<float>& input) {
         if(value!=0.0f) { const int e=std::ilogb(std::abs(value)); minimum=std::min(minimum,e); maximum=std::max(maximum,e); }
         words.push_back(std::bit_cast<uint32_t>(value));
     }
-    // The exact sum needs at most46 bits. Power-of-two division and a single
+    // The exact sum needs at most46..48 bits. Power-of-two division and a single
     // rounding reproduce Octave's double accumulation of single inputs.
     if(maximum!=-1000&&(maximum-minimum>16||minimum < -90))
         throw std::invalid_argument("GPU base adaptation exceeds validated exponent domain");
-    const auto values=state->execute(words,{2,20,0,0,0,0,0,0});
+    const auto values=state->execute(words,{2,20,uint32_t(input.size()),0,0,0,0,0});
     return {values[0],values[1]};
 }
 std::vector<double> MapGPU::resize_comparison_mask(const std::vector<double>& input,int h,int w,int nh,int nw) {
-    if(h!=w||(h!=32&&h!=64)||nh!=nw||nh>h||(nh!=8&&nh!=16&&nh!=32&&nh!=64)||input.size()!=size_t(h)*w)
+    const bool square=h==w&&(h==32||h==64||(state->abi==14&&h==128))&&nh==nw&&nh<=h&&
+        (nh==8||nh==16||nh==32||nh==64||(state->abi==14&&nh==128));
+    const bool rectangle=state->abi==16&&((h==64&&w==128)||(h==128&&w==64))&&
+        rectangular_band(nh,nw)&&nh<=h&&nw<=w&&nh*w==nw*h;
+    if((!square&&!rectangle)||input.size()!=size_t(h)*w)
         throw std::invalid_argument("Unvalidated GPU binary mask resize dimensions");
     std::vector<uint32_t> words;
     for(double v:input) {
         if(v!=0.0&&v!=1.0) throw std::invalid_argument("GPU comparison resize requires binary mask");
         words.push_back(v==1.0?1u:0u);
     }
-    auto append_plan=[](std::vector<uint32_t>& packed,const ResizeAxisPlan& plan,int n) {
+    const int fraction_bits=state->abi==13?16:20;
+    auto append_plan=[fraction_bits](std::vector<uint32_t>& packed,const ResizeAxisPlan& plan,int n) {
         for(int d=0;d<n;++d) {
             if(plan.normalization[d]!=1.0) throw std::invalid_argument("GPU mask resize requires unit normalization");
             double absolute_sum=0;
             for(int t=0;t<plan.taps;++t) {
                 const auto i=size_t(d)*plan.taps+t; const double weight=plan.weights[i];
-                const double fixed=std::ldexp(weight,16); absolute_sum+=std::abs(weight);
-                if(!std::isfinite(fixed)||fixed!=std::trunc(fixed)||std::abs(fixed)>131072.0)
-                    throw std::invalid_argument("GPU mask resize requires exact Q16 weights");
+                const double fixed=std::ldexp(weight,fraction_bits); absolute_sum+=std::abs(weight);
+                if(!std::isfinite(fixed)||fixed!=std::trunc(fixed)||std::abs(fixed)>std::ldexp(2.0,fraction_bits))
+                    throw std::invalid_argument("GPU mask resize requires exact fixed-point weights");
                 packed.push_back(uint32_t(plan.indices[i]));
                 packed.push_back(std::bit_cast<uint32_t>(static_cast<int32_t>(fixed)));
             }
@@ -304,7 +324,8 @@ std::vector<std::array<float,5>> MapGPU::base_csf_parameters(const std::vector<f
     return result;
 }
 BaseSelectionGPU MapGPU::base_selection(const std::vector<float>& input) {
-    if(input.size()!=128) throw std::invalid_argument("GPU base selection requires8x8 complex spectrum");
+    if(input.size()!=128&&!(state->abi==14&&input.size()==512)) throw std::invalid_argument("Unvalidated GPU base spectrum shape");
+    const uint32_t n=input.size()==128?8:16,count=n*n;
     std::vector<uint32_t> words;
     for(float value:input) {
         if(!std::isfinite(value)) throw std::invalid_argument("Nonfinite GPU base spectrum");
@@ -312,22 +333,48 @@ BaseSelectionGPU MapGPU::base_selection(const std::vector<float>& input) {
             throw std::invalid_argument("GPU base spectrum exceeds validated exponent domain");
         words.push_back(std::bit_cast<uint32_t>(value));
     }
-    auto values=state->execute(words,{65,21,0,0,0,0,0,0});
-    const auto index=std::bit_cast<uint32_t>(values[64]); values.resize(64);
+    auto values=state->execute(words,{count+1,21,n,(state->abi==15||state->abi==16)?n:0u,0,0,0,0});
+    const auto index=std::bit_cast<uint32_t>(values[count]); values.resize(count);
     return {std::move(values),index};
 }
 std::vector<float> MapGPU::base_spectrum(const std::vector<float>& input,const std::string& shader_path) {
-    if(input.size()!=64) throw std::invalid_argument("GPU base FFT currently requires8x8 input");
-    std::vector<uint32_t> words(256,0);
+    if(input.size()!=64&&!(state->abi==14&&input.size()==256)) throw std::invalid_argument("Unvalidated GPU base FFT shape");
+    const auto count=uint32_t(input.size());std::vector<uint32_t> words(4*count,0);
     for(size_t i=0;i<input.size();++i) {
         if(!std::isfinite(input[i])) throw std::invalid_argument("Nonfinite GPU base FFT input");
         words[2*i]=std::bit_cast<uint32_t>(input[i]);
     }
-    State fft(state->instance,shader_path,81);
-    // FFT probe ABI uses the first16 push bytes: n(unused), batches=1,
-    // graph(unused), fused(unused). Output is128 interleaved pairs with padding.
-    auto result=fft.execute(words,{256,1,0,0,0,0,0,0});
-    result.resize(128); return result;
+    State fft(state->instance,shader_path,count==64?81:82);
+    // FFT ABI uses the first16 push bytes:n(unused),batches=1,reserved graph/fused.
+    // Buffer has4*count scalar words;the first2*count hold the complex spectrum.
+    auto result=fft.execute(words,{4*count,1,0,0,0,0,0,0});
+    result.resize(2*count); return result;
+}
+BaseSelectionGPU MapGPU::base_selection_rectangular(const std::vector<float>& input,unsigned width,unsigned height) {
+    if((state->abi!=15&&state->abi!=16)||!((width==8&&height==16)||(width==16&&height==8))||input.size()!=256)
+        throw std::invalid_argument("Unvalidated rectangular GPU base spectrum shape/profile");
+    std::vector<uint32_t> words;
+    for(float value:input){
+        if(!std::isfinite(value))throw std::invalid_argument("Nonfinite rectangular base spectrum");
+        if(value!=0&&(std::ilogb(std::abs(value)) < -90||std::ilogb(std::abs(value))>100))
+            throw std::invalid_argument("Rectangular base spectrum exceeds validated exponent domain");
+        words.push_back(std::bit_cast<uint32_t>(value));
+    }
+    auto values=state->execute(words,{129,21,width,height,0,0,0,0});
+    const auto index=std::bit_cast<uint32_t>(values[128]);values.resize(128);
+    return {std::move(values),index};
+}
+std::vector<float> MapGPU::base_spectrum_rectangular(const std::vector<float>& input,const std::string& shader_path,unsigned width,unsigned height) {
+    if((state->abi!=15&&state->abi!=16)||!((width==8&&height==16)||(width==16&&height==8))||input.size()!=128)
+        throw std::invalid_argument("Unvalidated rectangular GPU base FFT shape/profile");
+    std::vector<uint32_t> words(512,0);
+    for(size_t i=0;i<input.size();++i){
+        if(!std::isfinite(input[i]))throw std::invalid_argument("Nonfinite rectangular base FFT input");
+        words[2*i]=std::bit_cast<uint32_t>(input[i]);
+    }
+    State fft(state->instance,shader_path,85);
+    // First16push bytes:n=outputwords,batches=1,graph=width,fused=height.
+    auto result=fft.execute(words,{512,1,width,height,0,0,0,0});result.resize(256);return result;
 }
 std::vector<JNDResponseSingle> MapGPU::jnd_response(const std::vector<float>& luminance,const JNDLUT& lut,float pupil_reduction,const std::array<double,3>& matrix) {
     if(luminance.empty()||luminance.size()>std::numeric_limits<uint32_t>::max()/52)
@@ -364,7 +411,8 @@ MaskingMapsGPU MapGPU::mutual_masking(const std::vector<float>& reference,const 
     if(reference.size()!=count||test.size()!=count) throw std::invalid_argument("GPU masking shape mismatch");
     // Native Octave conv2's accumulation dispatch is pinned only for these
     // square pyramid bands; other shapes need their own validation.
-    if(h!=w || (h!=8&&h!=16&&h!=32&&h!=64)) throw std::invalid_argument("Unvalidated GPU masking dimensions");
+    const bool square=h==w&&(h==8||h==16||h==32||h==64||(state->abi==14&&h==128));
+    if(!square&&!(state->abi==16&&rectangular_band(h,w))) throw std::invalid_argument("Unvalidated GPU masking dimensions");
     int exponent=0;
     if(!std::isfinite(normalization)||normalization<1||normalization>16||std::frexp(normalization,&exponent)!=0.5f)
         throw std::invalid_argument("GPU masking requires power-of-two normalization");

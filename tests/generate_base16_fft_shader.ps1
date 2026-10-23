@@ -1,5 +1,5 @@
 # GPL-2.0-or-later FFTW arithmetic graphs; isolated residual16 diagnostic.
-param([Parameter(Mandatory=$true)][string]$OutputDirectory)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[switch]$MapABI)
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $OutputDirectory){throw 'Fresh output required'}
 New-Item -ItemType Directory -Path $OutputDirectory|Out-Null
@@ -59,5 +59,16 @@ void main(){
     dst.value[batch*769u+768u]=float(selected);
 }
 '@
+if($MapABI){
+    $shader=$shader.Replace('layout(local_size_x=32) in;',"layout(local_size_x=32) in;`nlayout(constant_id=31) const uint base_fft_abi=82u;")
+    $shader=$shader.Replace('void main(){','void main(){ if(base_fft_abi!=82u)return;')
+    $begin=$shader.IndexOf('    for(uint i=0u;i<256u;++i){dst.value')
+    if($begin -lt 0){throw 'Missing spectrum export'}
+    $shader=$shader.Substring(0,$begin)+@'
+    for(uint i=0u;i<256u;++i){dst.value[batch*1024u+2u*i]=spectrum[i].x;dst.value[batch*1024u+2u*i+1u]=spectrum[i].y;}
+    for(uint i=512u;i<1024u;++i)dst.value[batch*1024u+i]=0;
+}
+'@
+}
 [IO.File]::WriteAllText("$OutputDirectory/base16.comp",$shader,[Text.UTF8Encoding]::new($false))
 Copy-Item "$PSScriptRoot/fftw_reference/COPYING" "$OutputDirectory/COPYING"

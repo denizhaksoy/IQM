@@ -7,3 +7,13 @@ shaders_out/***/*.inc
 *.spv
 .directory
 /build/
+
+# Local build and numerical validation artifacts (retain on disk).
+/build-vs2026/
+/build-hdrvdp3/
+/validation/
+/CMakeFiles/
+/CMakeCache.txt
+/*.obj
+/*.exe
+/*.log
