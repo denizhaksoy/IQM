@@ -1,5 +1,6 @@
 param([Parameter(Mandatory=$true)][string]$Executable,
- [Parameter(Mandatory=$true)][string]$OutputDirectory)
+ [Parameter(Mandatory=$true)][string]$OutputDirectory,
+ [switch]$CLI,[switch]$RepresentativeOnly)
 $ErrorActionPreference='Stop'
 $exe=(Resolve-Path -LiteralPath $Executable).Path
 if(Test-Path -LiteralPath $OutputDirectory){throw 'Fresh application validation directory required'}
@@ -17,6 +18,7 @@ foreach($side in @(32,64,128)){
  $cases+=[pscustomobject]@{name="square$side";reference=$ref;test=$test;golden=$gold;runtime=$runtime;expected=$(if($side -eq 32){96}else{107})}
 }
 foreach($shape in @('h64_w128','h128_w64')){foreach($pattern in @('asymmetric_localized','impulse_localized','hdr_ramp_localized','asymmetric_identity')){
+ if($RepresentativeOnly -and $pattern -ne 'asymmetric_localized'){continue}
  $name="${shape}_$pattern"
  if($pattern -eq 'asymmetric_localized'){$native="$maps/native_quality_$shape";$gold="$maps/full_fixed_$shape"}
  else{$native="$stress/native_$name";$gold="$stress/gpu_$name"}
@@ -30,7 +32,14 @@ foreach($case in $cases){
  $env:IQM_PIX_PER_DEGREE='30';$env:IQM_OBSERVER_AGE='24'
  # File dimensions and explicit runtime must override stale synthetic settings.
  $env:IQM_SPYR_SIZE='invalid_synthetic_setting';$env:IQM_FFT_BACKEND='invalid_legacy_setting'
- $ErrorActionPreference='Continue';& $exe --method HDRVDP3 --enable-validation *> "$root/$($case.name).log";$code=$LASTEXITCODE;$ErrorActionPreference='Stop'
+ $arguments=@('--method','HDRVDP3','--enable-validation')
+ if($CLI){
+  $arguments+=@('--input',$case.test,'--ref',$case.reference,'--hdrvdp3-runtime',$case.runtime,'--hdrvdp3-spectral-data',"$assets/spectral",'--hdrvdp3-export',"$root/export_$($case.name)")
+  $env:IQM_LUMINANCE_REFERENCE='invalid_environment';$env:IQM_LUMINANCE_TEST='invalid_environment'
+  $env:IQM_QUALITY_RUNTIME='invalid_environment';$env:IQM_SPECTRAL_DATA='invalid_environment'
+  $env:IQM_PIX_PER_DEGREE='invalid_environment';$env:IQM_OBSERVER_AGE='invalid_environment'
+ }
+ $ErrorActionPreference='Continue';& $exe @arguments *> "$root/$($case.name).log";$code=$LASTEXITCODE;$ErrorActionPreference='Stop'
  $log=[IO.File]::ReadAllText("$root/$($case.name).log")
  if($code -or $log -match 'VUID-|Validation Error|\[ERROR\]|ERROR in'){throw "Application quality failed:$($case.name)"}
  $match=[regex]::Match($log,'Quality export directory: ([^\r\n]+)')
@@ -42,9 +51,10 @@ foreach($case in $cases){
   ++$same
  }
  if($same -ne $case.expected){throw 'Incomplete application export'}
- $records+=[ordered]@{case=$case.name;export=$export;numeric_export_hashes_equal=$same;quality_file_bitwise_equal=$true;runtime=$case.runtime}
+ $records+=[pscustomobject][ordered]@{case=$case.name;export=$export;numeric_export_hashes_equal=$same;quality_file_bitwise_equal=$true;runtime=$case.runtime}
  $records|ConvertTo-Json|Set-Content "$root/results.json"
  Write-Output "Application exact:$($case.name),$same exports"
 }
 Get-FileHash -LiteralPath $exe,$PSCommandPath|Select-Object Path,Hash|ConvertTo-Json|Set-Content "$root/hashes.json"
-Set-Content "$root/PASS.txt" '11 application PFM pairs preserve1166 numerical exports and exact quality files.'
+$total=($records|Measure-Object numeric_export_hashes_equal -Sum).Sum
+Set-Content "$root/PASS.txt" "$($records.Count) application PFM pairs preserve$total numerical exports and exact quality files;CLI=$CLI."

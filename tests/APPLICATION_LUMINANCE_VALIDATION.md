@@ -1,5 +1,9 @@
 # Application luminance-file quality entry
 
+The same application entry now also supports explicit command-line input,
+runtime and viewing options. See [the CLI checkpoint](CLI_QUALITY_VALIDATION.md).
+The environment-based instructions below remain supported.
+
 Accepted2026-10-23 checkpoint:
 `validation/rectangular_app_639283313608789740`;
 completed pointer `validation/rectangular_app_completed_path.txt`.

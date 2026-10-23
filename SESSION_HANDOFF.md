@@ -2,6 +2,98 @@
 
 Last updated: 2026-10-23 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation: publish the explicit CLI checkpoint
+
+- User explicitly requested committing and pushing the completed CLI work
+  before starting general image dimensions. Scope is11 paths listed in
+  validation/quality_cli_639283326163455781/publish_paths.txt:CLI parser/types,
+  main/help,quality wrapper,parser test,CMake test target,application replay
+  driver andthree validation documents plus this handoff.
+- Validated source/binary SHA256 hashes were checked unchanged before
+  publication. Parser rerun passes5valid/22invalid cases. Prior numerical
+  results remain524 CLI hashes,96legacy hashes,95minimal-default hashes and
+  six exact native validators for64square60ppd/age60.001. No extra native run
+  or numerical change is claimed in this publication session.
+- origin/feature/hdr-vdp3 was fetched with --no-recurse-submodules and matched
+  the local parent before the CLI commit. Publication uses scoped staging and
+  commit --only;the independently staged shader blob
+  1cf7baedb1d54be0ca8ad02d14485e510b0434e7 anddirtyVkFFT remain excluded.
+- Actual commit ID,push outcome andremote HEAD verification are recorded in
+  validation/quality_cli_639283326163455781/publication_result.json. Historical
+  local-only status in the earlier CLI development entry is superseded by
+  that publication record. Noforcepush/reset/clean orsubmodulecommit.
+
+Exact next step after successful publication: begin the general-dimension
+frontier using official3.0.7 references,starting with dimension/padding/FFT
+planning equivalence. Keep current bounded CLI/API regression acceptance
+intact;do not silently lift guards or claim arbitrary-image parity. Portable
+quickstart fixtures andRGB conversion remain separate usability work.
+
+## Latest continuation: explicit luminance quality CLI
+
+- Checkpoint:validation/quality_cli_639283326163455781;
+  active/completed pointers validation/quality_cli_{active,completed}_path.txt.
+  New CLI work is local,not committed/pushed;previous publication remains
+  b3d23f2/febbf05. Original staged shader,dirtyVkFFT andexcludedchanges retained.
+- Args adds optional HDRVDP3QualityArgs withruntime/spectral/export directories,
+  ppd(default30),age(default24). --input TEST.pfm --ref REFERENCE.pfm plus
+  --hdrvdp3-runtime selects explicitfilequality. Optional --hdrvdp3-ppd,-age,
+  -spectral-data,-export mapped directly toexisting evaluate_quality. Noquality
+  environmentread onCLIpath. Existingenv/syntheticpaths preserved. Helpupdated.
+- Parser rejects missingpair/runtime,malformed/nonfinite/unsupportednumbers,
+  missingvalues,duplicate/unknownHDRflags,HDRflags onothermethods,--outputimage
+  withquality,andnondefaultage withoutspectraldata beforeVulkansetup. Numeric
+  parsing consumesfullstring. New verify_hdrvdp3_args test:5valid+22invalid,
+  includinglegacyHDRsynthetic andPSNRgenericoptions. Fourrealexecutableparse
+  rejects andhelp confirmnoGPUsetup. Existingexportsentinel andunsupported
+  rectangle60ppd rejectwithoutqualitydispatch/overwrite.
+- CLIwrapperloadsPFMs,selectsFFTfilename bydimensions,usesexplicitpackage,
+  typedviewing/spectralparameters,freshoptionalexportdir. Libraryengine/shaders
+  unchanged. main/header/Args/wrapper plusindependentCMakeargstest arechanged.
+  Fresh build incheckpoint/build,Release,applicationON/diagnosticsOFF,succeeded
+  afterMSBuildapproved escalation. Frozenexe/argstest/sourcehashes preserved.
+- Five supportedshapes(32/64/128square,bothrectangles) CLIreplays preserve524
+  numericalexporthashes andexactqualityfiles,withinvalid legacyenvpaths/runtime/
+  spectral/ppd/age settings deliberatelypoisoned. Driver nowhas -CLI and
+  -RepresentativeOnly switches;normal11-caseenvpath behavior retained.
+- Runnerfinalsummaryinitiallyfailed:ordered dictionarieswerenotpropertyobjects
+  forMeasure-Object. All5 casesalreadycompletedandJSONrecordswerevalid. Fixed
+  records toPSCustomObject;checkedsummary arithmetic,andfinalizedPASSfromthe
+  completeJSON(524). NoGPUTest rerun/relabel/tolerancechange;failedsessionoutput
+  recordedinnotes. Legacy32envcall separatelypreserves96hashes. MinimalCLI32
+  withnooptionalflags preserves95hashes (extra spectral_source provenance tag
+  excluded:legacyage24versusrawD65);automaticfreshdirectory/constantD65works.
+- Additional64square at60ppd/age60.001 usingexplicitrawD65 passes6exactnative
+  validators:preprocessing,SPYR,CSF,masking,D,officialquality. Q9.7612190246582031,
+  JOD9.9169960021972656. Acceptedlogs view60_age60p001_default_plans_* andstage
+  resultsJSON. CopiedfrozenGPUexporttonewdiagnosticdirbeforenativerevalidation,
+  preservingoriginalcomputedreferencefiles. NotasecondGPUexecution.
+- Importantfailedoracleprotocol:initiallyusedrectangularsix-checkdriveronthis
+  squarecase;its--fresh-fft-plans resetwisdomandcaused17,576 preprocessingstage
+  mismatches. Establishedsquaredefaultplanprotocol thenmatchesexactly,including
+  officialQ/JOD,withoutchangingGPUoutputs/assertions. Initialfailednative/logs
+  retainedunder view60_age60p001_native andoriginalexport. Neverclaimsresetplan
+  resultsaspass;FFTWplanning/alignmentconditionsremainparityscope.
+- Initialbuildattemptincorrectlytargetedoldsource-snapshotbuildandhitMSBuild
+  sandboxfailure beforecompile. old_snapshot_build.log notatestpass. Allaccepted
+  CLIexecutionsusefreshcurrent-sourcecheckpoint/build aftersuccessfullink.
+- Scope:positiveFloat32PFMabsolute luminance,topdownrowmajorAPI,30ppd/age24for
+  extendedsizes;newviewcase64square60ppd/age60.001;D65calibration/constants,
+  localIntelArc,nativeOctave3threads/estimatewithestablishedper-shapeFFTplan
+  protocol. Padding/layout/DC/inversenormalization unchangedfromearliercheckpoints.
+  NoRGB/general-dimension/otherdevice/signedzero-bitparityclaim.
+- Docs:tests/CLI_QUALITY_VALIDATION.md,APPLICATION_LUMINANCE_VALIDATION.md,
+  MASKING_QUALITY_VALIDATION.md. Build:independent project applicationON then
+  targetsIQM-hdrvdp3/IQM-hdrvdp3-args-test. Minimalcommand:IQM-hdrvdp3 --method
+  HDRVDP3 --input test.pfm --ref reference.pfm --hdrvdp3-runtime matchingruntime.
+
+Exact next step: make a portable quickstart/smoke fixture workflow that generates
+small deterministic luminance PFMs andmatchingruntimepackages without depending
+on historical validation/checkpointpaths;documenthowtoobtainofficialnative
+oracle separately. Keep CLI/library arithmeticunchanged. Rootmulti-metricCMake
+cleanup,arbitrarydimensions,RGBandotherGPUcoverage remainseparate. Commit/push
+thisnewCLIcheckpoint onlywhenrequested;thepriorpublicationdoesnotcontainit.
+
 ## Latest continuation: reviewed checkpoint committed and pushed
 
 - User explicitly requested commit and push. The prepared102-file scope is

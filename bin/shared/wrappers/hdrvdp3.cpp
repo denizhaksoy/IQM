@@ -710,7 +710,29 @@ static void run_spyr_level1_test(
 static HDRVDP3FFTConfig fft_config_from_environment(unsigned side);
 
 static void run_quality_inputs(const VulkanInstance& instance);
+static void run_quality_cli(const Args& args,const VulkanInstance& instance) {
+    const auto& cli=*args.hdrvdp3Quality;
+    const auto reference=IQM::HDRVDP3::load_luminance_pfm(args.refPath);
+    const auto test=IQM::HDRVDP3::load_luminance_pfm(args.inputPath);
+    const std::filesystem::path runtime(cli.runtimeDirectory);
+    IQM::HDRVDP3::EvaluationOptions options;
+    options.pixelsPerDegree=cli.pixelsPerDegree;options.observerAge=cli.observerAge;
+    options.fft.columnFirst=true;
+    const auto fft=reference.width==reference.height&&(reference.width==32||reference.width==64)?
+        "fft"+std::to_string(reference.width)+".spv":"fft.spv";
+    options.fft.referenceShaderPath=(runtime/fft).string();
+    options.fft.referenceMathDirectory=(runtime/"math").string();
+    options.mapShader=runtime/"map.spv";options.baseFFTShader=runtime/"base.spv";
+    if(cli.spectralDirectory)options.spectralDataDirectory=*cli.spectralDirectory;
+    const auto output=cli.exportDirectory?std::filesystem::path(*cli.exportDirectory):
+        std::filesystem::path("validation")/("quality_cli_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count()));
+    const auto result=IQM::HDRVDP3::evaluate_quality(instance,reference,test,options,
+        IQM::HDRVDP3::EvaluationTrace{output,"pfm_absolute_luminance","file","file"});
+    std::cout<<std::setprecision(17)<<"Quality API returned Q="<<result.scores.Q<<" Q_JOD="<<result.scores.Q_JOD<<'\n';
+    std::cout<<"Quality export directory: "<<std::filesystem::absolute(output).string()<<'\n';
+}
 void hdrvdp3_test_run(const Args& args, const VulkanInstance& instance) {
+    if(args.hdrvdp3Quality){run_quality_cli(args,instance);return;}
     // Explicit luminance files are a quality request; unrelated component
     // diagnostics remain in the historical synthetic entry point.
     if(const char* path=std::getenv("IQM_LUMINANCE_REFERENCE");path&&*path){

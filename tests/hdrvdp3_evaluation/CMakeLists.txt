@@ -87,6 +87,11 @@ add_executable(IQM-quality-api-test "${IQM_ROOT}/tests/evaluate_quality_api.cpp"
 target_include_directories(IQM-quality-api-test PRIVATE "${IQM_ROOT}/bin/IQM")
 target_link_libraries(IQM-quality-api-test PRIVATE iqm_bounded_evaluation)
 if(IQM_HDRVDP3_BUILD_APPLICATION)
+    add_executable(IQM-hdrvdp3-args-test "${IQM_ROOT}/tests/verify_hdrvdp3_args.cpp" "${IQM_ROOT}/bin/IQM/args.cpp")
+    target_include_directories(IQM-hdrvdp3-args-test PRIVATE "${IQM_ROOT}/bin/IQM")
+    if(MSVC)
+        target_compile_options(IQM-hdrvdp3-args-test PRIVATE /EHsc)
+    endif()
     add_executable(IQM-hdrvdp3
         "${IQM_ROOT}/bin/IQM/main.cpp" "${IQM_ROOT}/bin/IQM/args.cpp"
         "${IQM_ROOT}/bin/IQM/file_matcher.cpp" "${IQM_ROOT}/bin/IQM/vulkan_instance.cpp"

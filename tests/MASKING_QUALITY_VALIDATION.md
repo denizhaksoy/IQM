@@ -1,5 +1,10 @@
 # Masking and quality validation
 
+2026-10-23 explicit CLI: PFM pair,runtime,ppd,age,spectral data and fresh export
+can be supplied directly. Five supported shapes preserve524 export hashes with
+poisoned legacy settings;22 parser rejections and a60ppd/age60.001 full native
+check pass. See [CLI checkpoint](CLI_QUALITY_VALIDATION.md).
+
 2026-10-23 publish preparation: a selected-source snapshot with clean VkFFT
 builds the API and optional application target,regenerates19 pinned shaders,
 preserves620 smoke export hashes and passes35 rejection checks. Root multi-metric
