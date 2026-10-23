@@ -2,6 +2,33 @@
 
 Last updated: 2026-10-23 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest continuation: reviewed checkpoint committed and pushed
+
+- User explicitly requested commit and push. The prepared102-file scope is
+  committed as febbf05a03d2494d81a4bbb94a07aeb0fa827df7,
+  "Extend bounded HDR-VDP-3 quality and luminance application input".
+- Normal push to origin/feature/hdr-vdp3 succeeded (11797c1..febbf05),including
+  five earlier local FFT128/256 validation commits. No force push or history
+  rewrite. Commit paths were checked against selected_paths.txt exactly.
+- Original staged hdrvdp3_corrdn_test.glsl blob
+  1cf7baedb1d54be0ca8ad02d14485e510b0434e7 remains staged,with its unstaged
+  changes intact. Dirty VkFFT and other excluded working/untracked files remain
+  local. Only explicitly selected paths were committed;no add-all/reset/clean.
+- This publication record is a separate documentation-only follow-up. Evidence
+  and remote verification are recorded under
+  validation/publish_prepare_639283319336040304/publication_result.json.
+- Numerical acceptance is unchanged:clean selected-source API/application
+  builds,19 regenerated pinned shaders,620 smoke export hashes and35 rejection
+  checks. These are prior measured results,not rerun during publication.
+- A first scoped staging command stopped on harmless LF/CRLF warnings because
+  PowerShell treated native stderr as terminating. Staging had completed;the
+  successful scoped commit used exit-code checks. No source or index content
+  was reset,and the independently staged shader was verified afterward.
+
+Exact next step: resume normal CLI luminance PFM/runtime/viewing arguments using
+the same explicit API. The supported clean build and remaining RGB/general-size/
+root-multi-metric limitations are documented in tests/PUBLISH_READINESS.md.
+
 ## Latest continuation: selected-source publish preparation
 
 - User agreed to prepare a scoped GitHub checkpoint before more CLI work.
