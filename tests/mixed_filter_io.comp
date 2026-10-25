@@ -1,0 +1,14 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {float value[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {float value[];} dst;
+layout(push_constant) uniform Push {uint mode,h,w,count;} p;
+// MATH_HELPERS
+void main(){
+ uint i=gl_GlobalInvocationID.x;if(i>=p.count)return;
+ if(p.mode==4u){float f=src.value[2u*p.count+i];dst.value[2u*i]=exactProduct(src.value[2u*i],f);dst.value[2u*i+1u]=exactProduct(src.value[2u*i+1u],f);return;}
+ if(p.mode<=1u){uint H=2u*p.h,W=2u*p.w,y=i%H,x=i/H;
+  uint sy=p.mode==0u?(y<p.h?y:H-1u-y):min(y,p.h-1u),sx=p.mode==0u?(x<p.w?x:W-1u-x):min(x,p.w-1u);
+  float v=src.value[sy*p.w+sx];dst.value[2u*i]=p.mode==0u?v:accurateLog(max(v,1e-6));dst.value[2u*i+1u]=0;return;}
+ uint y=i/p.w,x=i%p.w;float v=src.value[2u*(x*(2u*p.h)+y)];dst.value[i]=p.mode==2u?clamp(v,1e-5,1e10):accurateExp(v);
+}

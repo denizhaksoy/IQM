@@ -1,0 +1,16 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint words[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint words[];} dst;
+layout(push_constant) uniform Push {uint count,mode,w,h,nw,nh,taps,offset;} p;
+// DIVIDE_HELPER
+void main(){
+ uint i=gl_GlobalInvocationID.x;if(i>=p.count)return;
+ if(p.mode==0u){float r=uintBitsToFloat(src.words[i]),t=uintBitsToFloat(src.words[p.w*p.h+i]);precise float d=t-r;dst.words[i]=uint(divide_finite(abs(d),r)>0.001);return;}
+ uint x=i%p.nw,y=i/p.nw;
+ if(p.mode==1u){int sum=0;for(uint k=0u;k<p.taps;++k){uint q=p.offset+2u*(x*p.taps+k);sum+=int(src.words[y*p.w+src.words[q]])*int(src.words[q+1u]);}dst.words[i]=uint(sum);return;}
+ uvec2 sum=uvec2(0u);for(uint k=0u;k<p.taps;++k){uint q=p.offset+2u*(y*p.taps+k);int hi,lo;imulExtended(int(src.words[src.words[q]*p.w+x]),int(src.words[q+1u]),hi,lo);uint lower=sum.x+uint(lo);sum=uvec2(lower,sum.y+uint(hi)+uint(lower<sum.x));}
+ uint sign=sum.y&0x80000000u;if(sign!=0u){uint lower=~sum.x+1u;sum=uvec2(lower,~sum.y+uint(lower==0u));}
+ uvec2 bits=uvec2(0u);if((sum.x|sum.y)!=0u){int top=sum.y!=0u?32+findMSB(sum.y):findMSB(sum.x);uint shift=uint(52-top);uvec2 mantissa;if(shift==0u)mantissa=sum;else if(shift<32u)mantissa=uvec2(sum.x<<shift,(sum.y<<shift)|(sum.x>>(32u-shift)));else mantissa=uvec2(0u,sum.x<<(shift-32u));bits=uvec2(mantissa.x,(mantissa.y&0xfffffu)|(uint(top-40+1023)<<20)|sign);}
+ dst.words[2u*i]=bits.x;dst.words[2u*i+1u]=bits.y;
+}

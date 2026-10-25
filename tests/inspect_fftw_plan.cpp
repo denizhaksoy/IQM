@@ -250,6 +250,163 @@ static int inverse256_axis(const std::filesystem::path& source,const std::filesy
     std::cout<<"axis0 subnormal_only_differences="<<subnormal_differences<<" max="<<std::setprecision(17)<<maximum<<'\n';
     return mismatches?1:0;
 }
+static int inverse160_axis(const std::filesystem::path& source,const std::filesystem::path& output) {
+    constexpr int n=160,batches=192;const auto input=read(source,n,2*batches);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh inverse160 directory required");
+    FFTW api;api.threads(3);api.forget_wisdom();
+    Allocation a(api,size_t(n)*batches*sizeof(Complex)),b(api,size_t(n)*batches*sizeof(Complex));
+    auto* in=static_cast<Complex*>(a.data);auto* out=static_cast<Complex*>(b.data);
+    Plan plan{api,api.complex_many_plan(1,&n,batches,in,nullptr,1,n,out,nullptr,1,n,1,64u|2u)};
+    if(!plan.data)throw std::runtime_error("Cannot create inverse160 axis plan");
+    char* printed=api.print(plan.data);const std::string text=printed;std::free(printed);
+    std::ofstream(output/"axis0_plan.txt")<<text;
+    if(text.find("t2_20")==std::string::npos||text.find("n1_8")==std::string::npos)throw std::runtime_error("Unexpected inverse160 graph");
+    for(size_t i=0;i<size_t(n)*batches;++i){in[i][0]=input[2*i];in[i][1]=input[2*i+1];}
+    api.execute(plan.data);
+    std::ofstream f(output/"axis0_expected.txt");f<<n<<' '<<2*batches<<'\n'<<std::setprecision(9);
+    for(int y=0;y<n;++y)for(int x=0;x<batches;++x)f<<out[x*n+y][0]<<'\n'<<out[x*n+y][1]<<'\n';
+    std::filesystem::copy_file(source,output/"ref_mtf_stage2.txt");
+    return 0;
+}
+static int inverse192_axis(const std::filesystem::path& source,const std::filesystem::path& output) {
+    constexpr int n=192,batches=160;const auto input=read(source,n,2*batches);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh inverse192 directory required");
+    FFTW api;api.threads(3);api.forget_wisdom();
+    Allocation a(api,size_t(n)*batches*sizeof(Complex)),b(api,size_t(n)*batches*sizeof(Complex));
+    auto* in=static_cast<Complex*>(a.data);auto* out=static_cast<Complex*>(b.data);
+    Plan plan{api,api.complex_many_plan(1,&n,batches,in,nullptr,1,n,out,nullptr,1,n,1,64u|2u)};
+    if(!plan.data)throw std::runtime_error("Cannot create inverse192 axis plan");
+    char* printed=api.print(plan.data);const std::string text=printed;std::free(printed);
+    std::ofstream(output/"axis0_plan.txt")<<text;
+    if(text.find("t2_16")==std::string::npos||text.find("n1_12")==std::string::npos)throw std::runtime_error("Unexpected inverse192 graph");
+    for(size_t i=0;i<size_t(n)*batches;++i){in[i][0]=input[2*i];in[i][1]=input[2*i+1];}
+    api.execute(plan.data);
+    std::ofstream f(output/"axis0_expected.txt");f<<n<<' '<<2*batches<<'\n'<<std::setprecision(9);
+    for(int y=0;y<n;++y)for(int x=0;x<batches;++x)f<<out[x*n+y][0]<<'\n'<<out[x*n+y][1]<<'\n';
+    std::filesystem::copy_file(source,output/"ref_mtf_stage2.txt");
+    return 0;
+}
+static int residual120_plan(const std::filesystem::path& source,const std::filesystem::path& output,int h,int w) {
+    if(!((h==10&&w==12)||(h==12&&w==10)))throw std::runtime_error("Unvalidated residual shape");
+    constexpr int cases=38,count=120;const int halfH=h/2+1,dims[2]={w,h};
+    const auto input=read(source/"input.txt",cases*h,2*w),expected=read(source/"expected.txt",cases*h,2*w);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh residual plan directory required");
+    FFTW api;std::ofstream records(output/"results.tsv");records<<"case\tvalues\tmismatches\n";unsigned matches=0;
+    for(int threads:{3,1})for(bool unaligned:{false,true}){
+        api.forget_wisdom();api.threads(threads);Allocation a(api,count*sizeof(float)),b(api,count*sizeof(Complex));
+        auto* real=static_cast<float*>(a.data);auto* base=static_cast<Complex*>(b.data);auto* half=base+w*((h-1)/2);
+        Plan p{api,api.real_many_plan(2,dims,1,real,nullptr,1,count,half,nullptr,1,count,64u|(unaligned?2u:0u))};
+        if(!p.data)throw std::runtime_error("Cannot create residual plan");
+        const std::string tag="t"+std::to_string(threads)+(unaligned?"_unaligned":"_aligned");
+        char* text=api.print(p.data);std::ofstream(output/(tag+"_plan.txt"))<<text;std::free(text);
+        std::ofstream actual(output/(tag+"_forward.txt"));actual<<cases*h<<' '<<2*w<<'\n'<<std::setprecision(9);size_t differences=0;
+        for(int m=0;m<cases;++m){
+            for(int i=0;i<count;++i){if(input[2*(m*count+i)+1]!=0)throw std::runtime_error("Residual must be real");real[i]=input[2*(m*count+i)];}
+            api.execute(p.data);
+            for(int y=0;y<h;++y)for(int x=0;x<w;++x){
+                const bool conjugate=y>=halfH;const size_t k=conjugate?((w-x)%w)*halfH+h-y:x*halfH+y;
+                const float z[2]={half[k][0],conjugate?-half[k][1]:half[k][1]};
+                for(int c=0;c<2;++c){actual<<z[c]<<'\n';differences+=!std::isfinite(z[c])||z[c]!=expected[2*(m*count+y*w+x)+c];}
+            }
+        }
+        records<<tag<<'\t'<<cases*count*2<<'\t'<<differences<<'\n';matches+=differences==0;
+    }
+    std::cout<<"residual"<<h<<'x'<<w<<" configurations=4 exact="<<matches<<'\n';return matches?0:1;
+}
+static int complex160_leaves(const std::filesystem::path& source,const std::filesystem::path& output) {
+    constexpr int n=8,groups=20,batches=97;const auto input=read(source,160,194);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh leaf directory required");
+    FFTW api;api.threads(1);api.forget_wisdom();Allocation mem(api,160*sizeof(Complex)),outmem(api,160*sizeof(Complex));auto* values=static_cast<Complex*>(mem.data);auto* result=static_cast<Complex*>(outmem.data);
+    Plan p{api,api.complex_many_plan(1,&n,groups,values,nullptr,groups,1,result,nullptr,1,n,-1,64u)};
+    if(!p.data)throw std::runtime_error("Cannot create leaf probe");
+    char* text=api.print(p.data);std::ofstream(output/"plan.txt")<<text;std::free(text);
+    std::vector<std::array<float,2>> all(160*batches);
+    for(int b=0;b<batches;++b){
+        for(int i=0;i<160;++i){values[i][0]=input[2*(i*batches+b)];values[i][1]=input[2*(i*batches+b)+1];}
+        api.execute(p.data);
+        for(int j=0;j<groups;++j)for(int k=0;k<n;++k)all[(j+groups*k)*batches+b]={result[j*n+k][0],result[j*n+k][1]};
+    }
+    std::ofstream f(output/"leaves.txt");f<<160<<' '<<194<<'\n'<<std::setprecision(9);
+    for(const auto& z:all)f<<z[0]<<'\n'<<z[1]<<'\n';return 0;
+}
+static int complex192_axis(const std::filesystem::path& source,const std::filesystem::path& output) {
+    constexpr int n=192,half=81;const auto input=read(source,n,2*half);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh192 diagnostic directory required");
+    FFTW api;api.threads(3);api.forget_wisdom();
+    Allocation mem(api,size_t(n)*half*sizeof(Complex));auto* values=static_cast<Complex*>(mem.data);
+    const int inner=24;
+    Plan leaf{api,api.complex_many_plan(1,&inner,half,values,nullptr,8*half,1,values,nullptr,8*half,1,-1,64u|2u)};
+    Plan full{api,api.complex_many_plan(1,&n,half,values,nullptr,half,1,values,nullptr,half,1,-1,64u|2u)};
+    if(!leaf.data||!full.data)throw std::runtime_error("Cannot create192 axis probes");
+    for(const auto& item:{std::pair{"inner24",leaf.data},std::pair{"full192",full.data}}){
+        char* text=api.print(item.second);std::ofstream(output/(std::string(item.first)+"_plan.txt"))<<text;std::free(text);
+    }
+    // Reuse one strided24 plan at each outer radix8 offset.
+    for(int j=0;j<8;++j){
+        for(size_t i=0;i<size_t(n)*half;++i){values[i][0]=0;values[i][1]=0;}
+        for(int k=0;k<24;++k)for(int b=0;b<half;++b)for(int c=0;c<2;++c)values[k*8*half+b][c]=input[2*((j+8*k)*half+b)+c];
+        api.execute(leaf.data);
+        std::ofstream f(output/("inner24_offset"+std::to_string(j)+".txt"));f<<24<<' '<<2*half<<'\n'<<std::setprecision(9);
+        for(int k=0;k<24;++k)for(int b=0;b<half;++b)f<<values[k*8*half+b][0]<<'\n'<<values[k*8*half+b][1]<<'\n';
+    }
+    for(size_t i=0;i<size_t(n)*half;++i){values[i][0]=input[2*i];values[i][1]=input[2*i+1];}
+    api.execute(full.data);
+    std::ofstream f(output/"full192.txt");f<<n<<' '<<2*half<<'\n'<<std::setprecision(9);
+    for(size_t i=0;i<size_t(n)*half;++i)f<<values[i][0]<<'\n'<<values[i][1]<<'\n';
+    return 0;
+}
+static int forward160_axis(const std::filesystem::path& source,const std::filesystem::path& output) {
+    constexpr int n=160,batches=192,half=81;
+    const auto input=read(source,n,2*batches);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh axis directory required");
+    FFTW api;api.threads(3);api.forget_wisdom();
+    Allocation real_mem(api,size_t(n)*batches*sizeof(float)),half_mem(api,size_t(half)*batches*sizeof(Complex));
+    auto* real=static_cast<float*>(real_mem.data);auto* spectrum=static_cast<Complex*>(half_mem.data);
+    Plan first{api,api.real_many_plan(1,&n,batches,real,nullptr,1,n,spectrum,nullptr,1,half,64u|2u)};
+    if(!first.data)throw std::runtime_error("Cannot create real160 first-axis oracle");
+    char* printed=api.print(first.data);const std::string text=printed;std::free(printed);
+    std::ofstream(output/"axis0_plan.txt")<<text;
+    for(const auto* name:{"hc2cf_20","r2cf_20","r2cfII_20","r2cf_8"})
+        if(text.find(name)==std::string::npos)throw std::runtime_error("Unexpected real160 graph");
+    for(size_t i=0;i<size_t(n)*batches;++i){
+        if(!std::isfinite(input[2*i])||input[2*i+1]!=0)throw std::runtime_error("Expected finite real column-major input");
+        real[i]=input[2*i];
+    }
+    api.execute(first.data);
+    std::ofstream axis(output/"axis0_compact.txt");axis<<batches<<' '<<2*half<<'\n'<<std::setprecision(9);
+    for(size_t i=0;i<size_t(batches)*half;++i)axis<<spectrum[i][0]<<'\n'<<spectrum[i][1]<<'\n';
+    std::filesystem::copy_file(source,output/"ref_mtf_stage0.txt");
+    std::ofstream(output/"layout.txt")<<"160 real samples per column; 192 columns; compact 81 complex per column.\n"
+        <<"Float32, unnormalized, no padding/filter/DC here; input already padded.\n"
+        <<"FFTW_ESTIMATE|FFTW_UNALIGNED, threads3, fresh wisdom; candidate graph only.\n";
+    return 0;
+}
+static int forward192_axis(const std::filesystem::path& source,const std::filesystem::path& output) {
+    constexpr int n=192,batches=160,half=97;
+    const auto input=read(source,n,2*batches);
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh axis directory required");
+    FFTW api;api.threads(3);api.forget_wisdom();
+    Allocation real_mem(api,size_t(n)*batches*sizeof(float)),half_mem(api,size_t(half)*batches*sizeof(Complex));
+    auto* real=static_cast<float*>(real_mem.data);auto* spectrum=static_cast<Complex*>(half_mem.data);
+    Plan first{api,api.real_many_plan(1,&n,batches,real,nullptr,1,n,spectrum,nullptr,1,half,64u|2u)};
+    if(!first.data)throw std::runtime_error("Cannot create real192 first-axis oracle");
+    char* printed=api.print(first.data);const std::string text=printed;std::free(printed);
+    std::ofstream(output/"axis0_plan.txt")<<text;
+    for(const auto* name:{"hc2cf_8","r2cf_8","r2cfII_8","hf_12","r2cf_12","r2cfII_12","r2cf_2"})
+        if(text.find(name)==std::string::npos)throw std::runtime_error("Unexpected real192 graph");
+    for(size_t i=0;i<size_t(n)*batches;++i){
+        if(!std::isfinite(input[2*i])||input[2*i+1]!=0)throw std::runtime_error("Expected finite real column-major input");
+        real[i]=input[2*i];
+    }
+    api.execute(first.data);
+    std::ofstream axis(output/"axis0_compact.txt");axis<<batches<<' '<<2*half<<'\n'<<std::setprecision(9);
+    for(size_t i=0;i<size_t(batches)*half;++i)axis<<spectrum[i][0]<<'\n'<<spectrum[i][1]<<'\n';
+    std::filesystem::copy_file(source,output/"ref_mtf_stage0.txt");
+    std::ofstream(output/"layout.txt")<<"192 real samples per column; 160 columns; compact 97 complex per column.\n"
+        <<"Float32, unnormalized, no padding/filter/DC here; input already padded.\n"
+        <<"FFTW_ESTIMATE|FFTW_UNALIGNED, threads3, fresh wisdom; candidate graph only.\n";
+    return 0;
+}
 static int forward256_axes(const std::filesystem::path& source,const std::filesystem::path& output) {
     constexpr int n=256,half=129;constexpr size_t count=size_t(n)*n;
     const auto input=read(source,n,2*n);
@@ -291,7 +448,83 @@ static int forward256_axes(const std::filesystem::path& source,const std::filesy
         <<"FFTW_ESTIMATE|FFTW_UNALIGNED, threads3, fresh wisdom; diagnostic only.\n";
     std::cout<<"Forward256 axis oracles saved to "<<output.string()<<'\n';return 0;
 }
+static int mixed_plan(const std::filesystem::path& source,const std::filesystem::path& output,unsigned H,unsigned W,unsigned extraFlags=0){
+    if(!((H==160&&W==192)||(H==192&&W==160)))throw std::runtime_error("Mixed diagnostic requires160x192/192x160");
+    if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh output directory required");
+    std::ifstream wf(source/"native_single_wisdom.txt");const std::string wisdom((std::istreambuf_iterator<char>(wf)),{});
+    if(wisdom.empty())throw std::runtime_error("Native single wisdom required");
+    FFTW api;const size_t count=size_t(H)*W;const unsigned halfHeight=H/2+1;
+    std::ofstream results(output/"results.tsv"),plans(output/"plans.txt");
+    results<<"label\tchain\tthreads\tunaligned\tinplace\twisdom_forward\twisdom_inverse\tforward_mismatches\tinverse_div_mismatches\tinverse_mul_mismatches\n";
+    std::ofstream(output/"contract.txt")<<"H="<<H<<" W="<<W<<";C dimensions={W,H};column-major source;compact offset="<<W*((H-1)/2)<<";forward unnormalized;inverse once1/"<<count<<";extra planning flags="<<extraFlags<<";noDC\n";
+    size_t candidates=0,exact=0;
+    for(const std::string label:{"ref","test"})for(const std::string chain:{"mtf","la"}){
+        const auto input=read(source/(label+"_"+chain+"_stage0.txt"),H,2*W);
+        const auto filtered=read(source/(label+"_"+chain+"_stage2.txt"),H,2*W);
+        const std::string middle=chain=="mtf"?"_":"_la_";
+        const auto expectedForward=read(source/(label+middle+"native_forward.txt"),H,2*W);
+        const auto expectedInverse=read(source/(label+middle+"native_inverse.txt"),H,2*W);
+        for(int threads:{3,1})for(bool unaligned:{false,true})for(bool inplace:{false,true}){
+            api.forget_wisdom();if(!api.import_wisdom(wisdom.c_str()))throw std::runtime_error("FFTW wisdom import failed");api.threads(threads);
+            Allocation realMemory(api,count*sizeof(float)),halfMemory(api,count*sizeof(Complex));
+            Allocation inverseInput(api,count*sizeof(Complex)),inverseOutput(api,count*sizeof(Complex));
+            auto* real=static_cast<float*>(realMemory.data);
+            auto* half=static_cast<Complex*>(halfMemory.data)+W*((H-1)/2);
+            auto* ci=static_cast<Complex*>(inverseInput.data);auto* co=inplace?ci:static_cast<Complex*>(inverseOutput.data);
+            const int dims[2]={int(W),int(H)};const unsigned flags=64u|(unaligned?2u:0u)|extraFlags;
+            Plan forward{api,api.real_many_plan(2,dims,1,real,nullptr,1,int(count),half,nullptr,1,int(count),flags|(1u<<21))};
+            Plan inverse{api,api.complex_plan(int(W),int(H),ci,co,1,flags|(1u<<21))};
+            const bool wisdomForward=forward.data!=nullptr,wisdomInverse=inverse.data!=nullptr;
+            if(!forward.data)forward.data=api.real_many_plan(2,dims,1,real,nullptr,1,int(count),half,nullptr,1,int(count),flags);
+            if(!inverse.data)inverse.data=api.complex_plan(int(W),int(H),ci,co,1,flags);
+            if(!forward.data||!inverse.data)throw std::runtime_error("Mixed FFT plan creation failed");
+            const auto tag=label+"_"+chain+"_t"+std::to_string(threads)+(unaligned?"_unaligned":"_aligned")+(inplace?"_inplace":"_outplace");
+            for(const auto& entry:{std::pair{"forward",forward.data},std::pair{"inverse",inverse.data}}){char* text=api.print(entry.second);if(!text)throw std::runtime_error("Missing plan text");plans<<tag<<' '<<entry.first<<'\n'<<text<<"\n\n";std::free(text);}
+            for(size_t i=0;i<count;++i){if(input[2*i+1]!=0)throw std::runtime_error("Forward input is not real");real[i]=input[2*i];ci[i][0]=filtered[2*i];ci[i][1]=filtered[2*i+1];}
+            api.execute(forward.data);api.execute(inverse.data);
+            size_t fm=0,dm=0,mm=0;const float reciprocal=1.0f/float(count);
+            std::ofstream f(output/(tag+"_forward.txt")),d(output/(tag+"_inverse_div.txt")),m(output/(tag+"_inverse_mul.txt"));
+            for(auto* stream:{&f,&d,&m})*stream<<H<<' '<<2*W<<'\n'<<std::setprecision(9);
+            for(unsigned y=0;y<H;++y)for(unsigned x=0;x<W;++x){
+                const bool conjugate=y>=halfHeight;const auto compact=conjugate?((W-x)%W)*halfHeight+H-y:x*halfHeight+y;
+                for(unsigned c=0;c<2;++c){
+                    const auto expectedIndex=2*(size_t(y)*W+x)+c;
+                    const float fv=c==1&&conjugate?-half[compact][c]:half[compact][c];
+                    const float dv=co[size_t(x)*H+y][c]/float(count),mv=co[size_t(x)*H+y][c]*reciprocal;
+                    fm+=fv!=expectedForward[expectedIndex];dm+=dv!=expectedInverse[expectedIndex];mm+=mv!=expectedInverse[expectedIndex];
+                    f<<fv<<'\n';d<<dv<<'\n';m<<mv<<'\n';
+                }
+            }
+            results<<label<<'\t'<<chain<<'\t'<<threads<<'\t'<<unaligned<<'\t'<<inplace<<'\t'<<wisdomForward<<'\t'<<wisdomInverse<<'\t'<<fm<<'\t'<<dm<<'\t'<<mm<<'\n';results.flush();
+            if(threads==3&&unaligned&&!inplace&&!fm&&!dm){
+                std::ofstream raw(output/(label+"_"+chain+"_inverse_unscaled.txt"));raw<<H<<' '<<2*W<<'\n'<<std::setprecision(9);
+                for(unsigned y=0;y<H;++y)for(unsigned x=0;x<W;++x)for(unsigned c=0;c<2;++c)raw<<co[size_t(x)*H+y][c]<<'\n';
+            }
+            ++candidates;if(!fm&&(!dm||!mm))++exact;
+        }
+    }
+    std::cout<<"Mixed native candidates="<<candidates<<" exact_forward_and_inverse="<<exact<<";alignment/plan andnormalization variants retained\n";
+    return 0; // This is a census;zero exact matches is not a parity pass.
+}
 int main(int argc,char** argv) {
+    if(argc==6&&std::string(argv[1])=="--residual120-plan"){try{return residual120_plan(argv[2],argv[3],std::stoi(argv[4]),std::stoi(argv[5]));}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
+    if(argc==4&&std::string(argv[1])=="--complex160-leaves"){try{return complex160_leaves(argv[2],argv[3]);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
+    if(argc==4&&std::string(argv[1])=="--inverse192-axis"){try{return inverse192_axis(argv[2],argv[3]);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
+    if(argc==4&&std::string(argv[1])=="--forward192-axis"){try{return forward192_axis(argv[2],argv[3]);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
+    if(argc==4&&std::string(argv[1])=="--inverse160-axis"){
+        try{return inverse160_axis(argv[2],argv[3]);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
+    }
+    if(argc==4&&std::string(argv[1])=="--complex192-axis"){
+        try{return complex192_axis(argv[2],argv[3]);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
+    }
+    if(argc==4&&std::string(argv[1])=="--forward160-axis") {
+        try{return forward160_axis(argv[2],argv[3]);}
+        catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
+    }
+    if(argc==6&&(std::string(argv[1])=="--mixed-plan"||std::string(argv[1])=="--mixed-plan-preserve")){
+        try{return mixed_plan(argv[2],argv[3],std::stoul(argv[4]),std::stoul(argv[5]),std::string(argv[1])=="--mixed-plan-preserve"?16u:0u);}
+        catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
+    }
     if(argc==4&&std::string(argv[1])=="--forward256-axes") {
         try{return forward256_axes(argv[2],argv[3]);}
         catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}

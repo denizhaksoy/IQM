@@ -1,0 +1,21 @@
+#version 450
+#pragma shader_stage(compute)
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint value[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint value[];} dst;
+layout(push_constant) uniform Push {uint count,a,b,c;} p;
+// Correctly rounded finite binary32 division by30720=15*2^11.
+// Integer significand division avoids a rounded reciprocal and FTZ behavior.
+uint divideRounded(uint n,uint d){uint q=n/d,r=n%d;return q+uint(2u*r>d||(2u*r==d&&(q&1u)!=0u));}
+uint normalizeWord(uint bits){
+    uint sign=bits&0x80000000u,e=(bits>>23u)&255u,m=bits&0x7fffffu;
+    if(e==255u)return bits;
+    if(e==0u)return sign|divideRounded(m,30720u);
+    m|=0x800000u;
+    if(e<=15u){uint n=e>=12u?m<<(e-12u):m,d=e>=12u?15u:15u<<(12u-e);return sign|divideRounded(n,d);}
+    uint shift=m>=15728640u?3u:4u,outExponent=e-(shift==3u?14u:15u);
+    uint q=divideRounded(m<<shift,15u);
+    if(q>=0x1000000u){q>>=1u;++outExponent;}
+    return sign|(outExponent<<23u)|(q&0x7fffffu);
+}
+void main(){uint i=gl_GlobalInvocationID.x;if(i<p.count)dst.value[i]=normalizeWord(src.value[i]);}

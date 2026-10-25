@@ -1,0 +1,41 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint words[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint words[];} dst;
+layout(push_constant) uniform Push {uint groups,a,b,c;} p;
+// Finite normal Float32 or zero only; unbiased exponents [-90,100], span<=16.
+// Exact signed fixed-point sum uses two uint32 words (at most47 magnitude bits).
+uvec2 negate64(uvec2 v){uint lo=~v.x+1u;return uvec2(lo,~v.y+uint(lo==0u));}
+uvec2 add64(uvec2 a,uvec2 b){uint lo=a.x+b.x;return uvec2(lo,a.y+b.y+uint(lo<a.x));}
+uvec2 shiftSmall(uint a,uint s){return s==0u?uvec2(a,0u):s<32u?uvec2(a<<s,a>>(32u-s)):uvec2(0u,a<<(s-32u));}
+uint meanWord(uvec2 sum,int base){
+    uint sign=sum.y&0x80000000u;uvec2 n=sign!=0u?negate64(sum):sum;
+    if((n.x|n.y)==0u)return 0u;
+    int top=n.y!=0u?32+findMSB(n.y):findMSB(n.x);
+    if(top<27){uint s=uint(27-top);n=shiftSmall(n.x,s);base-=int(s);top=27;}
+    uvec2 threshold=shiftSmall(15u,uint(top-3));
+    bool upper=n.y>threshold.y||(n.y==threshold.y&&n.x>=threshold.x);
+    int exponent=base+top-(upper?6:7);
+    uint denominator=15u<<uint(exponent-base-20),q=0u,r=0u;
+    for(int i=top;i>=0;--i){
+        uint bit=i>=32?(n.y>>uint(i-32))&1u:(n.x>>uint(i))&1u;
+        r=(r<<1u)|bit;q<<=1u;if(r>=denominator){r-=denominator;q|=1u;}
+    }
+    q+=uint(2u*r>denominator||(2u*r==denominator&&(q&1u)!=0u));
+    if(q>=0x1000000u){q>>=1u;++exponent;}
+    return sign|(uint(exponent+127)<<23u)|(q&0x7fffffu);
+}
+void main(){
+    uint group=gl_GlobalInvocationID.x;if(group>=p.groups)return;
+    uint offset=group*120u,minimum=255u;
+    for(uint i=0u;i<120u;++i){uint v=src.words[offset+i];if((v&0x7fffffffu)!=0u)minimum=min(minimum,(v>>23u)&255u);}
+    uvec2 sum=uvec2(0u);
+    if(minimum!=255u)for(uint i=0u;i<120u;++i){
+        uint v=src.words[offset+i];if((v&0x7fffffffu)==0u)continue;
+        uvec2 term=shiftSmall((v&0x7fffffu)|0x800000u,((v>>23u)&255u)-minimum);
+        sum=add64(sum,(v&0x80000000u)!=0u?negate64(term):term);
+    }
+    uint mean=minimum==255u?0u:meanWord(sum,int(minimum)-150);
+    dst.words[group*121u]=mean;
+    for(uint i=0u;i<120u;++i){precise float centered=uintBitsToFloat(src.words[offset+i])-uintBitsToFloat(mean);dst.words[group*121u+1u+i]=floatBitsToUint(centered);}
+}

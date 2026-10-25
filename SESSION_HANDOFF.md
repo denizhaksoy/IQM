@@ -1,6 +1,1029 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-10-23 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-10-25 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Current checkpoint (2026-10-25, Europe/Prague)
+
+This checkpoint supersedes the stale running-session notes below.
+- All six CPU-filter replays completed: asymmetric/impulse/hdr_ramp, 80x96
+  and96x80. Evidence: validation/actual_content_stress_639284716222632999/
+  summary_cpu_filters/PASS.txt and runs_cpu_filters.json.
+- Original CPU create_jnd_lut had60 Float32 rod-slope mismatches per image.
+  Failed runs remain preserved. Native symmetric logspace, log10 coordinates,
+  per-sample Jacobian and cumtrapz prefix operation order fix now applied to
+  src/hdrvdp3/jnd.cpp; strict FP options added in production/evaluation CMake.
+- Production CLI regression PASSED11 PFM pairs,1166 numerical exports and
+  exact quality files. Root validation/production_jnd_order_639284726753249859/
+  cli_regression/PASS.txt. Previous session88096 no longer exists; result is saved.
+- verify_jnd_model_words.cpp now supports --strict-double, which fails on any
+  double node mismatch as well as Float32 node/slope mismatches. Actual
+  production source passes10238 Float32 words and6144 double words exactly:
+  cpu_jnd_model_639284722715977911/production_strict_double_verified/PASS.txt.
+  Initial production_strict_double used wrong fixture folder and failed;
+  retained, not a numerical pass.
+- Production-linked pathway-jnd-test rebuilt in cpu_jnd_model.../build/Release.
+  New HDR replay uses --cpu-lut (including CPU D65 constants), with generated
+  CPU filter coefficients. Active root pointer:
+  validation/production_cpu_jnd_replay_active_path.txt. Session37113 running.
+  Exact next step: poll37113, inspect all stages/final score bits; preserve any
+  failure and diagnose without relaxing equality. Then freeze source/binary/
+  asset hashes, update docs and this checkpoint with final outcome.
+- Still experimental file/host pipeline, not resident public API integration.
+  Public geometry guards unchanged; no general parity claim. No commit/push.
+## Latest continuation: residual120 composition, base120 and real pathway traces
+
+### Current continuation: experimental original-image ->quality replay passes
+
+LATEST UPDATE: HDR/replay_cpu_filters finishedPASS(allstages/finalscorebits).
+Sixpairs acrossasymmetric/impulse/HDR andbothorientations nowpass;initial
+aggregate actual_content_stress/SUMMARY.json/PASS exists. New
+summarize_actual_gpu_replays.ps1 providesdurable stage/scorebit/modelaudit.
+To pinALLsixpairreplays tolatestC++model-filter source/binary, currently
+running asymmetric/replay_cpu_filters via execsession49777. Afteritpasses,
+run impulse/replay_cpu_filters withimpulse/assets_cpu_filters.json;HDR already
+usesCPUmodelchecker. Then runsmanifest+freshsummaryallCPUprofiles, freeze
+source/assets/binary/referencehashes/completedpointers andupdate thisrecord.
+
+- User asks continuous autonomous work,without stopping after every update.
+  Quota is not visible; no claim to monitor it. Alllocal,noautopublication.
+- Newpathway_jnd_639284560688608036: verify_pathway_jnd.cpp +isolatedtarget.
+  Native-retinal/pupil48checks368640 pass; GPU7680samplepupil52/368656 pass;
+  GPUretinal+GPUadaptation60/430096 pass. Existingmap13 supports7680pupil,
+  sequentialFLOAT32logsum/geomean; doNOTusemean120doubleaccumcontracthere.
+  NativeLUT/matrixfixedmodel only. PriorcheckerEXE/sources retained.
+- actual_pathway_filters_639284562227581717: new mixed_filter_io.comp,
+  generator/targetcompile script andverify_mixed_filter_chain.cpp/target.
+  SSBOpad/log ->acceptedmixedFFTforward ->exactmultiply ->acceptednormalized
+  inverse30720 ->crop/clamporExp.7dispatchesONEcommandbuffer. Actualreference/
+  localizedtest nativefilterrefs assertretinal/adaptation againstfullvisual
+  trace.8cases2027520values pass;4LAfromGPUadaptinput reruns also pass.
+- Actualimage-dependentP/log nowcomputedGPU,notloadednative. Prepare-onlyJND
+  stage uses ONLYGPUMTFretinal+fixedmatrix forLAinput; unusednativepupil/P
+  are skipped. FinalJNDpupil/adaptation come fromGPU LA outputs.
+- Manualassembly root actual_gpu_composition_639284565879130482: new
+  prepare_gpu_visual_composition.m serializesGPU P/log withoutimage math,
+  nativeSPYR/maps copiedasgoldensonly. InitialOctavecopyfilefailedWindowsxcopy
+  prompt;fixeddirectbytecopy,freshinputs_verified accepted,failedinputskept.
+  SPYR113526,pool71520,freshcomparison90cases,andquality126/393384allPASS.
+  validate_actual_gpu_composition.m verifiesoriginalfilter/comparisoninputs
+  bit-identical,fixedmatrix/JNDtables sameacrossimages,finalscoresBITWISE.
+- Newrun_actual_gpu_composition.ps1 andassets.json provideONENEW-DIRECTORY
+  command replay. FULLFRESHREPLAY actual_gpu_replay_639284715589047637/PASS:
+  alloriginalimage->GPUfilters/JND/P/log/SPYR/masks/qualitystages PASS.
+  Nativeimage-dependentmaps are goldensONLY; fixedmodeltables/axisplans and
+  existingCPUdoubleNCSF intentional. File/hosttransfers remain,notresidentAPI.
+  No publicshape/productionalgorithmchanges. IntelArcPro,30ppd/age24/D65/
+  singlepositive luminance/sp0Filters only. FinalQ/JOD bitwise same asnative.
+- cpu_model_filters_639284717818610970: mixedfilterchecker nowC++generates
+  MTFandGaussian coefficients, nativecoeff onlybitgoldens. Freshbinary,
+  4orientation/mode cases each30720coefficientbitmatches+253440GPUstagevalues
+  exact. Oldnative-coefficient binaries retained. No model-filter fallback.
+- Contentstress root actual_content_stress_639284716222632999: nativevisual
+  --pattern impulse andhdr_ramp addedwithoutalteringdefaultasymmetric. Fresh
+  visual/stages/SPYR/masking/comparison/residual/filtergoldens generated and
+  stock/tracednativeQidentity verified. exporter--new-fixture explicitlyskips
+  inappropriatecross-contentPidentityclaim. Impulse/replay/PASS COMPLETED.
+  HDR/replay_cpu_filters INPROGRESS via exec session69768, assets usesnew
+  C++model-filterchecker. Poll sessionandfinishaudit/hashes/docs afterresult.
+- DocsACTUAL_GPU_COMPOSITION_VALIDATION.md, MASKING_QUALITY_VALIDATION updated.
+  Stillneedfreeze latestrootassets/source/binaryhashes andcompletedpointers.
+
+Immediate next step: finish HDR stress replay,inspect everyPASS/result,count
+andfinalbitcheck. Ifexact, record siximagepairs across3contents/2orientations;
+ifnot, preservefailedstageanddiagnosewithouttolerance. Then durable runner/
+artifact hashes/handoff. ProductionAPI/runtime integration andbroaderPPD/age/
+content validation remain; doNOTenablegeneralpublicshapes orcommit/push yet.
+
+### Newest: base noise from GPU data; upstream references prepared (2026-10-24)
+
+- Root `validation/gpu_base_noise_639284555583605395`, active/completed
+  gpu_base_noise pointers. Localexperimentalonly; no publicguard/algorithm/
+  runtimeasset changes,no commit/push. Preservestagedcorrdn,dirtyVkFFT/oldrefs.
+- verify_pathway_masking.cpp newargc11 profile: GPUresize/clamp logs ->accepted
+  base120.spv mean/pow10; GPUCSFparams fromGPUluminance; residualindex read
+  acceptedSPYRallchain stage10. Noise computed byEXISTINGCPUdouble
+  evaluate_ncsf_parameters usingGPUderivedfrequency/params. NativebaseNoise
+  no longerruntimeinput,onlygolden. NativeP/log maps andmodelconstants remain.
+- Newprivate referenceGridFrequency preservesnativecoordinateoperationorder.
+  IMPORTANT: productionquality.cpp foldedk/n helper differsfewdoublebits on
+  10x12/12x10. DoNOTenablegeneralpublicshapeswiththatoldhelper. No production
+  change made; experimentalhelper mathematicalimplementation independently
+  validatedagainstnewnativegrid. generate_base_frequency_grid_reference.m
+  outputs240values; --frequency-grid modebitwiseall240PASS frequency_check/.
+  Sourcehashonly forofficialcreate_cycdeg_image;noinstalledreferenceedits.
+- gpu/PASS/results:126checks393384values numericEXACT,observedbitdiff0;
+  additions4GPUmean/powoutputs +6selectedindex/frequency/noise scalars.
+  Double noiseexact, allprior122checks(D,Dp/errors/Q/JOD,etc)included. Device
+  IntelArcPro. No numericalfailures. Basebounded120logs[-5,5],normal/zero,
+  exponentmin-90,max100,spread16 checked. No secondDCremoval orpadding.
+- Refactored runFloatKernel hasSEPARATEinput/outputbuffersizes; exercised
+  bothDpandsmall2wordbaseoutput. NewstrictReleasebinaryfreshroot/build;
+  oldchecker binariespreserved. No newshadercompile;reusesmap13,Dp,base120.
+- Newnativeupstream root `validation/general_visual_trace_639284557380638502`.
+  generate_general_pathway_reference.m optional--visual makeslicensedCOPIES
+  ofhdrvdp3.m andhdrvdp_visual_pathway.m infreshvalidationdir,capturesretinal,
+  LMSRmatrix/before/afterpupil,adaptinput/adaptation,pupil/area,JNDchannels,
+  P/pnlookupcells. Bothstock/tracednativeQ/JODexact. Originalinstalluntouched.
+- export_visual_pathway_stages.m writesstages/ perchanneltext17digits and
+  metadata:retinal/adapt/LMSR/JND/P SINGLE,matrix/areaDOUBLE,pupilvectorSINGLE.
+  NativeMATpreservesfullcells/arrays. stages/PASS asserts P_reference/P_test/
+  log_La BITWISEsameasold general_masking_trace. TheseareNATIVE references
+  ONLY,no newGPUupstreamacceptance. Same2pairs30ppd/age24,notnewcoverage.
+- DocsGPU_BASE_NOISE_VALIDATION.md,MASKING_QUALITY_VALIDATION.md; hashes/
+  completedpointerssetafterPASS. CompositionstillFILE/HOSTtransfers,
+  CPUdoubleNCSFintentional;notfullmetriccomplete.
+
+NEW exact next step: use general_visual_trace/stages toportupstream retinal
+->adaptation andphotoreceptorP paths. Need7680samplepupilgeomean/reduction
+withoutwideningexisting32/64publicpupilguard. Inspectnativepupil/areaand
+pnlookups; compareGPUadaptation_input/JNDcomponents firstusingactualretinal
+andnativepupilgoldens,thenreplacepupilwithbounded7680exactreduction.
+ActualMTF/LA160x192/192x160filterstages neednewreferencesfortheseLOCALIZED
+testimages(oldFFTfixturesusedtest*1.05). JoinacceptedmixedFFTwithactualfilters
+andnativevisualretinal/adaptation. OnlyafterP/logproductionandfullnative
+image-to-scorecomparisons considerpublicgeneralshapeprofile/guardchanges.
+
+### Newest: GPU bands/self-mask/CSF replace native runtime maps (2026-10-24)
+
+- Root `validation/gpu_band_masking_639284552580517314`, active/completed
+  gpu_band_masking pointers. Alllocal, no commit/push/publicguard/algorithm
+  changes. Preserveoldrefs,stagedcorrdn,dirtyVkFFT. DeviceIntelArcProGraphics.
+- Newprepare_gpu_band_pool_inputs.m reads ACCEPTED GPU SPYR all-chain dumps
+  pathway_spyr_all_chain_639284285430220524/gpu_all_chain:stages4..7 high/
+  orientation pairs, stage8 mean+centeredbasepairs (skipmeans, noarithmetic).
+  Asserts nativebitidentity,serializesGPUwords ->gpu_inputs/*band*.f32 and
+  pool.txt runtimefields. Nativebands/raw/pooledmaps are GOLDENSonly; nohost
+  filtering/normalization/DC/runtime maskcalculation inadapter.
+- Reusedacceptedpool checker/shaders frompathway_resize_csf checkpoint;
+  gpu_pool/PASS10bands71520values numericexact, observedbitdiff0. Runtime
+  poolinputs nowGPUSPYRbands, notnativebands. Same actualimagepairs asbefore.
+- verify_pathway_masking.cpp newargc8 profile loadsGPUreference/testbands,
+  pooledhalfofGPUcase*.u32 outputs into caches, validatesagainstnativegoldens,
+  thenUSES GPUvalues for banddiff,self/neighbor,N_mask,D,etc. Adjacentmasks
+  alsoGPUcache. PriorGPUdoublecomparisonmask retained. Nativeband/selfruntime
+  dependencyremoved,notfallback. gpu_masking/PASS112checks357614values exact;
+  observedbitdiff0,Q/Q_JODbothnativepairsunchanged. Preservedexecutable/source
+  band_self_only.exe /band_self_only_source.cpp beforeaddingCSFreplacement.
+- Newargc9 profile loads ORIGINALlog_La map fromgeneral_masking_trace;
+  GPUresize/clamp/sample_csf all5bandshapes,standardCPUCSFLUT30/2^b(age24).
+  NativeCSFmaps nowGOLDENSonly,runtimeusesGPUCSF. gpu_masking_CSF/PASS:
+  122checks393374values numericalEXACT,observedbitdiff0. Adds35760CSFvalues
+  toprior112checks. No redundantbroadrepeat; finalrunincludespriorchecks.
+- FreshstrictMSVCReleasechecker inroot/build, unchangedboundedABI13map and
+  priorDp shader. No newshadercompile. Nativefixturepathway_masking/native_
+  verified, GPUcomparison general_comparison/gpu. Input/expectedshapes pinned
+  80x96/96x80,30ppd,age24,sp0Filters;normalizedbands /1/2/4/8/16,basecentered
+  separately. NoextraDC/padding/filter, neighbor/CSFresize symmetric,poolzero.
+- This isFILE/HOSTCOMPOSITION,notoneresidentfullGPUmetric. Runtime native
+  P/log_adaptation,baseNoise andfixedparameters/LUTcoefficients remain. Base
+  neural stillfloat(pow(nativeDoubleNoise,2*nativeP));doNOTclaimfullquality.
+  Valuesinclude repeatedsource/goldenchecks,notnewuniqueimagecoverage.
+- DocsGPU_BAND_MASKING_VALIDATION.md/MASKING_QUALITY_VALIDATION.md; inputs.json
+  andcheckpoint_hashes bindGPUsourcefiles/pooloutputs,allreferences, binaries,
+  source and unchangedshaders. CompletedpointeronlyafterbothacceptedPASS.
+
+NEW exact next step: remove nativebaseNoise using acceptedGPU residual
+selection(all-chain stage10 floatencodedindex), GPUresizedbase logs and
+acceptedbase120 mean/powshader, then existing CPUdoubleNCSF contract with
+GPUderivedfrequency/luminance. Assertallbaseintermediatesagainst native
+base_selection.txt beforeusingnoise inD/quality. Keep CPUdoubleNCSF clearly
+reported; no needportdoubleNCSFtoGPUforparity. Afterthat upstreamMTF/LA/
+photoreceptorproductionofP andlog_adaptation stillrequirejoiningaccepted
+mixedFFT/filter/JNDcomponents,thenfullimage-to-score/nativecomparison.
+
+### Newest: general binary/double comparison mask and score composition (2026-10-24)
+
+- Root `validation/general_comparison_639284533493306890`, active/completed
+  pointer general_comparison_{active,completed}_path.txt. New
+  generate_general_comparison_reference.m:2orientations80x96/96x80 x9patterns
+  x5bandtargets=90cases. Actualpair+zero/one/corners/checker/random/stripes/
+  threshold-adjacentFloat32. Nativebinary expression abs(test-ref)./ref>.001
+  EXACT; freshnative_verified/ afterverbatimthresholdclarification;earlier
+  native/ preserved. Actualdoublegoldens assertedBITWISEagainst fullmetric
+  trace.masking comparison. Rowmajorinputu32/binaryinteger/decimaldoubleoutput.
+- Newgeneral_comparison.comp, compile_general_comparison.ps1 injectspinned
+  existingfiniteFloat32dividehelper frommapreference;explicitDenormPreserve/
+  RTE32,spirv-valVulkan1.2;noFloat64/Int64. Newverify_general_comparison.cpp,
+  CMakegeneral-comparison-test strictMSVCRelease freshbuild.
+- ONEcommandbuffer3dispatches:binarymask ->horizontalQ20 ->verticalQ40+IEEE
+  doublebitpacking. CPUuploads ONLY originalFloat32luminance andexactaxisplans
+  inbuffer suffixes; GPUwritesmask/intermediateprefixes;nohostintermediate
+  reads/calculation/upload. Hostguards exactQ20weights/unitnormalization/
+  absoluteweightsum<=2/scales1,2,4,8. Firstabsnum<=2*2^20,second<=4*2^40 fits
+  signed43magnitudebits anddouble53;nativepartials/exactconversion no rounding.
+  Resize symmetricedges/bicubicantialias,noFFTpadding,nomean/DCprocessing.
+- gpu/PASS/results.tsv IntelArcPro:90cases691200binarywordchecks+321840DOUBLE
+  values BITWISE EXACT. Binarycalculation repeated5targets,18uniqueinputpairs
+  /138240uniquemaskpositions;identitytargetsrepeat. DoNOTclaimunique691200.
+  No numerical failures. Publicresize_comparison_maskguardNOTwidened.
+- Extendedverify_pathway_masking.cpp optionalarg6 consumes generated
+  orientation_p0_b*.u64 masks, asserts exactnativeDOUBLEbitidentity, thenUSES
+  GPUderivedmask inDp/banderrors. Newcheckerbinaryinfreshcomparisonrootbuild;
+  oldmaskingbinariespreserved. Inputs nativepathway_masking/native_verified,
+  unchangedboundedABI13mapandpriorDp shader. gpu_masking_with_comparison/PASS:
+  82checks250334values numericalEXACT,observedbitdiff0, nativeQ/Q_JODbothpairs
+  unchanged. Includes35760bitwisedoublemaskcomparisons andprior72stagechecks.
+- This composition usesFILE/HOST transfers, NOToneresidentfullGPUquality
+  pipeline. Native self_masks,CSF,base_noise remainruntimeinputs. Nofullmetric
+  claim. Earlier82scopecountsrepeatGPUmasks,notnewuniqueGPUcoverage.
+- Docs GENERAL_COMPARISON_VALIDATION.md,MASKING_QUALITY_VALIDATION.md.
+  inputs.json/checkpoint_hashes.json pin native/shaders/helpers/axisplanner,
+  bothnewexecutables andcurrentchecker/source. Allpriorartifacts/stagedcorrdn/
+  dirtyVkFFT preserved, no commit/push/publicguardchanges.
+
+NEW exact next step: remove native self-mask andreference/testband inputs
+frommaskingcomposition using accepted GPU SPYR all-band dumps and accepted
+experimentalpool outputs. Preserve eachbandnormalization/baseDC semantics;
+validate everyreplacement againstnative beforejoiningresidentbuffers. Then
+replaceCSF/base-noise inputs viaacceptedGPUresize/CSF/base120 andexisting
+doubleNCSFcontract. UpstreamMTF/LA/photoreceptorproductionofP stillpending;
+full image-to-score/generalpublicquality NOT complete. Comparison-mask
+generation/doubleresize is now an experimental componentpass,notpending.
+
+### Newest: masking/D/D_p/quality components pass (2026-10-24)
+
+- Root `validation/pathway_masking_639284292364400623`, active/completed pointer
+  pathway_masking_{active,completed}_path.txt. Actualnativeinput component
+  scope ONLY; no publicguards/productionalgorithms changed, no commit/push.
+- New generate_pathway_masking_reference.m reads existing fullnative
+  general_masking_trace_639284290290539478, exportsperbandself/neighbor/N_mask,
+  excitation/neural/D/comparison/D_p/parameters,psychometric,error,scoremaps.
+  Initialnative/ failedbecauseminkowski_sum private; freshnative_verified/
+  usesexactreferenceformula sum(abs(Dp).^.8/numel).^(1/.8),assertsallnative
+  accumulatedQerroridentities. Oldpartialnative/ kept. No referenceinstall edits.
+- New verify_pathway_masking.cpp,CMakepathway-masking-test linksUNCHANGED
+  map_gpu.cpp,resize.cpp,csf.cpp,quality.cpp,Vulkanhelpers. StrictMSVCRelease
+  checkpoint/build. Earlybuildbeforeconfigurecompletion failed(defaultVS17);
+  waitedconfigureVS18completionthenbuildPASS. No numericalmaskingfailures.
+- Reuses ABI13 publish_prepare_639283319336040304/runtime_bounded/map.spv.
+  Firstgpu/PASS62checks178814values exact. Finalgpu_with_Dp/PASS72checks
+  214574Float32values exact, observedbitdiff0, IntelArcPro. Priorbinary saved
+  masking_first_pass.exe beforeaddingdirectDp. Finalruncontainsalloldchecks,
+  so no additionalunchangedbroadregression. Numericalacceptance,zerobitsnot
+  required. Newdp shader Float32DenormPreserve/RTE32/NoContraction,spirv-val.
+- For10bands: GPUresizeadjacentnativepooledself ->neighborclamp/add, N_mask
+  fromnative self+GPUneighbor, normalizeddifference(test,ref,1), D fromGPU
+  difference/N_mask+nativeCSF,psychometric,qualityerrors,finalQ/JOD. Base
+  neural=float(pow(nativeDoubleNoise,2*nativeDoubleP)) CPU as existingcontract;
+  nonbaseGPUcomputesneural. Self/N_mask/D/Dp nativeSINGLE, comparisonDOUBLE.
+- DirectDp usesnew pathway_mask_product.comp andcompile script; checker
+  downloadsDfromsynchronousMapGPU thenuploadsD+Float32castnativecomparisonmask
+  toseparateGPUprecisemultiply. MatchesnativeDp; NOT residentjoinedpipeline.
+  35760valueseach neighbor,N_mask,banddiff,D,psychometric,Dp +10errors+4scores
+  =214574. Same twoimagepairs/30ppd/age24,notnewuniquecoverage. Q/Q_JODmatches
+  dependonNATIVE intermediates; doNOTclaimfullGPUmetricacceptance.
+- Allinput/textfiles rowmajor17digits, stagescarrynativeclassesinmetadata.
+  Neighborresize nativeimresize symmetricextension, elementwisemasking has
+  nopadding, no additionalDCremoval. Already-normalizedbands, centeredbase.
+  Componentcalls usehostreadback/uploads; joiningSPYR/pool/CSFnotdonehere.
+- Docs PATHWAY_MASKING_VALIDATION.md/MASKING_QUALITY_VALIDATION.md, hashes/
+  completedpointerupdated. Preserveoldrefs,stagedcorrdn,dirtyVkFFT/allchanges.
+
+NEW exact next step: general80x96/96x80 binarycomparison-mask generation and
+nativeDOUBLE imresize for5bandshapes, using saved trace.masking{b}.comparison
+asgolden. Existing resize_comparison_mask guard onlysquare/2:1; keepit until
+separateexperimentalfixed-pointprofile validated. ThenjoinGPU SPYR/pooling/
+neighbor/CSF/masking outputs, removingnativeintermediateinputs; upstream
+MTF/LA/photoreceptorP stillneededforfullimage-to-scorequality acceptance.
+
+### Newest: actual resize/CSF and experimental mutual pooling (2026-10-24)
+
+Latest additional native reference: general_masking_trace_639284290290539478.
+generate_general_pathway_reference.m now inserts read-only captures for
+self/neighbor masks,N_mask,excitation,neural,D,comparisondouble,D_p and
+accumulatedQerror. Savestrace.mat andperbandtext; nativeoriginal/tracedQ/JOD
+stillEXACTbothorientations, officialinstallationunchanged. ActualGPU pooled
+outputs independently compared to nativeFULLMETRICself_mask using new
+validate_pathway_pool_trace.m: full_trace_pool_comparison/PASS35760BITWISE
+words over10bands. This reusespreviousGPUoutputs,notnewuniquecoverage.
+Othernewmaskingmaps are referenceONLY,notGPUvalidated. Latestgeneratorhash
+differsfromhistoricalearliertracegenerators;oldartifacts/sourcehashespreserved.
+
+Immediate next step updated: native masking instrumentation is DONE; use new
+general_masking_trace/trace.mat for neighborresize/N_mask/D/D_p stagechecks.
+Do not regenerate instrumentation unnecessarily. Need isolatedchecker linking
+MapGPU resize,masking_denominator,difference,psychometric andqualitypool APIs,
+without wideningmutual_masking orcomparisonmask guards. Nativeclasses and
+base neural scalar vs per-pixel neural maps must remain explicit.
+
+- `validation/pathway_resize_csf_639284286981781158`; actual twoimagepair
+  trace.log_La/log_resized/csf and normalized/DC-centered bands from
+  general_pathway_639284244350897941. New
+  generate_pathway_resize_csf_reference.m verifies all10resizedlogmaps against
+  nativeimresize/clamp andexports resize.txt,bounds.txt,pool.txt. Options
+  maskingnorm0/pool3/noGaussian/nodilation asserted. Float32/30ppd/age24,
+  row-major decimal17digits, imresizebicubicantialias/symmetricedges, noDC.
+- Existing verified checker full_age_639280300414897968/verified_bin/
+  IQM-map-gpu-test.exe +publishedbounded ABI13map from
+  publish_prepare_639283319336040304/runtime_bounded/map.spv. No runtimechange.
+  --resize gpu_resize.log:10cases35760values numericexact. --bounds
+  gpu_resize_csf.log:20comparisons71520values numericexact(resize+CSF).
+  These repeat35760resizevalues;NOTextraunique coverage. All5bandshapes,
+  firsttwo same originalsize; basegenericCSF also tracedbutactualbasenoise
+  usesselectedfrequency separately. DeviceIntelArcPro, numericalchecks only.
+- Originalnative/ hadresize/CSF; freshnative_with_pool/ addspool. Oldresize
+  andbounds file hashes identical acrossboth. Nativepooled=conv2(minabs,3x3/9,
+  same),fromalready normalizedbands soinputnormalization1. Same sourcepairs.
+- ProductionMapGPU.mutual_masking correctlyrejectsgeneralshapes:gpu_pool.log
+  exit2 UnvalidatedGPUmaskingdimensions. GuardNOTchanged. Newisolated
+  tests/pathway_pool.comp,verify_pathway_pool.cpp,compile_pathway_pool.ps1,
+  CMakepathway-pool-test. StrictfreshReleasebuild incheckpoint/build.
+- Initial destination-wideFMA/tail experimentalpass differs11on40x48case2
+  atx31/32, preservedgpu_pool_experimental/pool_fma/pool_separate. Nativefull
+  conv2 transitions dependonSOURCEaxisperTAP. MixedhardwareFMA/separate
+  pertaptrial differs2494onfirst80x96case, preservedgpu_pool_per_tap/
+  pool_tap_fma/separate. Corrected usesacceptedINTEGERpositive_fma helper
+  fromshaders/hdrvdp3/hdrvdp3_map_reference.glsl (helpersinjected/hashes
+  recorded) pluspreciseseparateproduct/add, per-source-tap32elementprefix.
+- Accepted pool_integer_fma/separate shaders, gpu_pool_integer/PASS/results:
+  10bands71520outputs numericexact, observedbitdiff0, IntelArcPro. Hostuploads
+  onlynativebands, GPUcomputesrawminabs+pool, zeroedges/native longeraxisorder.
+  Two variantsdisjointwrites;bothcontainpertapmixedARITHMETICwithintegerFMA.
+  NoFloat64/Int64,explicitDenormPreserve/RTE32,spirv-val passes. Empirical
+  dispatchmatchonfixtures, notcompilednativescheduleproofforallinputs.
+- Docs PATHWAY_RESIZE_CSF_POOL_VALIDATION.md,MASKING_QUALITY_VALIDATION.md.
+  Hashmanifest binds oldresizechecker/shader,newpoolsource/binary/shaders,
+  nativefixtures andlogs. PASS markers forresize/CSF written onlyafterexit0
+  andexact expectedcounts, completedpointerafterallthreeacceptedscopes.
+  Allproductionfiles/guards, stagedcorrdn,dirtyVkFFT preserved;noautopublish.
+
+NEW exact next step (supersedes olderparagraphs): instrument fresh native
+hdrvdp3 copy toexport perband self_mask,N_mask,excitation/D_p maps andquality
+pooling, preservingoriginal/tracedQ/Q_JODidentity. Extendexperimental masks
+to neighborbandresize/denominator/difference/psychometric using actualmaps;
+check each stageexactly. Nativecsf/resizeandrawpool nowcomponentpassesbutnot
+joinedwithSPYR. UpstreamGPUproductionofP/filterstages stillneededforfull
+metric; generalcomparison-maskdouble resize andfinalQ/Q_JODnotyetvalidated.
+
+### Newest: full SPYR +residual chain on GPU (2026-10-24)
+
+- User explicitly requests continuing without waiting for another prompt.
+  No new publication authorization; all local. Preserve staged corrdn,
+  dirtyVkFFT and all prior changes. Public shapes/production binaries unchanged.
+- First joined lowpass root pathway_spyr_chain_639284283321272327 passes
+  42486 comparisons and oldlowpass40800 regression. New shader supports
+  paired input via finalpushword (zero still1batch); no host baseband upload.
+- Native/allband shader root:
+  `validation/pathway_spyr_bands_639284284245362379`. Extended nativegenerator
+  adds hi0.txt/orient.txt filters and high.txt/orient0/1/2 outputs perimage,
+  each asserted against hdrvdp_spyr.get_band. Native raw/centeredbase assertions
+  retained. sp0Filters has ONE orientation perscale; no otherfilterclaim.
+  New normalize selectors2/3/4 -> /2,/4,/8;selector1 remains /16.
+  gpu_bands/PASS111840 numerical comparisons, observed bitdiff0.
+- FINAL root `validation/pathway_spyr_all_chain_639284285430220524`, latest
+  strictMSVCRelease spyr-lowpass-test. New --all-chain profile, eightSPYR
+  operations(lo0,3down,hi0,3orientation),mean/DC,differencepack,residualFFT.
+  Paired reference/test,19dispatches inONEcommandbuffer perimagepair.
+  3bindingSPYR and2bindingresidual layouts/barriers keepallintermediatesonGPU.
+  Host uploads ONLY originalPmaps andcoefficients; reads afterfinalfence.
+- gpu_all_chain/PASS/results.tsv IntelArcPro:111840SPYR/lowpass numericexact,
+  484mean/DC+480packed-difference+242mag/index BITWISE,480FFTcomponents numeric
+  exact =113526 comparisons. Observed allbitdiff0, butFFT/convolutionzero-sign
+  bits areNOTacceptance. Same twoactualimagepairs, notnewuniquecoverage.
+  No numerical failures. Starts atnativeP, ends atresidualfrequencyselection.
+- ActualP source general_pathway_639284244350897941, Float32,30ppd,age24;
+  once-roundedFloat32coefficients,reflect1/start0/step1then2,FMA32elementprefix
+  alonglongerinputaxis andprecisenonFMA tail in separatevariants. /16rawbase,
+  separateoriginalmeans, no recenterdifference,rawFFTDCretained/magDCzero,
+  nativecolumnmajorfirstindex. NoFFTpadding/filter withinSPYRcomponent.
+- Finalchecker defaultlowpass(40800),--bands(111840),--chain(42486) regressions
+  pass in finalroot/gpu_{lowpass,bands,chain}_regression. Source
+  verify_spyr_lowpass.cpp now supports4profiles; shaders/native frombandsroot,
+  mean120/differencepack/residualextended unchanged. Combinedgoldensfrom
+  pathway_difference_gpu_639284272183191896/native. inputs.json and
+  checkpoint_hashes.json recordexactdependencies/finalsource/finalbinary.
+  Historical earlierbinaries retained; finalrootbindslatestsource/binary.
+- Docs SPYR_LOWPASS_VALIDATION.md,MASKING_QUALITY_VALIDATION.md updated.
+
+NEW exact next step (overrides historical paragraphs): general-shape GPU
+adaptation/log-map resize andCSF against saved trace.log_resized/trace.csf for
+all5bandshapes. Inspect MapGPUguards/nativeimresize antialiasing/coordinates;
+separateexperimentalprofile, doNOTenablepublicquality. Preserveactualbase120
+poweracceptance. UpstreamGPUproductionofP also requiresjoining mixedFFT with
+actualMTF/LAfilters andphotoreceptorstages. Then masking/pooling andindependent
+fullstage/Q/Q_JOD comparisons. DoNOTclaimfullmetriccomplete fromnativePtests.
+
+### Newest checkpoint: GPU SPYR lowpass from real P maps (2026-10-24)
+
+- `validation/pathway_spyr_lowpass_639284274200978716`, active/completed
+  pointers pathway_spyr_lowpass_{active,completed}_path.txt. New
+  generate_pathway_spyr_lowpass_reference.m exports native4stage lowpass
+  for4actualP maps from general_pathway_639284244350897941. Native raw and
+  DC-centered base bands reproduce prior trace BITWISE. Same source images,
+  not new coverage;30ppd/age24. Source hashes recorded for buildSpyr,
+  buildSpyrLevs,corrDn,rconv2,sp0Filters; official install untouched.
+- New tests/spyr_lowpass.comp, SSBO input/output/filter.7x7lo0step1 then
+  three13x13lostep2,reflect1 every stage,start0 GPU /start[1,1]native. Final
+  output /16 exactly matches normalized rawget_band. No DC removal here.
+  Float32image/once-roundedFloat32coefficients, descending taps along longer
+  input axis. Native32elementvectorprefix explicitFMA,tail precise separate
+  multiply/add in TWO variants, disjoint output writes.20x24/24x20 entire
+  axis is separate arithmetic; no incorrect blanket FMA extension.
+- compile_spyr_lowpass.ps1 fresh directory, optional-NonFma; only newshader
+  compiled. ExplicitDenormPreserve32/RTE32, Vulkan1.2spirv-val passes, no
+  Float64/Int64. Existing/staged corrdn shaders/binaries not touched.
+- New verify_spyr_lowpass.cpp and isolated CMake targetspyr-lowpass-test.
+  StrictMSVCRelease freshbuild. One command buffer4stages/8dispatches with
+  write/readbarriers. Host uploads only originalP andfilters, no intermediate
+  CPU calculation/upload; reads all4outputs after finalfence forcomparison.
+- gpu/PASS.txt/results.tsv onIntelArcPro:16stagecomparisons40800Float32values
+  numerical EXACT,observed bitdiff0. Perinput7680+1920+480+120=10200,4inputs.
+  Signedzero bits recorded butnot required forconvolution. No numerical
+  failures. NoFFTpadding/filter inunit,onlyspecifiedreflect1/downsample,
+  row-majorlayout; output10x12/12x10. No general publicshape/ABI changes.
+- Docs SPYR_LOWPASS_VALIDATION.md and MASKING_QUALITY_VALIDATION.md updated.
+  checkpoint_hashes.json freezes source/native/shader/executable; completed
+  pointer set afterPASS. No commit/push; preserve dirtyVkFFT/alloldchanges.
+
+NEW exact next step (overrides historical paragraphs): connect the new GPU
+lowpass output buffers to accepted mean120 ->differencepack ->residualFFT
+without host readback/reupload, paired reference/test. Need one combined
+checker with lowpass descriptor layouts3bindings vs residual2bindings and
+the /16 normalization retained. Golden raw bases can come from this new
+checkpoint and combined expectations from pathway_difference_gpu checkpoint.
+Then extend actual-P-map decomposition to highpass/orientation outputs with
+native band normalization; finally generalfilter/visualpathway/resize/CSF
+and fullstage/Q/Q_JOD comparisons before publicshape guards change.
+
+### Newest checkpoint: combined GPU difference chain (2026-10-24)
+
+- `validation/pathway_difference_gpu_639284272183191896`, active/completed
+  pointers pathway_difference_gpu_{active,completed}_path.txt. Local only;
+  production guards, existing shaders, staged corrdn and dirty VkFFT preserved.
+- New tests/mean120_difference_pack.comp: reference/test mean+centered pairs,
+  skip means, precise test-reference subtraction, column-major complex packing
+  with positive-zero imaginary words. No second DC subtraction. New targeted
+  compile_mean120_difference_pack.ps1 uses fresh directory, explicit
+  DenormPreserve32/RTE32, NoContraction, Vulkan1.2 spirv-val. NoFloat64/Int64.
+- verify_residual120_pipeline.cpp adds --pathway-difference: two mean groups
+  ->one pair/difference->one residual FFT group per orientation. Separate input
+  and output counts/buffer sizes/domain checks; original --pathway and12-case
+  modes retained. Generator now writes combined_manifest.txt with uint32
+  difference/expected files while retaining separate float-parser manifest.
+- Native source general_pathway_639284244350897941, same two real image pairs,
+  no new unique source data. Single/30ppd/age24; raw exponents9..9. Mean/120,
+  one Float32 DC subtraction per original band, then test-reference, forward
+  FFT unnormalized. No padding/filter in residual unit; native upstream uses
+  official2H x2W. Input row-major raw real; packed complex column-major;
+  final FFT/magnitude row-major, first-max native column-major. DC magnitude
+  zero only, raw FFT DC retained. Native assertions connect to trace selection.
+- gpu_combined/PASS and results.tsv, IntelArcProGraphics:484 mean/DC words,
+  480 packed-difference words and242 mag/index words BITWISE exact;480 FFT
+  components numerical exact (observed bit diffs0, not asserted). Single
+  command buffer/3dispatches/write-read barriers; host only uploads RAW bands,
+  waits then reads intermediates for comparison. NO native difference upload
+  and NO host intermediate computation in combined path. No numeric failures.
+- Fresh MSVC strict Release checker in build/Release; unchanged accepted
+  mean120.spv and residual120_extended.spv, only difference shader new.
+  gpu_pathway_regression/PASS (4bands) and gpu_original_regression/PASS
+  (12bands) both pass with latest checker. Source/reference/executable/SPIR-V
+  hashes in checkpoint_hashes.json. Docs updated, git diff --check passes.
+- Reproduce: generate_pathway_residual120_reference.m <freshnative> <trace>;
+  compile_mean120_difference_pack.ps1 -OutputDirectory <freshshader>;
+  residual120-pipeline-test <mean.spv> <differencepack.spv> <extendedfft.spv>
+  <native>/combined_manifest.txt <freshgpu> --pathway-difference.
+
+NEW exact next step (supersedes earlier next-step paragraphs): trace and port
+the upstream general-shape SPYR corrDn/decomposition on actual saved P maps,
+first native inputs -> GPU raw base bands, before joining the now-accepted
+mean/DC/difference/FFT chain. Inspect existing corrdn runtime guards/shader
+profiles and native buildSpyr edge/step/start semantics; do not overwrite the
+staged+unstaged corrdn shader. Use a separate experimental shader/ABI and fresh
+exports. Then filter/visual-pathway/resize/CSF integration and independent full
+stage/Q/Q_JOD comparisons. General public80x96/96x80 guards remain disabled;
+no commit/push authorization added.
+
+### Newest checkpoint: actual pathway residuals (2026-10-24)
+
+- `validation/pathway_residual120_639284268283635835`; source actual P maps
+  from general_pathway_639284244350897941. New generator
+  tests/generate_pathway_residual120_reference.m reconstructs official SPYR
+  sp0Filters/30ppd, four real reference/test raw bands. Native mean/DC output
+  equals traced centered bands BITWISE; raw exponents9..9. Age24, original
+  asymmetric/local-distortion fixtures. No new full quality GPU claim.
+- New explicit --pathway profiles: pipeline checker requires4matrices (2per
+  orientation), residual checker requires2extended matrices. Original12/76
+  guards retained. Checker records dump/results before magnitude failure.
+- Accepted native_float_contract/, gpu_pipeline_float_contract/PASS and
+  gpu_difference_float_contract/PASS. IntelArcPro: four raw bands mean/DC484,
+  pack960,mag/index484 words bitwise,FFT960 numerical exact. Two actual
+  centered test-reference differences:480FFT components numerical exact,
+  240magnitudes+2indices bitwise. Observed allFFTbitsmatch but not asserted.
+  Native assertions compare difference to trace and spectrum after DCzero,
+  native selectedindexexact. No recentering of difference; separate native
+  means removed per reference/test before subtraction. Forward unnormalized,
+  no padding/filter in residual component; layout as RESIDUAL120_VALIDATION.
+- Initial standalone difference run failed356/361 onfirstmatrix because new
+  fixture wrote uint32 text but old residual parser expects decimal floats.
+  Diagnostic dumps showed bogus large inputs. Corrected generator uses float
+  text ONLY difference manifest; pipeline stilluint32. Failed artifacts
+  gpu_difference/,gpu_difference_diagnostic/,native/ preserved. Fresh corrected
+  directories above passed; no shader arithmetic changes or tolerance use.
+- Fresh MSVC Release targets residual120-test,residual120-pipeline-test in
+  checkpoint/build (CMake VisualStudio18 2026,x64,/fp:strict). Reuses accepted
+  mean120/shader/mean120.spv, residual120_pipeline/mean120_pack.spv and
+  residual120/shader_extended_verified/residual120_extended.spv. No shader
+  recompilation, production files/guards/ABI or stagedshader/VkFFT changes.
+- Regressions: gpu_pipeline_regression/PASS old12cases passes;
+  gpu_extended_final_regression/PASS latest checker old76matrices passes,
+  27436 numeric values,490rawFFTzero-signbits only. Source/binary/reference
+  hashes frozen in checkpoint_hashes.json; completed pointer set after PASS.
+
+NEW exact next step (supersedes older next-step paragraphs): extend the real
+pathway pipeline to subtract GPU-centered test/reference bands on GPU, pack
+that difference and dispatch residual FFT/magnitude/index without uploading
+native intermediate differences. Keep native trace selection as independent
+golden and no second mean subtraction. Current difference test uploads native
+difference separately, so do not claim combined end-to-end dispatch yet.
+Then progress experimental filtering/SPYR/resize/CSF integration and full
+stage/Q/Q_JOD comparisons before enabling general public shapes. No commit/push.
+
+- Local work only; no commit/push. Preserve all prior changes, staged/unstaged
+  corrdn shader, old artifacts and dirty VkFFT. Production guards unchanged.
+- Residual checkpoint `validation/residual120_639283813321637573`: raw GPU
+  76 matrices/18240 FFT Float32 values numerically exact;490 differences are
+  zero-sign bits. Extended test adds9120 bitwise magnitudes and76 bitwise
+  first-max indices. Native FFT plans match UNALIGNED scalar10/12 codelets;
+  aligned candidates do not match. See RESIDUAL120_VALIDATION.md.
+- Latest extended checker raw-mode regression on2026-10-24 passes again in
+  fresh gpu_raw_regression_* directory, same18240/490/0 result onIntelArcPro.
+- Actual three-dispatch GPU pipeline checkpoint
+  `validation/residual120_pipeline_639283821352963342`: mean/DC -> uint packing
+  -> FFT/magnitude/index, shader barriers in one command buffer, no host
+  intermediate computation/upload. Twelve bounded standalone official SPYR
+  fixtures:1452 mean/DC +2880 pack +1452 mag/index words bitwise;2880 FFT words
+  numerically exact (observed zero bit differences, not FFT-bit acceptance).
+  These12 are a subset of the76 above, not new unique fixtures. No padding or
+  normalization except mean/120; DC subtraction precedes forward FFT and only
+  magnitude DC is zeroed afterwards. Host checks bounded mean/norm domains.
+- Base checkpoint `validation/base120_639283822820535556`:8192 synthetic plus
+  12 native residual-derived logmaps,16408 mean/pow10 output words BITWISE.
+  Input120 logs[-5,5], normal/zero, min exponent-90, exponent spread<=16;
+  integer bounded mean +existing native-style power helpers, explicitFloat32
+  controls, noFloat64/Int64. Native logs originally come from positive
+  standalone SPYR residuals, NOT complete visual-pathway adaptation.
+  Separate input/output buffer sizes; no numerical GPU failures.
+- residual120, residual120_pipeline, base120 completed pointers now set after
+  checking PASS files. checkpoint_hashes_20261024.json freezes source, native
+  references, shader, artifacts and executable hashes in each root. Original
+  base executable hash refers to pre-pathway checker source; the newer source
+  and executable are frozen separately in the new pathway checkpoint.
+- New `tests/generate_general_pathway_reference.m` creates a licensed traced
+  COPY of installed hdrvdp3.m in a fresh validation directory, never edits
+  C:/HDR-VDP-3_Ref. Function rename/base_dir adjustment/trace assignments only;
+  source hashes recorded. Checkpoint
+  `validation/general_pathway_639284244350897941`, original and traced native
+  calls both fresh wisdom/3threads/ESTIMATE. For80x96 and96x80 asymmetric
+  images with localized distortion,30ppd/age24, Q and Q_JOD exactly equal.
+  Scores respectively4.030489921569824/4.869779586791992 and
+  3.958810567855835/4.790723323822022. NOT GPU quality scores.
+- Native trace exports adaptation/log/P maps, all normalized SPYR bands,
+  resized logs/CSF, base difference/spectrum/selection; trace.mat preserves
+  classes/complex values, decimal row-major text17digits. Base spectrum is
+  captured AFTER official DC zero. Base difference exactly as used by metric;
+  do not assume another mean subtraction is equivalent. MTF/LA padding remains
+  official2H x2W; no power-of-two rounding. Source classes recorded.
+- New generate_pathway_base120_reference.m extracts actual resized logmaps;
+  asserts double-sum mean and power==tracedL_mean. verify_base120.cpp adds
+  explicit --pathway mode requiring2batches/4words; old mode still8192+12.
+  Fresh MSVC Release base120-test in pathway/build, unchanged accepted base
+  SPIR-V: base_gpu/PASS bitwise4/4 onIntelArcPro. Same new checker passes old
+  16408words in base_original_regression/PASS. No production ABI extension.
+- Commands: octave-cli --quiet --no-gui tests/generate_general_pathway_reference.m
+  <fresh>; generate_pathway_base120_reference.m <freshbase> <trace>;
+  cmake -S tests/hdrvdp3_dimensions -B <trace>/build -G "Visual Studio 18 2026"
+  -A x64; cmake --build <build> --config Release --target base120-test -j4;
+  base120-test <acceptedbase.spv> <manifest> <freshgpu> --pathway.
+  Octave cleanup warning returns0; PASS/results asserted separately.
+- Docs BASE120_VALIDATION.md, RESIDUAL120_VALIDATION.md and
+  MASKING_QUALITY_VALIDATION.md reflect current versus historical scope.
+
+Exact next step: use the new trace.mat P_reference/P_test to reconstruct raw
+official SPYR base bands before visual-pathway DC subtraction; verify these
+against exported centered bands. Generate mean120/DC fixtures from those REAL
+pathway bands, and an explicit-count pipeline checker profile (do not duplicate
+fixtures to satisfy the old12-case guard). Check actual base difference FFT /
+magnitude/index against traced native selection, keeping official DC semantics.
+Then integrate filtering/SPYR/resize/CSF in experimental general-shape paths,
+and compare every stage plus final Q/Q_JOD before enabling public80x96/96x80.
+Both big FFT orientations, bounded residual composition and actual base power
+are component passes only. Old next-step entries below are historical.
+
+## Latest continuation: transposed FFTs and exact bounded mean120/DC
+
+- User explicitly requests continuous work without asking whether to continue.
+  No publication authorization added; do not auto-commit/push. All work local,
+  production guards/shaders unchanged, old artifacts/stagedshader/dirtyVkFFT
+  preserved. Completed pointers below are component acceptance, not fullquality.
+- real192 first-axis checkpoint validation/real192_axis_639283673902853437,
+  completed pointer real192_axis_completed_path.txt. verified_complete/PASS:
+  12streams372480Float32values exact onIntelArcProGraphics. SelectedUNALIGNED
+  native rank2 firstsubtree match forall12(not arbitraryalignedplan). Outer
+  hc2cf_8/r2cf_8/r2cfII_8 over real24; inner24 twelve r2cf_2 sum/difference
+  leaves then r2cf_12/r2cfII_12. Pinned hc2hc-direct.c proves inner m2 ->mb=me1,
+  so hf_12body loop empty,onlyendpoints run. Sources GPL+hashes inreal192/.
+  Input192x160colmajorinterleavedrealFloat32(header192320),compact160x97
+  complex(header160194),unnormalized. Initialverified/ GPU passed butharness
+  searchedinverse_axis tag;fixedfreshverified_complete isacceptance.
+- inverse192firstcheckpoint validation/inverse192_axis_639283803326908322,
+  verified/PASS:12streams737280Float32valuesexact,allselectedrank2subtrees.
+  t2_16/n1_12 withswappedbackwardscalarpointerroles,transposedrowmajoroutput,
+  no normalization. Sourcepowerassertcaughtassumed7 beforeGLSLcompile;actual
+  powers1,3,9,15;shader_correct_descriptor accepted. Completedpointerset.
+- Fullforward192x160checkpoint validation/forward192x160_639283801741962283,
+  verified/PASS:12streams737280Float32valuesexactagainstofficialfft2,plus
+  372480first-axisregressionvaluesexact. completedpointerset. Complex160
+  n2fv_8_avx2_128 FMAgraph0 +t3fv_20_avx2_128 ordinarygraph1 withNATIVE
+  COMPILERCONTRACTIONofvectorhelpers. Keepfloatscalarhelperspreciseforreal192;
+  allowingvectorhelpercontractionisnecessaryoncurrentArc/compilercontract.
+  NativeDLLread-onlyPEscan+objdump foundkernelVA0x3026f1b10,registration
+  0x3026f24a0,extraFMAinstructions;disassembly/scan/DLLhashsaved. Addressonly
+  appliespinnedDLL,notproduction. Notportabilityclaimoruniversalscheduleproof;
+  pin/revalidateshader/device/driverbeforeintegration. No tolerancepasses.
+  Graph/helperstrictprobesfailed31598/23205/23996/10322values;nestedproduct
+  fusionswap18421;preserved. CorrectdefaultSPIRVbytes=successfulprobe.
+  Nativeleafdiagnostic --complex160-leaves:initialinplaceUNALIGNEDplanselected
+  n1_8,mismatches7565,excluded. Alignedoutplaceinputstride20/distance1,
+  outputstride1/distance8 selectsactualn2fv_8_avx2_128;31040GPUleafvaluesexact.
+  RawGPUleafprobe fullforwardrejectionintentional;separateleafcheckaccepted.
+- Fullinverse192x160checkpoint validation/inverse192x160_639283807856355507,
+  verified/PASS:12streams737280rawvaluesexactvspriornativeFFTWunscaledexports
+  and737280normalizedvaluesexactvsofficialifft2,first-axisregressionsbothmodes
+  exact. t2_16/n1_12firstaxis;scalarbackwardn1_8+t3bv_20ordinarywithnative
+  vectorcontractionsecondaxis;unchangedinteger30720divisionembedded. NoCPU
+  fallback,cachedoriginalnativeplansNOTrecovered. completedpointerset.
+- FFTfixtures:priorh96_w80family asymmetric/impulse/HDR-ramp,ref/test1.05,
+  MTF/LA30ppd;NOTfullqualitypairs. Forwardstage0alreadyMTFsymmetricPOSTor
+  LAreplicatePOSTpadded;inverseinputstage2alreadyfilterednativecomplexFloat32.
+  Inputcolmajor192x160;finalGPUcolmajor,checkercomparesrowmajorinterleaved.
+  FFTunnormalizedexceptexplicitfinalinverse/30720,nopadding/filter/DCinunit.
+  SignedzerobitsNOTassertedforFFTs. Allnewcompile_* scriptsuseexplicit
+  DenormPreserve32/RTE32,Vulkan1.2spirv-val,onlytargetednewshaders. FreshMSVC
+  Releasebuildsescalated;oldbinaries retained. Docs TRANSPOSED_MIXED_FFT_VALIDATION.
+- New bounded120samplemean/DC checkpoint validation/mean120_639283811026801827,
+  completedpointerset;tests/mean120.comp,verify_mean120.cpp,mean120-testCMake
+  target,compile_mean120.ps1 andgenerate_mean120_reference.m. Exactsumstored
+  intwo uint32 words (<=47magnitudebits),integerdivisionby120withRTEthen
+  singleprecisesubtraction. NOFloat64/Int64capability,NOroundedreciprocal.
+  Hostdomain:finiteFloat32normalorzero,nonzeroexponents[-90,100],spread<=16.
+  Doublepartialsumsexact;47bitbound+odd15factorpreventsdouble-roundingoff
+  floatmidpoint(doubledivisionthenfloatmatchdirectrationalround). Noextension
+  outsideboundedproof/domain. Allzeromean+0,negativezeroDCwordspreserved.
+- ActualGPUIntelArcProGraphics:8192syntheticcases991232outputwordsBITWISE
+  exact +12officialSPYRresidualcases1452wordsBITWISEexact. gpu/PASS.txt,
+  results.tsv,input/expected/outputu32,GPUlog. Syntheticall/negativezero,
+  constants,cancellation,randommantissas/signs/exponentscoverdomain;NOTall
+  possibletuples. HoststrictdoublemeanandfloatDCcross-checknativebeforeGPU.
+  NativeSPYR12fixtures:80x96/96x80,asymmetric,constant10+impulse7,bounded
+  HDRramp1e-2..1e3,ref/test1.05,30ppd. Residual10x12/12x10,observedexponent
+  span0or15,mean2..11;inputrowmajor120words,outputmean+120centeredwords.
+  Thesearedifferentboundedcomponentfixturesfromprior9decadeHDRFFTfixtures;
+  NOTwholevisualpathway/fullquality. NoFFT/padding/filter/pow10incurrentunit.
+  ExplicitFloat32controls;nativeOctavewarnings/exitcleanupmessagewithcode0,
+  all12completed,nofailednumericalmeanruns. Docs MEAN120_VALIDATION.md.
+
+Exact next step: generateofficial10x12/12x10 residualFFT referencesfromthe
+newmean120nativecenteredresidualspluscontrolledsynthetics;inspectfreshFFTW
+candidateplansandpinactualr2cf_10/r2cf_12/complex10/12codeletsbeforeGPUport.
+ThenGPUresidualFFT,magnitudes/DCzerofirstmax;compose120meanandbasepow10via
+separateexperimentalABI. BothmixedbigFFTorientationsnowcomponentpasses,
+notpublicquality. Filter/SPYR/CSF/mapgeneralshapeintegrationandfullofficial
+stages/scoresremain. Keepguardsandstagedshader/dirtyVkFFT;noautopublication.
+
+## Latest continuation: complete160x192 inverse and normalization on GPU
+
+- Freshcheckpoint `validation/mixed_inverse_full_639283669024826224`,active and
+  completed pointers `validation/mixed_inverse_full_{active,completed}_path.txt`.
+  Localonly,no commit/push. ProductionFFT/mapcodeandpublicguardsunchanged.
+- Added pinnedFFTW3.3.10 backward t1bv_6/t3bv_8 andISAwrappers to
+  tests/fftw_reference/mixed_inverse/SOURCES.json,originalGPLnotices/member
+  LFhashesretained. Reusespinnedt1b.h/t3b.h,simd-avx2.h,n1_4 andprevious
+  inverse160generator. No newCPUFFT implementation orproductionCPUfallback.
+- generate_fft160x192_inverse_shader.ps1 combines acceptedinverse160firstaxis
+  withinverse192secondaxis:scalar n1_4 withbackwardreal/imagpointerroles,
+  t1bv_6_avx2 inner24,then t3bv_8_avx2_128 outer8. Precisescalar/vectorhelpers,
+  explicitSIMDFMA,t1ordinarygraph1,t3FMAgraph0;arithmeticmatchnotnativebuild
+  branchrecovery. ChecksheaderhashesBYTW1/TWVL1,t3VTW3/TWVL3,descriptorpowers
+  1/2/3/4/5 and1/3/7. Hostdoubletrigonce-roundedFloat32,exactquadrants.
+- EmbedsunchangedfiniteintegernormalizeWord bodyfrommixed_normalization.comp.
+  Mode --inverse160x192-raw returnsunnormalizedinverse; --inverse160x192 applies
+  correctlyroundedFloat32division30720onceaftersecondaxis,p.fused=1(flagonly;
+  firstaxishelpersremainnonfused). No roundedreciprocalmultiply.
+- New compile_inverse160x192.ps1 (tests/hdrvdp3_fft256) compilesonlynewshader,
+  explicitlyaddsDenormPreserve32/RoundingModeRTE32SPIRVcapabilities+modes,
+  assemblesandvalidatesVulkan1.2. OnlyShader/DenormPreserve/RoundingModeRTE
+  capabilities,noFloat64/Int64. shader_reproducedbytesidenticaltotestedshader
+  afterfinalheader/powerassertions(reproduction_check.txt).
+- ExtendedGPUcheckernewraw/normalizedmodes,freshstrictReleaseMSVCbuild/build
+  succeeded(escalated). Reusablehdrvdp3_dimensions/validate_mixed_inverse.ps1
+  copiespriornativeinputs/referencesintofreshfixtures,recordsoriginalpaths and
+  hashes,checksrawandnormalizedoutputsplusfirstaxisagainstpriornativeoracle.
+  ActualGPU IntelArcProGraphics. All12streams(asymmetric/impulse/HDR-ramp,
+  ref/test,MTF/LA)737280rawFloat32valuesmatchpriornativeFFTWrank2unscaled
+  exports;737280normalizedvaluesmatchindependentofficialOctaveifft2. Allzero
+  mismatches.737280uniquefirst-axisvaluesexactinbothmodes(repeatedchecks).
+  verified/PASS/results.tsv/24per-modelogs/input_binary_hashes.txt areacceptance.
+  SignedzerobitsNOTassertedforwholeFFT;priornormalizerbitwisecoverageisseparate.
+- Nativeunscaledreferencesreusepriorfresh3threadESTIMATE|UNALIGNED/outofplace
+  candidateexports,NOTrecoveredoriginalOctavecachedobjects. Their192second
+  axisplanhas54/54/52groups;GPUperlanearithmeticmatchedindependently.
+  No newnativeCPUoraclesgeneratedthischeckpoint;oldreferencefilespreserved.
+- Contracts:h80_w96componentfixturefamily,30ppd,ref/testfactor1.05,stage2already
+  filterednativecomplexFloat32,column-major160x192(header160384),precededby
+  symmetricPOST(MTF)/replicatePOST(LA)preparation. Firstinverseoutputtransposed
+  forcontiguous192secondaxisreads;finalGPUcolumn-major,checkerexportsrow-major
+  160x192interleaved. axis0_storageheader192320describesstorage;wordsequence
+  matchespreviousrow-majorfirstaxisoracle(header160384). Nopadding/filter/
+  mean/DC/crop/exp/mapworkperformedhere. NOTfullqualityimagepairacceptance.
+- InitialasymmetricrefMTFraw+normalizedprobespass;newcheckerforwardregression
+  passes61440values(forward_regression.log). Repeatedfixturesarenotnewcoverage.
+  No failednumericalrunsinthischeckpoint. Oldartifacts/stagedshader/dirtyVkFFT
+  preserved. Docs tests/MIXED_INVERSE_VALIDATION.md,MASKING_QUALITY_VALIDATION.md.
+- Inspectedselectedtransposednativeplan,NOTfirstalignedplan: extracted
+  ref_mtf_t3_unaligned_outplace forward+inverse totransposed_next_plan.txt.
+  Graphisdifferent:real192first hc2cf_8/r2cf_8/r2cfII_8 withnested
+  hf_12/r2cf_12/r2cfII_12/r2cf_2;inverse192first t2_16/n1_12.
+  Complex160secondforwardt3fv_20_avx2_128/n2fv_8_avx2_128,
+  backwardt3bv_20_avx2_128/n1_8. Do notsimplyswapdimensionsoruse192secondgraph.
+
+Exact next step: extractnativefirst-axiscompact97frequencyfixturesfor
+192x160(h96_w80family),pinnewrealcodeletsandportactual8x24nestedrealgraph
+withhf_12. CompareisolatedGPUfirstaxisbeforenewcomplex160secondaxis. For
+inverseuseactualt2_16/n1_12firstaxisand t3bv_20/n1_8 second. Existing160x192
+forward+rawinverse+normalizedinversearecomponentpasses,notpublicquality.
+120samplemean/DC,10x12residualFFTandfilter/mapintegrationremainbefore
+full80x96/96x80officialstages/scores. Retainpublicguards,noautocommit/push.
+
+## Latest continuation: unnormalized inverse160 first GPU axis
+
+- Freshcheckpoint `validation/mixed_inverse160_639283665236700141`, active and
+  completed pointers `validation/mixed_inverse160_{active,completed}_path.txt`.
+  Localonly,no commit/push. ProductionFFT/maps/publicguards unchanged.
+- Added pinnedFFTW3.3.10 t2_20.c,t1b.h,t3b.h under
+  tests/fftw_reference/mixed_inverse,originalGPLnotices+SOURCES.json LFhashes,
+  archivehash/memberprovenance. t1b.h explicitlyselects BYTWJ1/TWVL1,justlike
+  forwardt1f.h;do notinfer backwardtwiddlecontract fromname.
+- generate_fft160_inverse_axis_shader.ps1 ports ordinaryscalar t2_20 anduses
+  existingordinaryn1_8 leaves.20decimated8pointFFTs then20pointtwiddlestage,
+  nativebackward real/imagpointerroles swappedbefore/after. Precisescalar
+  helpers/results,nonfusedFloat32operations. Descriptorpowers1,3,9,19,
+  hostdoubletrigonce-roundedFloat32,exactquadrants. NoCPUfallback.
+- Nativeinspectoradds --inverse160-axis <stage2.txt> <freshdir>,freshwisdom,
+  threads3,ESTIMATE|UNALIGNED,outofplace. Exportsactualplan andunnormalized
+  rowmajoraxis0_expected.txt;copiesinputref_mtf_stage2. All12nativeplans
+  identical,eachcomplete whitespace-normalizedplan isexactsubtreeofprior
+  matchedrank2inversegraph(three64columngroups,t2_20/n1_8). Stillcandidate
+  arithmeticgraph,NOT recoveredoriginalcachedOctaveobjects.
+- GPUcheckeradds --inverse160-axis,onesinglepass,noinverse192/normalization.
+  tests/hdrvdp3_dimensions/validate_inverse160_axis.ps1 orchestratesnative/GPU
+  foreachasymmetric/impulse/HDR-ramp xref/test xMTF/LA,checksplans,records
+  sourcepaths/hashesandper-streamlogs. FreshstrictMSVCReleasebuild/build_native
+  succeeded(escalated). All12streams737280Float32valuesnumericallyexact on
+  IntelArcProGraphics,zero maxerror. Finalacceptance verified_preserve/PASS,
+  results.tsv,input_binary_hashes.txt. SignedzerobitsNOTasserted,no tolerance.
+- Inputcontract: priornativeh80_w96 fixturefamily,factor1.05ref/test,30ppd,
+  MTFsymmetricPOST/LAreplicatePOST160x192preparationwithdoublefilters;
+  stage2alreadyfiltered,columnmajorinterleavedcomplexFloat32,header160384.
+  Each192columns transforms160complexsamples;GPUwritestransposedstorage
+  equivalentrowmajor160x192interleavedoutput,header160384. Unnormalized,
+  noextraFFTaxis/filter/padding/mean/DC. NOTfullqualitypairacceptance.
+- IMPORTANT: initialrawglslangshader lackedexplicitfloat-controlmodes.
+  verified/ passedasymmetricrefMTF butfailedrefLA9280values,maxerror
+  6.018531076210112e-36. DevicecapabilitycheckaloneisNOTmodeactivation.
+  Preservefailedrun;excludedfromacceptance. New
+  tests/hdrvdp3_fft256/compile_inverse160_axis.ps1 followsexistinginverse
+  protocol:glslc,SPIRVdisassembly,explicitDenormPreserve32/RoundingModeRTE32
+  capabilities+executionmodes,assembly,spirv-valVulkan1.2. shader_preserve is
+  final;capabilitiesShader/DenormPreserve/RoundingModeRTEonly,noFloat64/Int64.
+  Thisfixrestoresall12exactresultswithoutalgorithm/tolerancechanges.
+- NewlybuiltGPUcheckerforward160x192regressionasymmetricrefMTF61440values
+  exact(forward_regression.log);repeatedfixture,notnewuniqueinputs. Allprior
+  references/shaderbinaries,stagedshaderanddirtyVkFFTpreserved. Docs
+  tests/INVERSE160_AXIS_VALIDATION.md, MASKING_QUALITY_VALIDATION.md.
+
+Exact next step: port192complexinverseSECONDaxisfromactual
+t3bv_8_avx2_128/t1bv_6_avx2/n1_4(backwardscalarpointerroles)with54/54/52
+nativebatchgroups. Exportunnormalizednativeintermediates,compareGPUbefore
+composingalreadyverifiedfixed30720divisionagainstofficialifft2for12streams.
+UseexplicitDenormPreserve32/RTE32inthecompiledSPIRV,notjustdevicechecks.
+Inverse160firstaxisalreadyexact;don'tredoitsalgorithm. Transposed192-FIRST
+orientationstillunported.120sampleDC/mean,10x12residualFFT,mapintegration
+stillpendingbeforepublic80x96/96x80quality. Noautocommit/push.
+
+## Latest continuation: complete160x192 forward GPU FFT
+
+- Fresh checkpoint `validation/mixed192_forward_639283658517194869`; active and
+  completed pointers `validation/mixed192_forward_{active,completed}_path.txt`.
+  Local only,no commit/push. No production shader/map/API guard changes.
+- Added pinned FFTW3.3.10 sources under tests/fftw_reference/mixed192:
+  t3fv_8,t1fv_6,n1_4,simd-avx2.h,t1f.h,t3f.h,ISA wrapper files. OriginalGPL
+  notices retained,SOURCES.json archive/member/LF SHA256 provenance.
+- generate_fft160x192_forward_shader.ps1 combines prior real160 scalar20x8
+  graph with complex192: n1_4 leaves -> t1fv_6_avx2 inner24 ->
+  t3fv_8_avx2_128 outer8. Precise scalar and vector helper results are required
+  across function boundaries. t3 FMA graph0 selected; t1 ordinary graph1 with
+  explicit SIMD FMA matches. Both t1 branches were arithmetic-equivalent on
+  probe inputs; do not claim native build-time branch recovered.
+- Critical correction: t1f.h explicitly selects BYTWJ1/TWVL1, NOT BYTWJ2.
+  BYTWJ1 rounds sine products separately and fuses cosine products, as does
+  native VZMULJ. Header is now hash-checked and selection asserted. Hostdouble
+  trig tables once-rounded Float32 with exact quadrants,24/192 denominators.
+- verify_fft256_inverse.cpp adds --forward160x192 (h160,w192). Old modes
+  retained. Strict fresh Release MSVC build tests/hdrvdp3_fft256; binaries
+  inside checkpoint/build. New shader only, glslangVulkan1.2+spirv-val pass.
+  shader_reproduced SPIRV bytes equal shader_final after final source assertions.
+- Added reusable tests/hdrvdp3_dimensions/validate_mixed_forward.ps1. Reads
+  prior6fixture native root and prior first-axis root, copies selected h80_w96
+  MTF/LA streams into fresh renamed ref fixtures with original source JSON and
+  hashes. All12 streams x61440=737280 full-forward Float32 values match
+  independently exported official fft2 numerically on Intel Arc Pro Graphics.
+  All12 first-axis checks x31104=373248 remain numerically exact. Signed-zero
+  bits NOT asserted; no tolerance pass. verified/PASS/results.tsv/per-stream
+  logs/input_binary_hashes.txt record accepted result. Nativeparams:30ppd,
+  ref/testfactor1.05,asymmetric/impulse/HDR-ramp;NOTfullqualitypair acceptance.
+- Contracts: prior stage0 already MTF symmetric POST / LA replicate POST padded
+  to160x192;Float32,column-major interleaved real input,imag0. First compact
+  192x81complex;finalGPUcolumn-major expanded Hermitian output compared/exported
+  row-major interleaved against officialfft2. Unnormalizedforward,no extra
+  padding/filter/inverse/normalization/DC. No productionCPU fallback.
+- Native inspector adds --complex192-axis <compact input> <fresh dir>:
+  fresh3threadESTIMATE|UNALIGNED,full192 and8strided24 probes,actualplans
+  matchingexpected3groups27columns. AsymmetricrefMTF full192 vs official half
+  31104 values exact(native_second/reference_check.txt). CorrectedGPUinner24
+  also31104 exact across8offsets,inner24_gpu_check.txt/INNER24_PASS.
+  Export-only inner24 shader intentionally fails generic fullforward comparison
+  in itsrawlog;onlyseparateintermediatecheck isaccepted. No recovered original
+  cachedOctaveobjects;matchedfreshcandidategraphs only.
+- Failedprobespreserved: initialassembly firstaxis262differences/full32935;
+  restoreoriginalscalarhelpers =>firstaxis0/full32293. Precisevectorhelpers
+  andt3graph0 =>full26354 withwrongBYTWJ2. All4graphvariantprobes,wronginner24,
+  nonfusedcomplexmultiply(full22586) retained;NOTtolerancepasses. Correctheader
+  BYTWJ1 =>full0. Docs tests/MIXED_FORWARD_VALIDATION.md.
+  Pre-existing stagedshader,dirtyVkFFT,oldreferences andotherwork preserved.
+
+Exact next step: port inverse160 t2_20/n1_8 and inverse192
+t3bv_8_avx2_128/t1bv_6_avx2/n1_4 using actual native operation order; inspect
+the backward t1b.h header instead of inferring twiddle kind from codelet name.
+Export unnormalized native intermediates and compare GPU before composing the
+already verified fixed30720 normalization against officialifft2 for12streams.
+The192-FIRST transposed orientation remains unported.120sampleDC/mean,10x12
+residual FFT andmap integration still pending before public80x96/96x80quality.
+
+## Latest continuation: isolated real160 GPU first axis
+
+- Fresh checkpoint: `validation/mixed160_axis_639283655659964334`; active and
+  completed pointers `validation/mixed160_axis_{active,completed}_path.txt`.
+  Local only; no commit/push or production/public-guard changes.
+- Verified local FFTW3.3.10 archive SHA256 against the pinned hash. Added
+  original GPL sources r2cf_20/r2cfII_20/hc2cf_20 under
+  tests/fftw_reference/mixed160, with SOURCES.json LF hashes/provenance.
+- New generate_fft160_forward_axis_shader.ps1 derives the scalar20x8 graph
+  from pinned sources plus existing r2cf_8. Nonfused Float32 operation order,
+  precise temporaries, once-rounded host-double trig twiddles. Output compiled
+  by glslangValidator Vulkan1.2 and passes spirv-val. No old shaders overwritten.
+- inspect_fftw_plan.cpp adds --forward160-axis <stage0.txt> <fresh-output>.
+  Local Octave FFTW DLL, threads3, fresh ESTIMATE|UNALIGNED, 192 columns of160,
+  compact81 complex per column. Actual plan: three64-column groups of20x8.
+  plan_structure_check.txt confirms whitespace-normalized complete isolated
+  plan is a subtree of prior matched rank2 graph; all12 stream plans agree.
+  Still a fresh candidate, NOT recovered original Octave cached plan objects.
+- verify_fft256_inverse.cpp adds isolated --forward160-axis; old modes retained.
+  Strict build targets fft256-inverse-test and dimension-native-plan-test
+  succeeded in fresh build_verified/build_native dirs, MSBuild escalated.
+- Actual GPU Intel Arc Pro Graphics. All12 streams (asymmetric,impulse,HDR-ramp
+  xref/test xMTF/LA, h80_w96 fixture family) match 373,248 Float32 values
+  numerically with zero mismatches/max error. PASS/results.tsv/per-streamlogs,
+  binaries/SPIRV hashes preserved. No signed-zero bit claim for this checker.
+- Equivalence: prior stage0 already symmetrically postpadded(MTF) or replicate
+  postpadded(LA); input160x192 Float32 interleaved column-major, imag0, text
+  header160 384. Output192x81 complex column-major, textheader192 162.
+  Forward unnormalized, no extra padding/filter/second axis/inverse/DC here.
+  These are prior factor1.05 native component fixtures, NOT fullquality pairs.
+- Reproduction commands and scope: tests/MIXED160_AXIS_VALIDATION.md.
+  Generator launch initially hit PowerShell execution policy; explicit process
+  Bypass succeeded. Sandbox configure failed to find MSVC (build/configure.log);
+  fresh elevated build_verified succeeded. Preserve failed artifacts.
+  Historical work and stagedshader/dirtyVkFFT preserved; no auto-publication.
+
+Exact next step: port 192-point complex SECOND axis for160x192 using the pinned
+native t3fv_8_avx2_128 -> t1fv_6_avx2 -> n1_4 graph and its actual SIMD/FMA
+ordering, then compare complete forward output against independent official
+fft2 for these12 streams. First-axis pass alone does not establish fullforward
+parity. Inverse160/192 still pending;192-FIRST transposed shape needs its own
+graph. Fixed30720 normalization and padding already pass separately.120-sample
+DC/mean,10x12 residual FFT and map contracts remain before public80x96 support.
+
+## Latest continuation: mixed FFT plan census and exact30720 GPU division
+
+- Freshcheckpoint validation/mixed_fft_plans_639283629886514449;
+  active/completed pointers validation/mixed_fft_plans_{active,completed}_path.txt.
+  Localonly,no commit/push. No publicAPIguards orproductionFFT/mapcodechanged.
+- Extended nativefilterfixture generator with explicit fifthargument --mixed
+  permittingonly80x96/96x80;defaultpriorguards retained.6fixtures:2orientations
+  xasymmetric/impulse/HDR-ramp,ref/test factor1.05,bothMTF/LA.24nativechains,
+  exactofficialstaged assertions,Float32input/doublefilters,30ppd,3threads,
+  estimate/freshsinglewisdom. Stage0/2columnmajor,forward/inverserowmajor,
+  postpaddingMTFsymmetric/LAreplicate,FFT160x192/192x160,unnormalizedforward,
+  inverseonce1/30720,noDC. Notfullqualitypairs.
+- Added --mixed-plan mode to existing Windows/OctaveDLL nativeinspector and
+  targetdimension-native-plan-test. Cdimensions{W,H},compactoffsetW*((H-1)/2).
+  For eachfixture32configurations (labels/chains,3/1threads,alignmentflags,
+  inversein/outplace);maincensus192.8perfixturematchforward+inverse(48matched
+  configurations,24uniquestreams/twothreadsettings). Selected3threadunaligned
+  outplace yields2,949,120numericallyexactFloat32forward+inversevalues.
+  Do notclaim signedzerobits forCPUFFTplancomparisons.
+- IMPORTANT:wisdombufferimportworks,butallWISDOM_ONLYattemptsreturnnull for
+  thesecontracts. MatchingplansarefreshESTIMATE candidates,NOTconfirmednative
+  cachedplanobjects.32candidatePRESERVE_INPUTprobealsoallcachemiss;defaultmode
+  regressionresultstableafteraddingoptionalprobe. Rawplans,strides,alignment,
+  controls/results preserved. Originaltoolmodes unchanged.
+- Planexample for160realaxis:r2cf_20/r2cfII_20/hc2cf_20,r2cf_8;192complexaxis
+  t3fv_8_avx2_128,t1fv_6_avx2,n1_4;inversefirstaxis t2_20/n1_8 and192inverse
+  t3bv_8_avx2_128,t1bv_6_avx2,n1_4. Seefull exact_plan_example.txt,notjustthis
+  codeletinventory. ChosenCPUgraphs arefixture-arithmetic-equivalent only.
+- Normalization discovery:Float32divisionby30720matchesnativeifft2;Float32
+  reciprocalmultiply causes35721..37312mismatches in80x96asymmetricstreams.
+  New tests/mixed_normalization.comp usesuint32significanddivision by15 plus
+  power-of-twoexponentscale,explicitRTEnormal/subnormal rounding,finiteinputs.
+  NoFloat64/Int64/FPexecutionmode requirements,noNaN/infinityparityclaim.
+- ActualGPU IntelArcProGraphics. Final gpu_normalization_bits passes1,054,696
+  syntheticIEEEfinitewordprobesbitwise plus1,474,560nativeinversewordsbitwise,
+  signedzerosincluded. Syntheticallfiniteexponents/bothsigns andedgecontrols,
+  notexhaustiveallmantissas. HoststrictvolatileFloat32division,RTE/gradual.
+  Nativeinputs areCPUunscaledFFTcandidates;notGPUFFT orproductionCPUfallback.
+- Added mixed-normalization-test target andvalidate_mixed_fft.ps1 reusable
+  orchestrator. Fullend-to-endrun runner_verified/PASS succeeds. Lateroptional
+  preserveprobe onlychangesdiagnosticflag;defaultregressionresultstable.
+  Frozenbinaries/source/nativehashes andCOMPLETED/PASS recorded.
+- Failednon-numericalattempts preserved:gpu_normalization ran syntheticexact
+  thenfailedreadingmanifest paths (std::quoted treatsWindowsbackslashes as
+  escapes);normalize_manifest_windows_quoted retainsoriginal. Runnerusesforward
+  slashes. gpu_normalization_verified launchstoppedonPowerShell informational
+  Vulkanstderr withStop preference;freshCompleted/bits/runnerexports pass with
+  propernativeexitchecks. Noactualshadernumericmismatches. Initial32casecensus
+  andpreassert-bitpasses arehistorical;finalbitchecksandrunner areacceptance.
+- Buildfreshcheckpoint/build,Release,MSBuildapproved;spirv-valVulkan1.2 passes.
+  Onlynewshadercompiled;priorbinaries/references/stagedshader/dirtyVkFFT retained.
+  Docs MIXED_FFT_PLAN_VALIDATION.md,MASKING_QUALITY_VALIDATION.md. Public80x96
+  remainsrejected;thisisnotfullgeneral-dimensionGPUquality.
+
+Exact next step: extractnativefirst-axis compact half-spectrum fixtures for
+160realFFT andport scalar r2cf_20/r2cfII_20/hc2cf_20 composition withr2cf_8,
+preservingoperationorder/twiddles. Also inspect192-first-axistransposedplan,
+do notassumesamegraphbyshape-swap. LocatepinnedFFTW3.3.10sources fornewcodelets,
+keepGPLprovenance,portfirstaxis andtestbeforesecondaxis/inverse. GPUfixed30720
+normalization andgeneralpadding arealreadyisolatedpasses.120samplemean/DC,
+10x12residualFFT andmapcontracts remainafterFFT;keeppublicguards unchanged.
+
+## Latest continuation: general-dimension references and exact GPU padding
+
+- User requested continuing into general dimensions after CLI publication.
+  Fresh checkpoint:validation/general_dimensions_639283336574679292;
+  active/completed pointers validation/general_dimensions_{active,completed}_path.txt.
+  New work local only,no commit/push. No production algorithms or API guards
+  changed;original stagedshader,dirtyVkFFT andallpriorreferences retained.
+- Added generate_general_dimension_reference.m:8shapes63x65/65x63,80x96/96x80,
+  127x129/129x127,192x256/256x192. Records native bandgeometry,exact FFT sizes,
+  factorization,residual samples,singleFFTWwisdom,PFMs andindependent official
+  quality results. Positiveasymmetricreference/localizedtest*single1.4+single.25,
+  30ppd/age24,D65,use_gpu=false,official3.07. Nativefullscores areNOTGPUclaims.
+- Exact FFT size is2H x2W,notnextpowerof2. Residualsizes correspondingly8x9/9x8
+  (72samples),10x12/12x10(120),16x17/17x16(272),24x32/32x24(768). Existing
+  64/128/256 mean/DC and8/16 residualFFT contracts are insufficient.
+- First isolated general GPU implementation:tests/dimension_padding.comp,
+  ABI1701. Endpoint-inclusive symmetric/replicate postpadding to2H x2W and
+  row/column-major complex packing,explicitpositiveimaginaryzero. Pureuintword
+  copies,noFPmath/Float64/Int64 capabilities,log/exp/filter/FFT/DC/inverse not
+  partofthisunit. Separate test project tests/hdrvdp3_dimensions compilesonly
+  thisshader,notcompile_shaders.sh. Noexistingbinaryoverwrites/deletions.
+- Native padarray fixtures3patterns per8shapes(asymmetric,signedcornerimpulses
+  withnegativezero,HDR1e-4..1e5),2paddingmodes,2layouts:96cases. GPU checker
+  passes14,843,520 Float32words bitwise(7,421,760real+samepositiveimaginaryzero),
+  including2,096negativezerowords. Actualoutputs/percaserecords preserved in
+  gpu/;gpu.log andPASS establish completion. No failed numerical runs.
+- IMPORTANT device scope:actualVulkanselected NVIDIA RTX A500 Laptop GPU for
+  thisrun (seeGPUlog),NOTIntelArc. Earlier full-metricArc acceptance remains
+  separate. Thisonlyextends padding/layout bitcopy component coverage toNVIDIA.
+- Build freshcheckpoint/build,Release,MSBuildapprovedescalation. Native generator
+  andbuildcompleted successfullybeforeGPUrun. spirv-val Vulkan1.2 passes.
+  NativeFFTWsingle3threads/estimate;freshsinglewisdom beforeeach fullnative pair,
+  savedbeforeseparate SPYRgeometryprobe. Layout,rowmajorinputUInt32representation,
+  complexoutputsrow/columnmajorinterleaved;noDC. NoCPUstage substitution.
+- Reproduction:Octave generate_general_dimension_reference.m <fresh-native>;
+  cmake -S tests/hdrvdp3_dimensions -B <fresh-build>;builddimension-padding-test;
+  exe <native> <build/dimension_padding.spv> <fresh-output>. Externalofficial
+  reference/Octaveimage/statistics asusual. Docs GENERAL_DIMENSION_FRONTIER.md
+  andMASKING_QUALITY_VALIDATION.md. Full native dataset hashes/shader/exe/source
+  hashes andCOMPLETED/PASS recorded undercheckpoint.
+
+Exact next step: use80x96/96x80 asfirstnon-power-of-two quality target. Inspect
+native160x192/192x160 FFTplans with explicit strides/alignment/threading,wisdom
+inventoryaloneisnotanexecutiongraph. Extend a diagnostic native FFT plan tool
+or addone,and exportisolatedaxis/nativeFFTfixtures beforeporting sourcegraphs.
+Nativewisdomalreadyshowsr2cf_20/r2cf_10,AVX2t1fv_6/t3fv_8,n1_4 etc;do not
+assumea5x32/3x64 decompositionmatchesoperationordering. Laterneed120sample
+mean/DC/baseadaptation,10x12 residualFFT,bandresize/masking andfullQ/JOD.
+Keep existingpublicdimensionguards untilfullstageparity;no tolerancerelaxation.
 
 ## Latest continuation: publish the explicit CLI checkpoint
 
@@ -2587,3 +3610,495 @@ map resizing still explicitly use bilinear approximations to Octave imresize.
    bilinear approximation to Octave imresize), masking, pooling and final scores.
 4. Extend beyond current 64x64/30-ppd/age-24/D65 scope to other dimensions,
    luminance ranges, color/spectral parameters and real HDR images.
+
+### 2026-10-25 follow-up: production JND HDR replay completed
+
+production_cpu_jnd_replay_639285090794799166/replay/PASS.txt confirms every
+stage and native Q/Q_JOD bits for HDR80x96/96x80, using --cpu-lut and actual
+production JND source. Session37113 COMPLETED. Source snapshots, executable/
+shader hashes and761 reference file hashes are in the root. Strict-double
+negative control rejects one binary64 ULP while Float32 checks still pass.
+This supersedes the running status in the checkpoint above.
+
+Next production parity gap addressed: quality.cpp frequency coordinates now
+preserve native create_cycdeg_image modulo/scale operation order. Direct DFT
+helper delegates to the same coordinate function. New verify_frequency_grid.cpp
+checks240 binary64 values against native10x12/12x10 grids (3.75ppd), PASS.
+Experimental masking checker now calls actual production frequency function,
+removing its private implementation. General public geometry still disabled.
+Active root validation/production_frequency_639285092485366527; pointers saved.
+Build session98332 for pathway-masking-test; CLI regression session80377 runs
+11pairs against pre-existing goldens. Exact next step: poll both; after build
+passes run masking checker against the completed HDR replay's GPU inputs, then
+independent final score validation; finish hashes/docs. Earlier application
+build executable was rebuilt for this new fix; use newroot/IQM-hdrvdp3.exe as
+frozen executable for the frequency regression, and its recorded hashes.
+
+Frequency follow-up: build98332 completed. HDR quality session62682 completed,
+126 stage checks/393384 values and independent final Q/Q_JOD bit validation
+PASS in production_frequency.../quality and /validated. CLI80377 stillrunning.
+JND report fixed: GPU_adaptation uses argc>=7 (CPU-LUT mode has argc8), and
+CPU_model is now recorded explicitly. Old replay metadata had false
+GPU_adaptation=0 despite actually loading GPU adaptation; source/input checks
+and64/471060 checks verified the actual path. Historical files left unchanged.
+New production-linked asymmetric/impulse JND profiles running session85776.
+Next: poll80377/85776; freeze final snapshots/hashes and completed pointers.
+
+JND session85776 COMPLETED: asymmetric andimpulse actual production model,
+64checks/471060 values each, GPU_retinal=1/GPU_adaptation=1/CPU_model=1.
+Combined with HDR replay, production JND has all three contents/two orientations.
+Do not claim six complete CPU-LUT replays: only HDR full replay used CPU-LUT;
+other two latest checks are upstream JND component runs using prior GPU filters.
+
+## Final checkpoint (2026-10-25): production arithmetic fixes accepted
+
+All sessions above COMPLETED; none should be polled again.
+- production_frequency_639285092485366527/PASS.txt:240 native double grid
+  words exact; HDR quality126checks/393384values and independent scorebits
+  PASS; asymmetric/impulse production JND64checks/471060values each PASS.
+- CLI session80377 COMPLETED:11 PFM pairs,1166 exact numerical exports and
+  exact quality files. cli_regression/PASS.txt and hashes.json saved. Frozen
+  executable root/IQM-hdrvdp3.exe; checkpoint_hashes.json,source_snapshot/,
+  jnd_profile_hashes.json and validation_scope.json record exact scope.
+- production_cpu_jnd_replay_639285090794799166/replay/PASS.txt: production
+  CPU JND model + CPU filter coefficients HDR end-to-end, both orientations,
+  final scorebits identical.761 reference hashes and source/asset snapshots.
+- Completed pointers: production_frequency_completed_path.txt and
+  production_cpu_jnd_replay_completed_path.txt. Original bad-folder strict
+  test, old CPU rod-slope failures and old artifacts remain preserved.
+- Public guards unchanged. No commit/push/reset/clean; stagedcorrdn hash still
+  03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6.
+  Dirty VkFFT and unrelated prior changes preserved. Targeted diff checks pass;
+  whole-tree diff check still finds pre-existing whitespace in mtf_gpu_test.cpp.
+
+Exact next implementation step: extract the accepted7-dispatch buffer-based
+mixed filter runner from tests/verify_mixed_filter_chain.cpp into a reusable
+runtime component that accepts original Float32 data and explicit forward/
+inverse/IO shader assets, without native fixture reads. Validate its returned
+MTF/LA buffers against the frozen80x96/96x80 asymmetric/impulse/HDR fixtures.
+Keep evaluate_quality guards until mixed FFT,SPYR,residual120,pool/map contracts
+are integrated and full six-pair API checks pass. Existing LocalAdaptFFT uses
+image descriptors/combined reference ABI; do not route separate mixed-axis
+shaders through that incompatible contract. Preserve column-major2H x2W layout,
+MTF symmetric/LA replicate POST padding, exact30720 inverse normalization and
+native DC ordering. No need to rerun already passing arithmetic tests unless
+new integration changes affect them. Broader PPD/age/RGB/device coverage and
+resident command-buffer transfer reduction remain separate work.
+
+## Active continuation (2026-10-25): reusable mixed filter runtime
+
+Accepted seven-dispatch implementation extracted into
+include/IQM/hdrvdp3/mixed_filter.h and src/hdrvdp3/mixed_filter.cpp.
+run_mixed_filter accepts abstract IQM::VulkanInstance, original Float32 vector,
+80x96/96x80 dimensions, mode and explicit forward/inverse/IO shader assets.
+Only shader files are read; native fixtures stay in checker. CPU model filter
+creation and all dispatch/padding/layout/normalization orders preserved.
+Trace optional, output vector always returned; synchronous exclusive command
+buffer use. Public evaluate_quality guards unchanged. Added source to main
+and bounded-evaluation libraries, strict FP compilation. No full API integration.
+Checker now calls runtime, verifies actual runtime model words vs native, and
+requires BOTH numeric and bit equality for all5 stages. First80x96 MTF ref
+also verifies repeat call/nontrace output bit identity on same instance.
+Fresh root validation/mixed_filter_runtime_1792912954173, active pointer saved.
+Old checker source retained root/checker_before.cpp. Old binaries untouched.
+24case matrix running session20209:3contents x2orientations x2modes x2images.
+Fresh bounded library build session2049. Exact next step: poll both; inspect
+all24PASS markers and validation logs; record results/hashes/scope, then use
+this runtime checker in a fresh full CPU-LUT HDR replay before next extraction.
+Python unavailable; initial attempted extraction made no changes. Node used.
+
+Runtime follow-up: bounded library build2049 completed successfully. Matrix20209
+passed asymmetric/impulse and is finishing HDR. All five stages now have zero
+bit mismatches, including runtime-generated model coefficients; first MTF ref
+per content confirms repeated same-instance call with trace disabled.
+Reusable audit/runner tests/validate_mixed_filter_runtime.ps1 added; after20209
+completes run it with -ResultsOnly over the root to gate all24 traces/logs.
+Sources/snapshots/hashes saved. Fresh replay assets in root/replay_assets.json
+select new runtime filter checker + latest production JND/masking checkers,
+--cpu-lut mode. Run tests/run_actual_gpu_composition.ps1 -OutputDirectory
+<root>/full_hdr_replay -AssetsManifest <root>/replay_assets.json aftermatrixPASS.
+
+Runtime matrix20209 COMPLETED. -ResultsOnly audit passed all24cases,6082560
+stage values and737280 model words bitwise, no Vulkan validation errors.
+Full HDR CPU-LUT replay now running session51379 in root/full_hdr_replay using
+new runtime filters, latest production JND and production-frequency masking.
+Next: poll51379,inspect final independent Q/Q_JOD bits, snapshot all reused
+binary/shader assets and preserve previous stage provenance. Documentation:
+tests/MIXED_FILTER_RUNTIME_VALIDATION.md. root/PASS.txt currently certifies
+matrix only; full_hdr_replay/PASS.txt must exist before claiming full replay.
+
+## Latest completed checkpoint: mixed filter runtime (2026-10-25)
+
+Sessions20209,2049,51379 are ALL COMPLETED. Do not poll them again.
+Root validation/mixed_filter_runtime_1792912954173; completed pointer saved.
+- New reusable mixed_filter.h/.cpp, integrated into both production CMake and
+  bounded evaluation library. Original image vector and explicit shader paths
+  are sufficient for filter execution; no native model/intermediate reads.
+- Matrix24cases:6082560 stage values +737280 model coefficients bitwise exact;
+  all5stages/24cases and three same-instance repeat/nontrace cases pass.
+- Fresh bounded library compile PASS. Existing quality geometry guards unchanged.
+- full_hdr_replay/PASS.txt: original images ->newruntimeMTF/LA ->production
+  CPU-LUT JND ->accepted SPYR/pool/masking ->native Q/Q_JOD bit identity,
+  two orientations PASS. No Vulkan validation errors in replay/matrix logs.
+- source_snapshot/,source_hashes.json,runtime_asset_hashes.json,
+  replay_asset_hashes.json, runtime_results.json, replay_assets.json preserved.
+  Reused HDR reference hashes are explicitly linked via previous frozen manifest.
+- Sources still match snapshot hashes. Staged corrdn and dirty VkFFT preserved;
+  no commit/push/reset/clean. No blanket shader rebuild; only fresh build's
+  required generated shader includes. No broad regression rerun needed because
+  the new component is not called by guarded evaluate_quality yet.
+
+Exact next step: extract tests/verify_spyr_lowpass.cpp --all-chain runtime into
+reusable component accepting original GPU P pair in memory, explicit FMA/
+separate/mean/difference/residual shader assets and fixed sp0 filter data.
+Derive buffer sizes/dispatch geometry from80x96/96x80 dimensions, never native
+expected vectors or manifest files. Keep expected-file reads/comparisons in
+checker. The existing checker uses golden residual/base values for numerical
+range guards (lines around79-80); runtime guards must use actual data instead,
+without changing mean/DC/normalization ordering or claiming unchecked domains.
+Validate8bands +mean/difference/residual against frozen sixpairs; then replace
+SPYR replay stage with newcomponent before integrating pool/maps and finally
+opening geometry guards. Preserve old checker/source/binaries and use fresh
+run roots. Current mixed runtime remains synchronous host-vector interface,
+not GPU-buffer-resident cross-stage integration. Broaderage/ppd/RGB/devices open.
+
+## Active continuation: SPYR runtime (2026-10-25)
+
+New pathway_spyr.h/.cpp exposes run_pathway_spyr with in-memory Float32 P pair,
+explicit fixed sp0 filter words and FMA/separate/mean/difference/residual shaders.
+No native fixture reads; geometry derives only from80x96/96x80 dimensions.
+Eight SPYR dispatch stages retain both FMA/separate variants; mean/DC/residual
+order unchanged. Actual GPU base checked BEFORE mean with exponent bounds
+[-90,100],spread<=16; actual FFT complex words checked for finite/norm range
+before return. Two synchronized submissions, CPU reads for validation only;
+not a resident pipeline and not a no-host-transfer claim. Previous checker kept.
+New tests/verify_spyr_runtime.cpp uses same --all-chain CLI as replay, independent
+native expected reads/comparisons. Six pairs pass113526values/content,340578total;
+all66 stage rows have zero bit errors (including signedzero),no Vulkan errors.
+Historic checker acceptance policy retained; aggregate observed exactbits recorded.
+Fresh root validation/spyr_runtime_1792913354201; active pointer saved.
+Initial Node CMake template error affected target append only; corrected before
+build. No invalid GPU runs: source review fixed split location before testing.
+Build55447 and test9649 COMPLETED. Full HDR replay now session92468, root/
+full_hdr_replay,using reusable mixedfilter and newSPYR with production JND/
+frequency masking. Fresh bounded library configure succeeded; build next.
+Exact next step: build application_build target iqm_bounded_evaluation,poll92468,
+validate independent finalscorebits,freeze source/binary/assets,update docs.
+Public quality geometry guards unchanged; no commit/push/reset/clean.
+
+SPYR build36657 COMPLETED (bounded library PASS). Durable
+validate_spyr_runtime.ps1 -ResultsOnly also PASS with strict bit checks onall66
+rows/340578values; source checker retains historic acceptance but audit tightens
+observed matrix tobit identity. Docs SPYR_RUNTIME_VALIDATION.md. Full HDR92468
+still running. No overall API integration or broaderdomain/device claim.
+
+## Latest completed checkpoint: SPYR runtime (2026-10-25)
+
+All SPYR sessions55447/9649/36657/92468 COMPLETED; do not poll again.
+Root validation/spyr_runtime_1792913354201; completed pointer saved.
+- New run_pathway_spyr runtime: in-memory pair + fixed filter words + shaders;
+  no native fixture/model reads. Eight bands +mean/DC/difference/residual stages.
+- Actual GPU base range checks before mean;actual residual range check before
+  return. Two synchronized submissions; host validation only, not residentGPU.
+- Sixpaired component chains,66rows/340578values observed bitwise exact; durable
+  validate_spyr_runtime.ps1 additionally rejects any bit error in these records.
+- Fresh bounded evaluation library PASS. full_hdr_replay/PASS: both extracted
+  mixed filter and SPYR runtimes +production JND/frequency helpers ->native
+  Q/Q_JOD bit identity for HDR80x96/96x80. All22replaySPYRrows zero bit errors.
+  No Vulkan validation errors. Public quality guards remain unchanged.
+- Source snapshots,source_hashes.json,asset_hashes.json,audit_hashes.json,
+  runtime_results.json,replay_assets.json and full replay assets retained.
+  Old SPYR checker remains untouched; source snapshot checker_before.cpp kept.
+- No commit/push/reset/clean; dirtyVkFFT/stagedcorrdn/unrelatedchanges preserved.
+  Corrdn SHA256 still03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6.
+
+Exact next implementation step: extract tests/verify_pathway_pool.cpp compute
+path into reusable in-memory resize/CSF/pooling runtime. Inputs must be actual
+SPYR band outputs and GPU log adaptation data; expected/native files only in
+checker. Derive resize geometry/dispatch sizes from dimensions; retain accepted
+integer coordinate arithmetic and FMA/separate contracts. Validate all six
+content/orientation pairs,then use component in fresh full HDR replay with
+both extracted filters/SPYR. Only after downstream comparison/masking/base-noise
+integration and full six-pair API checks should evaluate_quality geometry guards
+be opened. Preserve fixed model defaults and actual-data domain checks; do not
+substitute tolerance for exact parity. Broader PPD/age/RGB/devices remain open.
+
+## Active continuation: pooling runtime (2026-10-25)
+
+Inspection clarified verify_pathway_pool.cpp covers mutual masking/pooling
+ONLY. Resize/CSF already use production MapGPU; do not claim newly extracted
+resize/CSF code. New pathway_pool.h/.cpp exposes run_pathway_pool on abstract
+instance,in-memory normalized/DC-processed band pair and explicit FMA/separate
+shaders. Returns raw mutual mask and3x3 pooled vector. Native reads stay solely
+in new verify_pool_runtime.cpp; old checker unchanged and snapshot retained.
+Geometry,source-axis tap FMA selection,zero-edge convolution,and ordering
+preserved. API accepts eight validated pyramid band geometries,finite Float32
+pairs. Public evaluation guards remain unchanged. Main and bounded-library
+CMake includes source under strict FP. Runtime poolchecker requires bit equality.
+Fresh root validation/pool_runtime_1792913701963; active pointer saved.
+Session79007 runs3contents x10bands using frozen GPU-serialized band inputs
+(replay_cpu_filters/bands/pool.txt); then automatically full_hdr_replay with
+latest extracted mixedfilter/SPYR/pool +production JND/frequency checkers.
+Fresh bounded library configure succeeded; build application_build next.
+Exact next step: poll79007,build iqm_bounded_evaluation,inspect all30bandrows
+and final native scorebits; freeze sources/assets and record actual scope.
+
+Pooling follow-up: matrix all3contents completed (30bands/214560raw+pooled words,
+zero bit errors and Vulkan errors). validate_pool_runtime.ps1 -ResultsOnly PASS.
+Fresh bounded library build70357 COMPLETED successfully. Full HDR session79007
+still running,root/full_hdr_replay. Source snapshots,source_hashes.json,
+asset_hashes.json,audit_hashes.json and runtime_results.json saved. Docs
+POOL_RUNTIME_VALIDATION.md precisely distinguish pooling from existing MapGPU
+resize/CSF. Next: poll79007,inspect native Q/Q_JOD bit validation and all10pool
+rows in newreplay,then freeze final checkpoint and plan comparison/masking
+runtime extraction. Public guard unchanged; no extra broad regression required
+until new components are actually wired into evaluate_quality.
+
+## Latest completed checkpoint: pooling runtime (2026-10-25)
+
+Sessions79007 and70357 COMPLETED; do not poll again.
+Root validation/pool_runtime_1792913701963;completed pointer saved.
+- New run_pathway_pool in pathway_pool.h/.cpp,strict-FP production and bounded
+  library source. Original per-band vectors +explicit shaders only; no native
+  model/intermediate reads. Raw mutual mask and3x3 pooled vector returned.
+- Threecontents/twoorientations/fivebands:30cases,214560words bitwise exact,
+  no Vulkan errors. Each10-bandrun reuses sameinstance. Durable audit PASS.
+  Inputs from previous frozen GPU-serialized bands,precise paths/hashes saved.
+- Fresh bounded library PASS. FullHDR with extracted filters/SPYR/pool PASS:
+ 10poolrows bitwise exact,126maskingchecks/393384values zero numerical errors,
+ independent native final Q/Q_JOD words identical bothorientations. This rerun
+ overlaps previous content scope; do not add counts as new unique coverage.
+- Resize/CSF already production MapGPU; no newly extracted resize/CSF claim.
+  Host vectors/file serialization between stages remain. Public guards unchanged.
+- Source/asset snapshots/hashes,audit hashes,runtime_results.json,full replay
+  assets preserved. Old checker/native references preserved. No commit/push/
+  reset/clean; stagedcorrdn anddirtyVkFFT unchanged.
+
+Exact next implementation step: extract tests/verify_general_comparison.cpp
+into reusable comparison-mask runtime taking original reference/test luminance
+vectors plus source/target dimensions and explicit shader, returning binary
+mask and exact double resized mask. Preserve Q20 axis-plan checks: unit
+normalization,finite/integer weights,abs tap weight bound and absolute sum<=2;
+never infer input/output sizes from expected files. Native expected reads stay
+in checker; validate all90cases per content before replacing replay comparison
+stage. Then extract remaining masking/base-noise composition using existing
+MapGPU andproduction frequency/CSF/quality helpers. After full six-pair in-memory
+API acceptance, wire evaluate_quality and open only validated geometry guards.
+Broader PPD/age/RGB/devices and GPU residency remain separate.
+
+## Active continuation: comparison mask runtime (2026-10-25)
+
+New pathway_comparison.h/.cpp exposes run_pathway_comparison: original finite
+Float32 reference/test vectors,source/target dimensions and explicitshader;
+returns binary mask and double resized mask. Positive reference required;
+finite test may include zero/negative as original contract. Source80x96/96x80,
+uniform1/2/4/8 downsample only. All Q20 plan guards and3dispatch Q20/Q40 order
+preserved. Native expected/model files remain only in checker; CPU makes axis
+plans,not image intermediates. Synchronous exclusive instance use.
+Main/bounded CMake and new comparison-runtime-test use strict FP. Old checker
+untouched;snapshot saved. Build55047 COMPLETED. Matrix script
+validate_comparison_runtime.ps1 session75938 runs90cases percontent withbit
+checks and Vulkan error scan. Fresh root comparison_runtime_1792913994936,
+active pointer saved;matrix underroot/matrix. Asymmetric completed PASS.
+Fresh bounded library configured; build application_build next. After matrix
+PASS,set replay_assets.json comparisonChecker to newexe (base previouspool
+runtime assets),run fresh full_hdr_replay. Then inspect finalscorebits/freeze.
+No public guard changes orcommit/push/reset/clean.
+
+Comparison matrix75938 COMPLETED:270cases,2073600binarywords and965520double
+words bitwise exact,no Vulkan errors. Bounded library94614 COMPLETED PASS.
+FullHDR session30765 running. Source/asset snapshots saved. No public geometry
+change. Next poll30765 and independently inspect resized-double masks/final
+scorebits before concluding this extraction.
+
+Comparison continuation COMPLETED:75938/94614/30765 all complete. Matrix270
+cases bitwise;fullHDR independent finalQ/Q_JOD bit identity passed. Completed
+pointer comparison_runtime_completed_path.txt saved.150 fixed masking scalars
+are invariant across3contents/2orientations (audit saved),neural excluded.
+
+## Active continuation: remaining masking/quality runtime
+
+New pathway_masking.h/.cpp accepts in-memory5bandpairs,self pooled maps,double
+comparison masks,original GPU log adaptation andinteger GPU residual selection.
+Default p/pf/q/self/neighbor scales computed from same production pow10 constants,
+not read native files. Production MapGPU handles resize/CSF/neighbor/D/error/
+quality; existing explicit product/base shaders retained; existing CPU double
+NCSF uses GPU adaptation/frequency. Actual base exponent/range checks retained.
+New verify_masking_runtime.cpp full126check profile reads GPU outputs as inputs
+andnative data asgoldens only; requires defaultmodel doublebit identity,base
+noise doublebits and finalscorebits. Oldchecker left untouched.
+Root validation/masking_runtime_1792914241203;activepointer saved. Build3045
+completing;next run3content component profiles against frozen GPU replay inputs,
+then freshfullHDR using all extracted runtimes,buildboundedlibrary andfreeze.
+Comparison root source CMake snapshots predate this added source; preserve
+original hashes,do not overwrite them to pretend older build used newCMake.
+Public guards unchanged;no commit/push/reset/clean.
+
+Masking build3045 COMPLETED; fresh bounded library80294 COMPLETED PASS.
+Component session75780:asymmetric/impulse PASS sofar,each126checks/393384values;
+asymmetric all126bit-error counters zero. C++ defaultmodel doublebits also match
+native for allchecked scalarfields (not native-provided runtime parameters).
+validate_masking_runtime.ps1 added; after75780 completes run -ResultsOnly to
+strictlyaudit all378rows/1180152values,then start full_hdr_replay with root/
+replay_assets.json selecting newruntime masking andallprior extracted stages.
+Existing checker/nativegoldens preserved. No arbitrarydomain/device claim.
+
+Masking component75780 COMPLETED:all3contents pass. Durable strict audit PASS,
+378rows/1180152values zero bit errors;150 defaultmodel double checks also pass.
+Fresh fullHDR session26517 running with ALL extracted runtimes (mixedfilter,
+SPYR,pool,comparison,masking) andproduction JND/frequency code. Upstream through
+comparison completed;quality pending. Boundedlibrary80294 already PASS.
+Exact next step: poll26517,independent finalscorebits and126qualityrows strict
+bit audit,freezecompletedpointers/docs. Next project phase is a single original-
+image-to-score in-memory API wiring thesecomponents,then sixpair acceptance.
+
+## Latest completed checkpoint (2026-10-25): comparison +masking runtime
+
+All current sessions55047/75938/94614/30765/3045/75780/80294/26517 COMPLETED.
+Do not poll again. Completed pointers: comparison_runtime_completed_path.txt
+andmasking_runtime_completed_path.txt. Roots comparison_runtime_1792913994936
+andmasking_runtime_1792914241203.
+- Comparison270cases,2073600binary+965520doublewords bitwise exact;freshHDR
+  final native scorebit identity PASS. Q20/Q40 guards preserved. BoundedlibPASS.
+- Masking378checks/1180152values acrosssixpairs strictbitaudit PASS;150 repeated
+  defaultmodel scalars binary64 exact. CPU pow10 model factory uses existing
+  production constants. ActualGPU log/CSF/selection ->CPUdoubleNCSF neural;
+  no native image-dependent intermediates in runtime. BoundedlibPASS.
+- Final fullHDR replay in maskingroot:ALLextracted components,independent
+  native Q/Q_JOD bits identical bothorientations.126qualityrows zero biterrors;
+  no Vulkan validation errors. Still file/host composed between components.
+- Source/asset/audit hashes,snapshots,replay manifests andhistorical goldens
+  preserved. EarliercomparisonCMake snapshot predates addedmaskingsource;
+  do not replace historic hash with currentCMake. Actualalgorithm source matches.
+- Public evaluate_quality guards unchanged. No commit/push/reset/clean; staged
+  corrdn SHA25603DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+  anddirtyVkFFT preserved. Only freshbuild requiredshaders generated.
+
+Exact next implementation step: add isolated evaluate_pathway_quality entry
+point that wires original positiveFloat32 pair ->run_mixed_filter(MTF each)
+->MapGPU.adaptation_input(D65_AGE24_LMR) ->run_mixed_filter(LA each)
+->pupil_trace(area=w*h/900,age24) ->jnd_response(create_jnd_lut(),trace[3],D65)
+->P=response[i].response;mean_adaptation(LAref,LAtest) ->log_adaptation.
+Pass Ppair to run_pathway_spyr with explicit fixedsp0 filter words/shaders.
+Unpack bands from SPYRstages4,5,6,7 (paired n+n),base stage8 (ref1..120,
+ test123..242 in1-basedterms; zero-based ref offset1,test122). Runpool perband;
+comparison original ref/test to target[w,w,w/2,w/4,w/8]x[h,h,h/2,h/4,h/8].
+GPU selectedindex is floatword360 in SPYRstage10 (361words); validatefinite,
+integer0..119 then call run_pathway_masking with vectors/log/index. Return
+QualityScores plus optionaldiagnostictrace. Allassets explicit,no environment,
+no intermediate files,no native dynamicdata. Use abstractVulkanInstance with
+exclusive synchronouscommandbuffer ownership; stillCPUdoubleNCSF/hostvectors.
+Validate sixoriginal pairs (asym/impulse/HDR x2orientations),independent native
+P/log/bands/masks/baseNoise/finalscore bits,then integrateboundedpublic API/CLI
+andonlythen open validated80x96/96x80 guards. Currentfilecomposition success
+mustnot be presented as this single API acceptance. BroadPPD/age/RGB/devices
+andGPU-resident commandgraph remain separate work.
+
+## Active continuation: single in-memory quality API (2026-10-25)
+
+New pathway_quality.h/.cpp implements evaluate_pathway_quality on original
+positive Float32 pair,explicit shader/model assets andoptional diagnostictrace.
+Wires MTF/adaptation/JND/log ->SPYR/DC/residual ->pool/comparison ->masking/
+baseNoise/finalQuality through host vectors,NO intermediate files/environment.
+Fixed30ppd age24 D6580x96/96x80;CPU model/LUT,doubleNCSF retained. Publicbounded
+API guard unchanged. Trace is committed only after a successful full call.
+New verify_pathway_quality.cpp independently compares81stages per originalpair
+against native retinal/adaptation/P/log/SPYR/masks/baseNoise/scores. Firstpair
+also repeats score-only call on sameinstance (82checks). Expected327735words
+perpair,+2 repeatwords. Native inputonlyoriginalimages+fixedsp0 modelbeforecall;
+all image-dependent goldens are read after API returns. No proxy filepipeline.
+Fresh root validation/pathway_quality_1792914761769;activepointer saved.
+Build28013 running. tests/validate_pathway_quality.ps1 runs sixpairs with strict
+bit and Vulkan log audit,configs saved explicitly. Exact nextstep: pollbuild,
+run script with fresh <root>/matrix; diagnose any mismatchwithouttolerance.
+Then freeze source/assets,validate aggregate,preserve oldartifacts,update docs.
+Do not claim public CLI integration/generalgeometry based solely on new API.
+
+### Report request interruption (2026-10-25)
+
+User requested weekly English report in supplied format; next week midterms,
+no committed project work,optional continuation if time permits. Report must
+NOT claim single in-memory API validation passed. Build28013 completed PASS,
+but six-pair matrix has NOT started: validate_pathway_quality.ps1 parser found
+invalid comma-list splat $config,$manifest,@originals in Get-FileHash arguments.
+Exact next action: replace with explicit array combination (@($config,$manifest)
++ $originals),parse script again,then fresh matrix run. No GPU numerical test
+failed; no matrix output directory created by the rejected parse. Existing
+component/full file-composition results remain accepted. No commit/push.
+
+### Resumed in-memory API validation (2026-10-25)
+
+User asks continue +whether successful work was pushed. Answer:NO recent
+commit/push;read-only git ls-remote verified feature/hdr-vdp3 still at
+777e6b6cdacca6e089fbeae911d01b61aa34b455. User did not instruct a new push.
+Fixed PowerShell comma-list splat using explicit array concatenation. Parser
+passes;matrix session30157 now running. Firstthreepairs passed (asymmetric
+bothorientations,impulse80x96). Firstasymmetric pair82checks/327737words incl
+same-instance score-only repeat;otherpairs81checks/327735words. No tolerance.
+New independent contract test13invalid inputs,NoGPU instance prevents anyGPU
+access,and trace sentinel preserved. Build72004 completed;contract.log PASS.
+Contract target added to boundedCMake after numerical executable build; only
+new target compiled,shared numerical library source/flags unchanged.
+Next: poll30157 to complete sixpairs,inspect everybitcounter/Vulkanlog/final
+nativeQ/Q_JOD,freeze source/assets andcompletedpointer,document API scope.
+No commit/push/reset/clean. User's GitHub question is not a push authorization.
+
+Matrix30157 progress:firstfivepairs PASS,including82checks firstpair trace-off
+repeat and81each others. Last HDR96x80 running. Shader/model/module-source/
+binary hashes saved;fixedsp0file hashes match across3contents. Contract13cases
+PASS. Documentation PATHWAY_QUALITY_API_VALIDATION.md drafted;add finalscope
+only after sixpairaggregate PASS. GitHubremote verified777e6b6;no newpush.
+
+## Latest completed checkpoint (2026-10-25): single in-memory API accepted
+
+Matrix30157 andcontractbuild72004 COMPLETED;do not poll them again. Root
+validation/pathway_quality_1792914761769,completed pointer saved.
+- evaluate_pathway_quality links all accepted stages on originalFloat32 pair
+  through vectors,NO intermediatefile IO orenvironment. Fixed80x96/96x80,
+ 30ppd age24 D65 sp0;CPUmodel/LUT,doubleNCSF andhosttransfers remain.
+- Sixpairs completed:487checks/1966412words bitwise exact. This includes81
+ stages/pair plus1extra score-only repeat check(2words) onfirstasym80x96.
+ Same-instance secondcallwithouttrace returns identicalnativeQ/Q_JOD.
+- Strict -ResultsOnly aggregate audit rerun PASS (noGPU repetition). NoVulkan
+ validationerrors. Contract13invalid inputs rejected beforeGPUaccess,output
+ trace untouched. API commits trace only after fullsuccessfulcall.
+- Native image-dependent goldens read AFTER call. Runtime reads onlyexplicit
+ shaders;originalimages +fixedsp0 model are callerprovided. Allmodel files
+ samehash acrosscontents. Originalinput/config/exe/source/shader/model hashes
+ andsnapshotssaved. CMake contracttarget addedafter numericalexebuild;newtarget
+ only,common numericalsources/flags unchanged. No oldreference deletion.
+- Public evaluate_quality/CLI guards unchanged. No commit/push/reset/clean;
+ remote feature/hdr-vdp3 read-onlyverified777e6b6. Userasked whetherpushed,not
+ instructednewpush. Successful work remainslocal;stagedcorrdn/dirtyVkFFT kept.
+- Docs PATHWAY_QUALITY_API_VALIDATION.md andACTUAL_GPU_COMPOSITION_VALIDATION.md
+ updated. WeeklyreportpreviouslysaidAPIvalidationpending;that was accurate
+ then,butnowthischeckpoint supersedes it.
+
+Exact next step: package a fresh explicit runtime manifest for newvalidated
+80x96/96x80 profile,including separateorientation forward/inverse FFT assets,
+mixedIO,sp0 fixedwordmodels,FMA/separate SPYR/pool,mean/difference/residual,
+comparison,mapABI13,product/base assets. Current legacy combinedFFT/math-dir
+configuration cannot represent this graph;do not merely loosen oldguards.
+Add manifest loader/validation and route onlyexact30ppd/age24/D65 luminance
+shape/profile to evaluate_pathway_quality,keepingold32/64/128/64x128 routes.
+Then run sixpairPFM CLI nativebitchecks +existing11pairregression andnegative
+unsupportedview/profilechecks before declaringpublicintegrationdone. Preserve
+allpre-existingchanges/staging/submodule;no publishingwithout authorization.
+Broadergeometry/realHDRRGB/PPD/age/devices/GPUresidency/additionaloutputs open.
+
+## GitHub publication authorization (2026-10-25)
+
+User explicitly requested sending successful work to their GitHub. Publishing
+validated runtime/API sources,reference/shader generators,tests andvalidation
+documentation to origin feature/hdr-vdp3. Numerical acceptance remains sixpairs,
+487checks/1966412words bitwise +13guard checks,with existing11pairregression
+historically unchanged. No numerical implementation changed during publishing.
+README now states exact experimental scope and localfixture/runtime limitations.
+Pre-existing staged+unstaged corrdn shader,dirtyVkFFT,bin experiments,localglslang
+configs,logs/binaries/builds/validation data andoldreferences are excluded and
+preserved. An explicit path list and index snapshot are saved in the local
+validation/github_publish_active_path.txt root. Commit uses --only with this
+path list so unrelated original staging is retained. Push is a normal branch
+push,no force. Final commit/remote verification is recorded in that local root.
+Next implementation step remains explicit runtime-manifest packaging and CLI
+routing,then sixpairCLI +existing11pairregression before opening geometryguards.

@@ -1,5 +1,133 @@
 # Masking and quality validation
 
+2026-10-24 experimental image-to-score assembly and fresh single-command replay
+pass for both80x96/96x80 localized-distortion fixtures. P/log are GPU-generated
+from GPU MTF/LA; pupil is GPU-computed; no image-dependent native intermediate
+is used as a runtime value in the replay. Fixed model data/axis plans and CPU
+double NCSF remain. Final Q/Q_JOD match bitwise. This is file/host-composed
+experimental quality validation,not new public geometry support. See
+[image-to-quality checkpoint](ACTUAL_GPU_COMPOSITION_VALIDATION.md).
+
+2026-10-24 base-noise runtime dependency removed: GPU base120 and residual
+selection drive existing double NCSF evaluation.126 checks/393384 values match,
+including noise and Q/Q_JOD; all240 native double frequency-grid values match
+bitwise. Native P/log-adaptation still remain. Fresh upstream visual-pathway
+reference stages are exported with native score/P/log identity checks. See
+[base-noise checkpoint](GPU_BASE_NOISE_VALIDATION.md).
+
+2026-10-24 GPU-derived masking inputs: native reference/test bands,self masks
+and CSF runtime maps replaced by accepted GPU outputs. Full composition passes
+122 checks/393374 values with zero numerical and observed bit differences;
+both Q/Q_JOD pairs match. Native P/log-adaptation and base noise remain, and
+components still use host transfers. No full metric/public-shape claim. See
+[GPU band/masking checkpoint](GPU_BAND_MASKING_VALIDATION.md).
+
+2026-10-24 general comparison masks:90 cases pass691200 binary word checks and
+321840 double resize values bitwise, with no host intermediate computation.
+Feeding actual GPU double-mask dumps into the masking/quality checker passes
+82 checks/250334 values and preserves Q/Q_JOD. Composition still uses native
+self masks,CSF and base noise; public general quality remains disabled. See
+[comparison checkpoint](GENERAL_COMPARISON_VALIDATION.md).
+
+2026-10-24 native-input masking/quality components:72 checks/214574 values
+match numerically, observed bit differences zero. Neighbor,N_mask,D,
+psychometric,D_p,band errors and Q/Q_JOD pass for actual80x96/96x80 pairs.
+This relies on native intermediate masks/CSF/base noise; complete image-to-score
+GPU integration and general comparison-mask resize remain pending. See
+[masking checkpoint](PATHWAY_MASKING_VALIDATION.md).
+
+2026-10-24 actual pathway resize/CSF:10band maps,35760 resize outputs match;
+resize+CSF test compares71520 values with zero numerical errors. Isolated
+general-shape mutual masking/pooling also passes71520 outputs on the same
+10bands. Production masking still rejects these shapes; experimental per-tap
+integer-FMA pooling does not widen public support. Full quality remains pending.
+See [resize/CSF/pool checkpoint](PATHWAY_RESIZE_CSF_POOL_VALIDATION.md).
+
+2026-10-24 full SPYR and joined residual processing: all sp0Filters bands plus
+the DC/difference/FFT/magnitude/index chain pass together from actual P maps,
+113526 comparisons across two image pairs, no host intermediate computation
+or upload. Observed bit differences are zero; convolution/FFT acceptance is
+numerical, mean/DC/packing/magnitude/index acceptance bitwise. Separate modes
+also regress successfully. This ends at residual selection, not full quality.
+See [joined SPYR checkpoint](SPYR_LOWPASS_VALIDATION.md).
+
+2026-10-24 GPU SPYR lowpass: actual P maps from both80x96/96x80 pathway pairs
+pass all four lowpass stages,40800 Float32 values numerically exact, with
+observed bit differences zero. Native reconstruction also reproduces raw and
+DC-centered base bands bitwise. Highpass/orientation bands and connection to
+the residual GPU chain remain pending; no general public quality acceptance.
+See [lowpass checkpoint](SPYR_LOWPASS_VALIDATION.md).
+
+2026-10-24 combined residual chain: GPU mean/DC -> centered test-reference
+subtraction/packing -> FFT/magnitude/index passes both actual pathway pairs,
+with no host intermediate computation/upload.484 mean/DC,480 packed difference
+and242 magnitude/index words match bitwise;480 FFT components match
+numerically. Previous four-band and12-band checker modes also pass. Upstream
+SPYR/visual-pathway inputs are still native; full GPU quality remains pending.
+See [combined GPU checkpoint](RESIDUAL120_VALIDATION.md).
+
+2026-10-24 actual pathway residuals: four reconstructed raw base bands reproduce
+the official centered bands bitwise. GPU mean/DC -> packing -> FFT/magnitude/
+index passes all four. Two independently uploaded actual band differences
+also match480 FFT components numerically and240 magnitudes/two indices
+bitwise, including the traced native selection. Original12-case pipeline and
+76-matrix residual regressions pass. The complete GPU subtraction chain and
+full quality integration remain pending. See
+[real pathway residual checkpoint](RESIDUAL120_VALIDATION.md).
+
+2026-10-24 component checkpoints: both 160x192 and 192x160 forward/inverse
+FFT orientations now have exact numerical comparisons. Bounded mean120/DC
+passes bitwise, and the actual GPU mean/DC -> packing -> residual FFT ->
+magnitude/index chain passes on 12 native-derived cases. The extended residual
+suite covers 76 matrices: 18240 raw FFT floats numerically exact, 9120
+magnitudes and 76 first-max indices bitwise exact. A fresh run with the latest
+checker also preserves the raw mode pass (490 signed-zero differences only).
+Base120 mean/power passes 16408 bitwise output comparisons across 8204 maps.
+These are component acceptances; general public quality is still pending.
+Two additional actual full-pathway resized logmaps (80x96/96x80,30ppd,age24)
+now pass base120 mean/power bitwise. Native trace instrumentation preserves
+both stock Q/Q_JOD exactly; these are not GPU score comparisons.
+See [transposed FFTs](TRANSPOSED_MIXED_FFT_VALIDATION.md),
+[mean/DC](MEAN120_VALIDATION.md), [residual chain](RESIDUAL120_VALIDATION.md)
+and [base adaptation](BASE120_VALIDATION.md). Earlier entries below retain
+their historical validation scope.
+
+2026-10-23 complete160x192 inverse:12 streams match737280 raw native FFTW
+values and737280 normalized official ifft2 values exactly on Intel Arc Pro
+Graphics. First-axis and forward regressions also pass. Signed-zero bits are
+outside this FFT check; transposed/general public quality remain pending. See
+[complete inverse checkpoint](MIXED_INVERSE_VALIDATION.md).
+
+2026-10-23 inverse160 first axis:12 native MTF/LA streams match737280
+unnormalized Float32 values exactly on Intel Arc Pro Graphics with explicit
+DenormPreserve32/RTE32. Complete inverse/general public quality remain pending;
+signed-zero bits are outside this FFT check. See
+[inverse first-axis checkpoint](INVERSE160_AXIS_VALIDATION.md).
+
+2026-10-23 complete160x192 forward FFT:12 native MTF/LA streams match737280
+Float32 values exactly on Intel Arc Pro Graphics, with373248 first-axis
+regression values also exact. Inverse/general public quality remain pending.
+Signed-zero bits are outside this FFT check. See
+[mixed forward checkpoint](MIXED_FORWARD_VALIDATION.md).
+
+2026-10-23 real160 first axis: isolated GPU forward half-spectrum matches
+12 native MTF/LA streams on Intel Arc Pro Graphics,373,248 Float32 values
+with zero numerical differences. Signed-zero bits are not asserted here.
+Second axis/inverse and general public quality remain pending. See
+[160-point axis checkpoint](MIXED160_AXIS_VALIDATION.md).
+
+2026-10-23 mixed FFT continuation:24 native MTF/LA streams pin equivalent
+160x192/192x160 execution graphs. New fixed inverse-normalization GPU code
+matches1,054,696 synthetic and1,474,560 native Float32 words bitwise. GPU FFT
+graphs/general public quality remain pending. See
+[mixed FFT checkpoint](MIXED_FFT_PLAN_VALIDATION.md).
+
+2026-10-23 general-dimension frontier: eight new native full-quality references
+pin exact FFT/residual geometry. An isolated arbitrary-size GPU padding/layout
+stage passes96 cases and14,843,520 Float32-word bit comparisons onNVIDIA RTX A500.
+Public dimensions remain unchanged. See
+[general-dimension checkpoint](GENERAL_DIMENSION_FRONTIER.md).
+
 2026-10-23 explicit CLI: PFM pair,runtime,ppd,age,spectral data and fresh export
 can be supplied directly. Five supported shapes preserve524 export hashes with
 poisoned legacy settings;22 parser rejections and a60ppd/age60.001 full native
@@ -337,3 +465,13 @@ Nancy Church derived-luminance crop pairs andtwo synthetic regressions at
 runs compare1,140,404 GPU floats and47,616 binary64 mask words exactly.
 Independent source-file bit checks cover the input route. Crop/color/unit
 assumptions are explicit;full-frame andRGB-native metric parity remain open.
+
+### Reusable pathway runtime components (2026-10-25)
+
+The accepted mixed MTF/LA,SPYR+mean/DC/residual,and mutual pooling implementations
+now have in-memory library entry points. Their standalone native comparisons
+retain exact arithmetic/layout contracts. See MIXED_FILTER_RUNTIME_VALIDATION.md,
+SPYR_RUNTIME_VALIDATION.md andPOOL_RUNTIME_VALIDATION.md for counts and scopes.
+Public quality geometry guards remain unchanged. Existing production MapGPU
+continues resize/CSF; comparison/masking composition and full API integration
+remain to be completed. Native image-dependent values are test goldens only.

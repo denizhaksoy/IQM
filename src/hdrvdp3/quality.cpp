@@ -7,8 +7,14 @@ namespace IQM::HDRVDP3 {
 double dominant_frequency_from_index(std::size_t selected,unsigned width,unsigned height,double ppd) {
     if(!width||!height||selected>=size_t(width)*height) throw std::invalid_argument("Invalid base frequency index");
     const unsigned kx=unsigned(selected/height),ky=unsigned(selected%height);
-    const double fx=(kx<(width+1)/2?double(kx):double(kx)-width)/width*ppd;
-    const double fy=(ky<(height+1)/2?double(ky):double(ky)-height)/height*ppd;
+    // Preserve create_cycdeg_image's coordinate and scaling order. Folding
+    // these operations changes double bits for non-power-of-two dimensions.
+    const auto axis=[ppd](unsigned k,unsigned n) {
+        const double normalized=std::fmod(0.5+double(k)/n,1.0)-0.5;
+        const double scaled=normalized*(0.5*ppd);
+        return scaled*2.0;
+    };
+    const double fx=axis(kx,width),fy=axis(ky,height);
     return std::sqrt(fx*fx+fy*fy);
 }
 double dominant_frequency_from_spectrum(const std::vector<float>& interleaved,unsigned width,unsigned height,double ppd,std::size_t* selected_index) {
@@ -44,9 +50,7 @@ double dominant_frequency(const std::vector<float>& difference,unsigned width,un
         const double magnitude=std::hypot(real,imag);
         if(magnitude>maximum) {
             maximum=magnitude;
-            const double fx=(kx<(width+1)/2?double(kx):double(kx)-width)/width*ppd;
-            const double fy=(ky<(height+1)/2?double(ky):double(ky)-height)/height*ppd;
-            frequency=std::sqrt(fx*fx+fy*fy);
+            frequency=dominant_frequency_from_index(size_t(kx)*height+ky,width,height,ppd);
         }
     }
     return frequency;

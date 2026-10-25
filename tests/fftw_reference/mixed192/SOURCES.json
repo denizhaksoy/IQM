@@ -1,0 +1,47 @@
+{
+    "license":  "GPL-2.0-or-later;../COPYING",
+    "archive_sha256":  "56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467",
+    "source":  "https://www.fftw.org/fftw-3.3.10.tar.gz",
+    "files":  [
+                  {
+                      "sha256_lf":  "D206BAFE4DEB69034E41FF06FDEA05C3E202568A8C91D7716120CA06C8F00B5E",
+                      "member":  "dft/scalar/codelets/n1_4.c",
+                      "file":  "n1_4.c"
+                  },
+                  {
+                      "sha256_lf":  "00650B254FE468BF6C55F1636B8ABE0C13A978668F99A7F1A97D2D2A45080DD2",
+                      "member":  "dft/simd/common/t1fv_6.c",
+                      "file":  "t1fv_6.c"
+                  },
+                  {
+                      "sha256_lf":  "45B63B8E8FF40C15C8D2828946F4F269CE29F5B43EB935507D4FE4B7C97ED463",
+                      "member":  "dft/simd/common/t3fv_8.c",
+                      "file":  "t3fv_8.c"
+                  },
+                  {
+                      "sha256_lf":  "CABA18AFE6BC01ED659B9B88A4AE674E9C7B134984F1ACBD716392ACF8D9E870",
+                      "member":  "simd-support/simd-avx2.h",
+                      "file":  "simd-avx2.h"
+                  },
+                  {
+                      "sha256_lf":  "5D18BB928DFD2105C4119D0F769E14B2BE202E098A99C2D76904BEA29D4DE89C",
+                      "member":  "dft/simd/t1f.h",
+                      "file":  "t1f.h"
+                  },
+                  {
+                      "sha256_lf":  "59F3634ABA25DC2436D14B4016B73BB12BB39B342EECF83300973EC42971EED4",
+                      "member":  "dft/simd/t3f.h",
+                      "file":  "t3f.h"
+                  },
+                  {
+                      "sha256_lf":  "1664C2AE54246F9CDF0B3AD7290386BB110C2F1C27FFDB65046EFD6A2091BDEE",
+                      "member":  "dft/simd/avx2/t1fv_6.c",
+                      "file":  "wrapper_t1fv_6_avx2.c"
+                  },
+                  {
+                      "sha256_lf":  "4DE06F67E25F8B0EB9152360355625106ECA5227237E964D5B3DD4B8BC189695",
+                      "member":  "dft/simd/avx2-128/t3fv_8.c",
+                      "file":  "wrapper_t3fv_8_avx2_128.c"
+                  }
+              ]
+}

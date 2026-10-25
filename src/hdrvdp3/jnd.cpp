@@ -76,13 +76,15 @@ JNDLUT create_jnd_lut(const JNDParameters& params) {
     const double correction_scale =
         std::pow(10.0, params.sensitivity_correction);
 
+    const double log_step = 10.0 / static_cast<double>(JND_LUT_SIZE - 1);
     for (std::size_t i = 0; i < JND_LUT_SIZE; ++i) {
-        const double log_l =
-            -5.0 + 10.0 * static_cast<double>(i)
-            / static_cast<double>(JND_LUT_SIZE - 1);
-
-        result.log_luminance[i] = log_l;
+        // Match the native symmetric logspace construction, then log10(c_l).
+        // Using the original linear coordinates changes interpolation slopes.
+        const double log_l = i < JND_LUT_SIZE / 2
+            ? -5.0 + static_cast<double>(i) * log_step
+            : 5.0 - static_cast<double>(JND_LUT_SIZE - 1 - i) * log_step;
         luminance[i] = std::pow(10.0, log_l);
+        result.log_luminance[i] = std::log10(luminance[i]);
 
         combined[i] = joint_sensitivity(
             luminance[i], params
@@ -115,18 +117,21 @@ JNDLUT create_jnd_lut(const JNDParameters& params) {
     result.cone[0] = 0.0;
     result.rod[0] = 0.0;
 
+    double cone_sum = 0.0, rod_sum = 0.0;
     for (std::size_t i = 1; i < JND_LUT_SIZE; ++i) {
         const double step =
             result.log_luminance[i]
             - result.log_luminance[i - 1];
 
-        result.cone[i] = result.cone[i - 1]
-            + 0.5 * (cones[i - 1] + cones[i])
-            * LOG10_FACTOR * step;
-
-        result.rod[i] = result.rod[i - 1]
-            + 0.5 * (rods[i - 1] + rods[i])
-            * LOG10_FACTOR * step;
+        // Native cumtrapz integrates S*log(10), and scales the prefix sum.
+        const double cone_left = cones[i - 1] * LOG10_FACTOR;
+        const double cone_right = cones[i] * LOG10_FACTOR;
+        const double rod_left = rods[i - 1] * LOG10_FACTOR;
+        const double rod_right = rods[i] * LOG10_FACTOR;
+        cone_sum += step * (cone_left + cone_right);
+        rod_sum += step * (rod_left + rod_right);
+        result.cone[i] = 0.5 * cone_sum;
+        result.rod[i] = 0.5 * rod_sum;
     }
 
     for (std::size_t i = 0; i < JND_LUT_SIZE; ++i) {

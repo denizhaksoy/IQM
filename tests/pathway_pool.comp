@@ -1,0 +1,31 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {float value[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {float value[];} dst;
+layout(push_constant) uniform Push {uint count,w,h,reserved;} p;
+// compile_pathway_pool.ps1 inserts the accepted integer positive_fma helpers.
+void main(){
+    uint i=gl_GlobalInvocationID.x;if(i>=p.count)return;
+    int x=int(i%p.w),y=int(i/p.w);bool transpose=p.w>p.h;
+    uint axis=uint(transpose?x:y),vectorEnd=(max(p.w,p.h)/32u)*32u;
+#ifdef IQM_CORRDN_NON_FMA
+    if(axis<vectorEnd)return;
+#else
+    if(axis>=vectorEnd)return;
+#endif
+    dst.value[i]=min(abs(src.value[i]),abs(src.value[p.count+i]));
+    precise float sum=0;
+    for(int outer=-1;outer<=1;++outer)for(int inner=1;inner>=-1;--inner){
+        int dx=transpose?inner:outer,dy=transpose?outer:inner;
+        int sx=x+dx,sy=y+dy;
+        if(sx<0||sy<0||sx>=int(p.w)||sy>=int(p.h))continue;
+        uint k=uint(sy)*p.w+uint(sx);
+        float v=min(abs(src.value[k]),abs(src.value[p.count+k]));
+        // Native full conv2 accumulates vector blocks of the SOURCE axis.
+        // Its same-size crop shifts each tap's transition independently.
+        uint sampleAxis=uint(transpose?sx:sy);
+        if(sampleAxis<vectorEnd)sum=positive_fma(v,1.0/9.0,sum);
+        else{precise float product=v*(1.0/9.0);sum=sum+product;}
+    }
+    dst.value[p.count+i]=sum;
+}

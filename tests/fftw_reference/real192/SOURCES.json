@@ -1,0 +1,47 @@
+{
+    "license":  "GPL-2.0-or-later;../COPYING",
+    "archive_sha256":  "56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467",
+    "source":  "https://www.fftw.org/fftw-3.3.10.tar.gz",
+    "files":  [
+                  {
+                      "sha256_lf":  "6E47565F87EE595F31F876B774FDD685B7496AFB210ABC605F6F3E8B7651F73E",
+                      "member":  "rdft/scalar/r2cf/hc2cf_8.c",
+                      "file":  "hc2cf_8.c"
+                  },
+                  {
+                      "sha256_lf":  "385C0093A0F801FA72A6436955CDCD8D8D155BAD7015B6F81F80B50825EA177A",
+                      "member":  "rdft/scalar/r2cf/r2cfII_8.c",
+                      "file":  "r2cfII_8.c"
+                  },
+                  {
+                      "sha256_lf":  "2B9B84A56895007CAA5ED59B9D642F5FBC63F296E25911B2FA3308DBEA98BB58",
+                      "member":  "rdft/scalar/r2cf/hf_12.c",
+                      "file":  "hf_12.c"
+                  },
+                  {
+                      "sha256_lf":  "F6B28543B48D597D44864D1CAB83CAB45468A3F53AF89B679AFF85F0FBA420C7",
+                      "member":  "rdft/scalar/r2cf/r2cf_12.c",
+                      "file":  "r2cf_12.c"
+                  },
+                  {
+                      "sha256_lf":  "5B8250F8CD4DAD10C85F7BA190FB2AFDAFFAFCA785FBBF801E2AE2CF52B71D1B",
+                      "member":  "rdft/scalar/r2cf/r2cfII_12.c",
+                      "file":  "r2cfII_12.c"
+                  },
+                  {
+                      "sha256_lf":  "5D51E91ACD30D6CA76DA030CB3B6E9E37CA7737EED41228868E00BDB1D968CEC",
+                      "member":  "rdft/scalar/r2cf/r2cf_2.c",
+                      "file":  "r2cf_2.c"
+                  },
+                  {
+                      "sha256_lf":  "EE975E2DE88F9205B7D44CBB768DC2482D61B2920A4FE098727096E0BD22CE8E",
+                      "member":  "rdft/hc2hc-direct.c",
+                      "file":  "hc2hc-direct.c"
+                  },
+                  {
+                      "sha256_lf":  "2920D2E83A9945C0E9913B6178534E4323AD202E9F32D7F173B767FD4FFCC9FB",
+                      "member":  "rdft/ct-hc2c-direct.c",
+                      "file":  "ct-hc2c-direct.c"
+                  }
+              ]
+}

@@ -1,0 +1,18 @@
+#version 450
+#pragma shader_stage(compute)
+layout(local_size_x=64) in;
+layout(constant_id=31) const uint dimension_padding_abi=1701u;
+layout(set=0,binding=0,std430) readonly buffer Input {uint value[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint value[];} dst;
+layout(push_constant) uniform Push {uint width,height,mode,columnOrder;} p;
+void main(){
+    if(dimension_padding_abi!=1701u)return;
+    uint i=gl_GlobalInvocationID.x,W=2u*p.width,H=2u*p.height;
+    if(i>=W*H)return;
+    uint x=i%W,y=i/W;
+    uint sx=p.mode==1u?(x<p.width?x:W-1u-x):min(x,p.width-1u);
+    uint sy=p.mode==1u?(y<p.height?y:H-1u-y):min(y,p.height-1u);
+    uint outIndex=2u*(p.columnOrder!=0u?x*H+y:i);
+    dst.value[outIndex]=src.value[sy*p.width+sx];
+    dst.value[outIndex+1u]=0u;
+}

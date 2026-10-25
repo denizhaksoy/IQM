@@ -1,0 +1,13 @@
+#include <IQM/hdrvdp3/jnd.h>
+#include <filesystem>
+#include <fstream>
+#include <vector>
+#include <bit>
+#include <iostream>
+#include <stdexcept>
+static std::vector<double> read(const std::filesystem::path& p){std::ifstream f(p);unsigned h,w;if(!(f>>h>>w)||h*w!=2048)throw std::runtime_error("Bad model fixture");std::vector<double> r(2048);for(auto& v:r)if(!(f>>v))throw std::runtime_error("Truncated model");return r;}
+int main(int argc,char** argv){try{if(argc!=3 && argc!=4)throw std::runtime_error("Usage:native-stage-folder fresh-output [--strict-double]");const bool strictDouble=argc==4;if(strictDouble && std::string(argv[3])!="--strict-double")throw std::runtime_error("Unknown option");const std::filesystem::path source(argv[1]),out(argv[2]);if(std::filesystem::exists(out)||!std::filesystem::create_directories(out))throw std::runtime_error("Fresh output required");const auto x=read(source/"reference_pn_Y1.txt"),c=read(source/"reference_pn_JND1.txt"),r=read(source/"reference_pn_JND2.txt");const auto actual=IQM::HDRVDP3::create_jnd_lut();size_t counts[5]={},doubleGrid=0,doubleCone=0,doubleRod=0;std::ofstream differences(out/"differences.tsv");differences<<"section\tnode\tactual_bits\texpected_bits\n";
+ auto check=[&](unsigned section,unsigned i,double a,double e){const auto aa=std::bit_cast<uint32_t>(float(a)),ee=std::bit_cast<uint32_t>(float(e));if(aa!=ee){++counts[section];differences<<section<<'\t'<<i<<'\t'<<aa<<'\t'<<ee<<'\n';}};
+ for(unsigned i=0;i<2048;++i){check(0,i,actual.log_luminance[i],x[i]);check(1,i,actual.cone[i],c[i]);check(2,i,actual.rod[i],r[i]);doubleGrid+=std::bit_cast<uint64_t>(actual.log_luminance[i])!=std::bit_cast<uint64_t>(x[i]);doubleCone+=std::bit_cast<uint64_t>(actual.cone[i])!=std::bit_cast<uint64_t>(c[i]);doubleRod+=std::bit_cast<uint64_t>(actual.rod[i])!=std::bit_cast<uint64_t>(r[i]);if(i<2047){check(3,i,(actual.cone[i+1]-actual.cone[i])/(actual.log_luminance[i+1]-actual.log_luminance[i]),(c[i+1]-c[i])/(x[i+1]-x[i]));check(4,i,(actual.rod[i+1]-actual.rod[i])/(actual.log_luminance[i+1]-actual.log_luminance[i]),(r[i+1]-r[i])/(x[i+1]-x[i]));}}
+ size_t bad=0;for(auto n:counts)bad+=n;std::cout<<"model grid/cone/rod/coneSlope/rodSlope=";for(auto n:counts)std::cout<<n<<',';std::cout<<" double_grid_differences="<<doubleGrid<<" double_cone_differences="<<doubleCone<<" double_rod_differences="<<doubleRod<<'\n';if(bad || (strictDouble && (doubleGrid || doubleCone || doubleRod)))return 1;std::ofstream(out/"PASS.txt")<<"All10238 Float32 JND model node/slope words exact. "<<(strictDouble ? "All6144 double table words exact." : "Double table parity not asserted.")<<"\n";return 0;
+}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 2;}}

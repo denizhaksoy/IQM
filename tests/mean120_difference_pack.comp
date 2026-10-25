@@ -1,0 +1,17 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint words[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint words[];} dst;
+layout(push_constant) uniform Push {uint groups,h,w,reserved;} p;
+// Each pair contains reference then test, each with mean +120 centered words.
+// Subtract centered bands once; do not remove another mean from the difference.
+void main(){
+    uint i=gl_GlobalInvocationID.x;if(i>=p.groups*120u)return;
+    uint pair=i/120u,row=i%120u,y=row/p.w,x=row%p.w;
+    float reference=uintBitsToFloat(src.words[pair*242u+1u+row]);
+    float test=uintBitsToFloat(src.words[pair*242u+122u+row]);
+    precise float difference=test-reference;
+    uint column=pair*120u+x*p.h+y;
+    dst.words[2u*column]=floatBitsToUint(difference);
+    dst.words[2u*column+1u]=0u;
+}

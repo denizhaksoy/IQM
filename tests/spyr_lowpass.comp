@@ -1,0 +1,32 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {float value[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {float value[];} dst;
+layout(set=0,binding=2,std430) readonly buffer Filter {float value[];} coeff;
+layout(push_constant) uniform Push {uint w,h,ow,oh,n,step,normalize,reserved;} p;
+int reflect1(int v,int n){int period=2*(n-1);v=((v%period)+period)%period;return v<n?v:period-v;}
+void main(){
+    uint i=gl_GlobalInvocationID.x,size=p.ow*p.oh;if(i>=max(p.reserved,1u)*size)return;
+    uint batch=i/size,row=i%size;
+    uint x=row%p.ow,y=row/p.ow;bool transpose=p.w>p.h;
+    uint axis=(transpose?x:y)*p.step,vectorEnd=(max(p.w,p.h)/32u)*32u;
+#ifdef IQM_CORRDN_NON_FMA
+    if(axis<vectorEnd)return;
+#else
+    if(axis>=vectorEnd)return;
+#endif
+    precise float acc=0;
+    for(int outer=int(p.n)-1;outer>=0;--outer)for(int inner=int(p.n)-1;inner>=0;--inner){
+        int fx=transpose?inner:outer,fy=transpose?outer:inner;
+        int sx=reflect1(int(x*p.step)+fx-int(p.n/2u),int(p.w));
+        int sy=reflect1(int(y*p.step)+fy-int(p.n/2u),int(p.h));
+        float a=src.value[batch*p.w*p.h+uint(sy)*p.w+uint(sx)],b=coeff.value[uint(fy)*p.n+uint(fx)];
+#ifdef IQM_CORRDN_NON_FMA
+        precise float product=a*b;acc=acc+product;
+#else
+        acc=fma(a,b,acc);
+#endif
+    }
+    float scale=p.normalize==0u?1.0:p.normalize==1u?0.0625:p.normalize==2u?0.5:p.normalize==3u?0.25:0.125;
+    dst.value[i]=acc*scale;
+}

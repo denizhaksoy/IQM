@@ -54,3 +54,17 @@ commandBuffer->end();
 - for FSIM, git submodule with `VkFFT` must be fetched
 - before C++ compilation compile shaders by `./compile_shaders.sh`
 - after compilation copy `lpips.dat` next to executable
+## HDR-VDP-3 development status
+
+The experimental `evaluate_pathway_quality` API evaluates positive Float32
+luminance pairs at80x96/96x80,30ppd,age24,D65 using explicit shader/model assets.
+Six synthetic pairs pass487 stage checks/1966412 compared words bitwise against
+official HDR-VDP-3 v3.0.7,including final Q/Q_JOD and a repeated score-only call.
+CPU model/LUT preparation,double NCSF and synchronous host transfers remain.
+The public CLI geometry support has not been extended to this profile yet.
+
+See [API validation](tests/PATHWAY_QUALITY_API_VALIDATION.md) and
+[component validation](tests/ACTUAL_GPU_COMPOSITION_VALIDATION.md) for build
+commands,scope and remaining integration work. Numerical exports,local builds
+and compiled runtime assets are excluded from Git;validation scripts reference
+the documented locally generated fixture tree and external official reference.
