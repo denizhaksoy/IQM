@@ -1,0 +1,55 @@
+{
+  "schema": "IQM_LIVE_HDR_PROTOCOL_1",
+  "status": "documented_local_reconstruction_not_original_submission_equivalence",
+  "paper": {
+    "url": "https://www.cl.cam.ac.uk/~rkm38/pdfs/mantiuk2023hdrvdp3.pdf",
+    "section": 6,
+    "task": "quality",
+    "frame_stride": 30,
+    "temporal_model": false,
+    "linear_rgb": "BT.2020_absolute_photometric",
+    "ambient_lux": 200,
+    "reflectivity": 0.005,
+    "recalibration_on_live": false
+  },
+  "official_example": {
+    "version": "3.0.7",
+    "input_precision": "single",
+    "distorted_resize": "bicubic_in_PQ_domain_to_reference_size_then_clamp_0_1",
+    "peak_cd_m2_before_ambient": 2000,
+    "diagonal_inches": 64.5,
+    "display_resolution": [3840, 2160],
+    "distance_m": 1.296,
+    "aggregation": "arithmetic_mean_of_frame_Q_JOD",
+    "source_bug": "kk loop index unused; both input filenames fixed to frame_0001.png"
+  },
+  "implementation_defaults": {
+    "observer_age": 24,
+    "rgb_display": "oled",
+    "mtf": "hdrvdp",
+    "filter": "sp0Filters",
+    "use_gpu": "requested_by_default_then_disabled_if_unavailable"
+  },
+  "local_diagnostic": {
+    "png_pixel_format": "rgb48be",
+    "backend": "CPU_Octave",
+    "candidate_zero_based_first_frame": 0,
+    "candidate_frame_phase_provenance": "interpretation_of_example_loop_not_independently_confirmed_by_paper",
+    "selection_implemented": false
+  },
+  "unresolved_original_submission": {
+    "decoder_version_and_color_conversion": null,
+    "png_bit_depth": null,
+    "frame_start_phase": null,
+    "challenge_cohort": null,
+    "reference_inclusion_policy": null,
+    "execution_backend_and_versions": null,
+    "per_video_prediction_vector": null,
+    "correlation_and_fitting_procedure": null
+  },
+  "acceptance": {
+    "numerical": "compare_identical_hashed_inputs_settings_precision_and_backend; exact_and_tolerance_results_separate",
+    "subjective": "separate_correlation_analysis_not_numerical_equality",
+    "full_dataset_equivalence": false
+  }
+}

@@ -1,0 +1,11 @@
+args=argv();assert(numel(args)==1&&!exist(args{1},'dir'));assert(mkdir(args{1}));pkg load image;
+unit=im2single(uint16((0:65535)'));
+t=max(unit,0).^(1/78.84375);
+ratio=max(t-.8359375,0)./(18.8515625-18.6875*t);
+linear=10000*ratio.^(1/.1593017578125);
+final=min(linear+200*.005/pi,2000+200*.005/pi);
+stages=[unit,t,ratio,linear,final];assert(isa(stages,'single'));
+f=fopen(fullfile(args{1},'stages.f32'),'wb','ieee-le');assert(f>=0);
+assert(fwrite(f,stages,'single')==65536*5);fclose(f);
+f=fopen(fullfile(args{1},'stages.json'),'wt');
+fprintf(f,'%s\n',jsonencode(struct('codes',65536,'stage_names',{{'unit','pow_m','ratio','linear','final'}},'layout','stage-major-f32-le','octave_version',version())));fclose(f);

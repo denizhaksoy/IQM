@@ -23,8 +23,20 @@ static std::vector<uint32_t> code(const std::filesystem::path& path){
 }
 }
 namespace IQM::HDRVDP3 {
+#if defined(IQM_HDRVDP3_SQUARE_QUALITY_DIAGNOSTIC)
+#define run_pathway_pool run_square_pool_diagnostic
+#endif
 PathwayPoolResult run_pathway_pool(const IQM::VulkanInstance& instance,const std::vector<float>& reference,const std::vector<float>& test,unsigned w,unsigned h,const PathwayPoolAssets& assets){
- if(!((h==80&&w==96)||(h==96&&w==80)||(h==40&&w==48)||(h==48&&w==40)||(h==20&&w==24)||(h==24&&w==20)||(h==10&&w==12)||(h==12&&w==10))||reference.size()!=size_t(h)*w||test.size()!=reference.size())throw std::invalid_argument("Unvalidated pool shape");
+#if defined(IQM_HDRVDP3_SQUARE128_QUALITY_DIAGNOSTIC)
+ const bool shapeOK=h==w&&(h==128||h==64||h==32||h==16);
+#elif defined(IQM_HDRVDP3_SQUARE80_QUALITY_DIAGNOSTIC)
+ const bool shapeOK=h==w&&(h==80||h==40||h==20||h==10);
+#elif defined(IQM_HDRVDP3_SQUARE_QUALITY_DIAGNOSTIC)
+ const bool shapeOK=h==w&&(h==96||h==48||h==24||h==12);
+#else
+ const bool shapeOK=((h==w&&(h==128||h==64||h==32||h==16||h==80||h==40||h==20||h==10))||(h==96&&w==96)||(h==80&&w==96)||(h==96&&w==80)||(h==40&&w==48)||(h==48&&w==40)||(h==20&&w==24)||(h==24&&w==20)||(h==10&&w==12)||(h==12&&w==10)||(h==w&&(h==48||h==24||h==12)));
+#endif
+ if(!shapeOK||reference.size()!=size_t(h)*w||test.size()!=reference.size())throw std::invalid_argument("Unvalidated pool shape");
  std::vector<uint32_t> input;for(const auto* band:{&reference,&test})for(float v:*band){if(!std::isfinite(v))throw std::invalid_argument("Nonfinite pool band");input.push_back(std::bit_cast<uint32_t>(v));}
  const unsigned n=h*w,bytes=2*n*4;const auto& device=*instance.device();
     const auto props=instance.physicalDevice()->getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();const auto& controls=props.get<vk::PhysicalDeviceFloatControlsProperties>();

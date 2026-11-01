@@ -13,6 +13,13 @@
 #include <stdexcept>
 #include <vector>
 using IQM::GPU::VulkanRuntime;
+#ifndef IQM_BASE_COUNT
+#define IQM_BASE_COUNT 120
+#endif
+#if !defined(IQM_BASE_GENERAL)
+constexpr unsigned BaseCount=IQM_BASE_COUNT,MeanStride=BaseCount+1,FFTWords=2*BaseCount,OutputWords=3*BaseCount+1;
+static_assert(BaseCount==120||BaseCount==144);
+#endif
 struct Buffer{vk::raii::DeviceMemory memory=nullptr;vk::raii::Buffer handle=nullptr;};
 static Buffer buffer(const IQM::Bin::VulkanInstance& instance,unsigned bytes){
     auto pair=IQM::Bin::VulkanResource::createBuffer(*instance.device(),*instance.physicalDevice(),bytes,
@@ -30,8 +37,14 @@ static std::vector<uint32_t> code(const std::filesystem::path& path){
     if(!f||v[0]!=0x07230203u)throw std::runtime_error("Invalid shader words");return v;
 }
 int main(int argc,char** argv){try{
-    const bool difference=argc==7&&std::string(argv[6])=="--pathway-difference";
-    const bool pathway=argc==7&&(std::string(argv[6])=="--pathway"||difference);
+#if defined(IQM_BASE256_DIAGNOSTIC)
+    const bool extraCount=argc==8;const unsigned expectedCases=extraCount?unsigned(std::stoul(argv[7])):5u;
+    if(expectedCases!=5&&expectedCases!=6)throw std::runtime_error("Unvalidated case count");
+#else
+    const bool extraCount=false;
+#endif
+    const bool difference=(argc==7||extraCount)&&std::string(argv[6])=="--pathway-difference";
+    const bool pathway=(argc==7||extraCount)&&(std::string(argv[6])=="--pathway"||difference);
     if(argc!=6&&!pathway)throw std::runtime_error("Usage:mean.spv pack.spv fft.spv manifest fresh-output [--pathway|--pathway-difference]");
     const std::filesystem::path output(argv[5]);if(std::filesystem::exists(output)||!std::filesystem::create_directories(output))throw std::runtime_error("Fresh output required");
     IQM::Bin::VulkanInstance instance(true);const auto& device=*instance.device();
@@ -46,17 +59,27 @@ int main(int argc,char** argv){try{
     std::ofstream results(output/"results.tsv");results<<"case\tmean_bit_errors\tpack_bit_errors\tfft_numeric_errors\tmag_index_bit_errors\tfft_zero_sign_differences\n";
     std::string tag,inputPath,meanPath,packPath,expectedPath;unsigned h,w,total=0,orientations=0;
     while(manifest>>tag>>h>>w>>std::quoted(inputPath)>>std::quoted(meanPath)>>std::quoted(packPath)>>std::quoted(expectedPath)){
-        if(!((h==10&&w==12)||(h==12&&w==10)))throw std::runtime_error("Unvalidated shape");
+        #if defined(IQM_BASE_GENERAL)
+        #if defined(IQM_BASE256_DIAGNOSTIC)
+        if(!difference||h!=16||w!=16)
+#else
+        if(!difference||!((h==10||h==12)&&(w==10||w==12)))
+#endif
+        throw std::runtime_error("Unvalidated general shape/mode");
+        const unsigned BaseCount=h*w,MeanStride=BaseCount+1,FFTWords=2*BaseCount,OutputWords=3*BaseCount+1;
+#else
+        if(!(BaseCount==144?(h==12&&w==12):((h==10&&w==12)||(h==12&&w==10))))throw std::runtime_error("Unvalidated shape");
+#endif
         const auto input=words(inputPath),mean=words(meanPath),pack=words(packPath),expected=words(expectedPath);
         const unsigned groups=pathway?2:6;
         const unsigned outputs=difference?1:groups;
-        if(input.size()!=groups*120||mean.size()!=groups*121||pack.size()!=outputs*240||expected.size()!=outputs*361)throw std::runtime_error("Incomplete pipeline coverage");
+        if(input.size()!=groups*BaseCount||mean.size()!=groups*MeanStride||pack.size()!=outputs*FFTWords||expected.size()!=outputs*OutputWords)throw std::runtime_error("Incomplete pipeline coverage");
         for(unsigned batch=0;batch<groups;++batch){int minimum=1000,maximum=-1000;
-            for(unsigned i=0;i<120;++i){float v=std::bit_cast<float>(input[batch*120+i]);if(!std::isfinite(v))throw std::runtime_error("Nonfinite mean input");
+            for(unsigned i=0;i<BaseCount;++i){float v=std::bit_cast<float>(input[batch*BaseCount+i]);if(!std::isfinite(v))throw std::runtime_error("Nonfinite mean input");
                 if(v!=0){int e=std::ilogb(std::abs(v));minimum=std::min(minimum,e);maximum=std::max(maximum,e);}}
             if(maximum!=-1000&&(minimum < -90||maximum>100||maximum-minimum>16))throw std::runtime_error("Mean domain exceeded");
         }
-        for(unsigned batch=0;batch<outputs;++batch)for(unsigned i=0;i<240;++i){float v=std::bit_cast<float>(expected[batch*361+i]);if(!std::isfinite(v)||(v!=0&&(std::ilogb(std::abs(v)) < -90||std::ilogb(std::abs(v))>100)))throw std::runtime_error("Hypot domain exceeded");}
+        for(unsigned batch=0;batch<outputs;++batch)for(unsigned i=0;i<FFTWords;++i){float v=std::bit_cast<float>(expected[batch*OutputWords+i]);if(!std::isfinite(v)||(v!=0&&(std::ilogb(std::abs(v)) < -90||std::ilogb(std::abs(v))>100)))throw std::runtime_error("Hypot domain exceeded");}
         const unsigned sizes[]={unsigned(input.size()*4),unsigned(mean.size()*4),unsigned(pack.size()*4),unsigned(expected.size()*4)};
         std::array<Buffer,4> buffers{buffer(instance,sizes[0]),buffer(instance,sizes[1]),buffer(instance,sizes[2]),buffer(instance,sizes[3])};
         auto* mapped=buffers[0].memory.mapMemory(0,sizes[0]);std::memcpy(mapped,input.data(),sizes[0]);buffers[0].memory.unmapMemory();
@@ -70,11 +93,15 @@ int main(int argc,char** argv){try{
         struct Push{uint32_t groups,h,w,reserved;};
         for(unsigned stage=0;stage<3;++stage){
             const unsigned stageGroups=stage==0?groups:outputs;
+            #if defined(IQM_BASE_GENERAL)
+            const Push push{stageGroups,stage==0?BaseCount:h,w,0};
+#else
             const Push push{stageGroups,h,w,0};
+#endif
             instance.cmdBuf()->bindPipeline(vk::PipelineBindPoint::eCompute,*pipelines[stage]);
             instance.cmdBuf()->bindDescriptorSets(vk::PipelineBindPoint::eCompute,*layout,0,{*sets[stage]},{});
             instance.cmdBuf()->pushConstants<Push>(*layout,vk::ShaderStageFlagBits::eCompute,0,push);
-            instance.cmdBuf()->dispatch(((stage==1?stageGroups*120:stageGroups)+63)/64,1,1);
+            instance.cmdBuf()->dispatch(((stage==1?stageGroups*BaseCount:stageGroups)+63)/64,1,1);
             vk::MemoryBarrier barrier{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=stage==2?vk::AccessFlagBits::eHostRead:vk::AccessFlagBits::eShaderRead};
             instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,stage==2?vk::PipelineStageFlagBits::eHost:vk::PipelineStageFlagBits::eComputeShader,{}, {barrier},{},{});
         }
@@ -84,15 +111,32 @@ int main(int argc,char** argv){try{
         for(unsigned stage=1;stage<=3;++stage){const auto* actual=static_cast<const uint32_t*>(buffers[stage].memory.mapMemory(0,sizes[stage]));
             const auto& target=stage==1?mean:stage==2?pack:expected;
             for(size_t i=0;i<target.size();++i){if(stage==1)meanErrors+=actual[i]!=target[i];else if(stage==2)packErrors+=actual[i]!=target[i];
-                else if(i%361<240){fftErrors+=std::bit_cast<float>(actual[i])!=std::bit_cast<float>(target[i]);zeroDifferences+=actual[i]!=target[i];}
+                else if(i%OutputWords<FFTWords){fftErrors+=std::bit_cast<float>(actual[i])!=std::bit_cast<float>(target[i]);zeroDifferences+=actual[i]!=target[i];}
                 else magErrors+=actual[i]!=target[i];}
             std::ofstream dump(output/(tag+"_stage"+std::to_string(stage)+".u32"),std::ios::binary);dump.write(reinterpret_cast<const char*>(actual),sizes[stage]);buffers[stage].memory.unmapMemory();
         }
         results<<tag<<'\t'<<meanErrors<<'\t'<<packErrors<<'\t'<<fftErrors<<'\t'<<magErrors<<'\t'<<zeroDifferences<<'\n';results.flush();instance.cmdBuf()->reset();
-        if(meanErrors||packErrors||fftErrors||magErrors)throw std::runtime_error("GPU pipeline mismatch:"+tag);
+        #if defined(IQM_BASE_GENERAL)
+        if(meanErrors||packErrors||fftErrors||magErrors||zeroDifferences)
+#else
+        if(meanErrors||packErrors||fftErrors||magErrors||(BaseCount==144&&zeroDifferences))
+#endif
+        throw std::runtime_error("GPU pipeline mismatch:"+tag);
         total+=groups;++orientations;
     }
-    if(!manifest.eof()||total!=(pathway?4u:12u)||orientations!=2)throw std::runtime_error("Pipeline coverage incomplete");
+    #if defined(IQM_BASE_GENERAL)
+    if(!manifest.eof()||total!=
+#if defined(IQM_BASE256_DIAGNOSTIC)
+        2u*expectedCases||orientations!=expectedCases
+#else
+        40u||orientations!=20u
+#endif
+        )throw std::runtime_error("General pipeline coverage incomplete");
+    constexpr bool strictZero=true;
+#else
+    if(!manifest.eof()||total!=(BaseCount==144?10u:pathway?4u:12u)||orientations!=(BaseCount==144?5u:2u))throw std::runtime_error("Pipeline coverage incomplete");
+    constexpr bool strictZero=BaseCount==144;
+#endif
     std::cout<<"GPU mean/DC -> packing -> FFT/magnitude/index: cases="<<total<<" mismatches=0\n";
-    std::ofstream(output/"PASS.txt")<<"Three GPU compute stages without host intermediate computation; input bands="<<total<<"; pathway="<<pathway<<"; difference="<<difference<<". FFT zero-sign bits excluded.\n";return 0;
+    std::ofstream(output/"PASS.txt")<<"Three GPU compute stages without host intermediate computation; input bands="<<total<<"; pathway="<<pathway<<"; difference="<<difference<<". "<<(strictZero?"All FFT signed-zero bits asserted.":"FFT zero-sign bits excluded.")<<"\n";return 0;
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

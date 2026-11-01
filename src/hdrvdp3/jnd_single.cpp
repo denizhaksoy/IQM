@@ -61,4 +61,28 @@ JNDResponseSingle luminance_to_jnd_response_single(
     result.response = (result.channels[0] + result.channels[1]) + result.channels[2];
     return result;
 }
+RGBJNDResponseSingle rgb_to_jnd_response_single(const JNDLUT& lut,
+    std::span<const float> lmsr,std::span<const float> adaptation,
+    unsigned width,unsigned height,double area,double age) {
+    const size_t n=size_t(width)*height;
+    if(!width||!height||adaptation.size()!=n||lmsr.size()%4||lmsr.size()/4!=n||
+       !std::isfinite(area)||area<=0||!std::isfinite(age)||age<0||age>90)
+        throw std::invalid_argument("Invalid Single RGB JND dimensions/viewing parameters");
+    for(size_t i=0;i<JND_LUT_SIZE;++i)if(!std::isfinite(lut.log_luminance[i])||
+       !std::isfinite(lut.cone[i])||!std::isfinite(lut.rod[i])||
+       (i&&lut.log_luminance[i]<=lut.log_luminance[i-1]))
+        throw std::invalid_argument("Invalid Single JND table");
+    for(float v:lmsr)if(!std::isfinite(v)||v<=0)throw std::invalid_argument("Invalid Single LMSR");
+    std::vector<float> adapted(adaptation.begin(),adaptation.end());
+    RGBJNDResponseSingle out;out.pupil_reduction=pupil_luminance_reduction_single(adapted,width,height,area,age);
+    out.channels.resize(3*n);out.response.resize(n);
+    const float low=float(std::pow(10.,lut.log_luminance.front())),high=float(std::pow(10.,lut.log_luminance.back()));
+    for(size_t c=0;c<3;++c)for(size_t i=0;i<n;++i){
+        float pupil=lmsr[(c==2?3:c)*n+i]*out.pupil_reduction;
+        float query=std::log10(std::clamp(pupil,low,high));
+        out.channels[c*n+i]=sample_single(lut,query,c==2);
+    }
+    for(size_t i=0;i<n;++i)out.response[i]=(out.channels[i]+out.channels[n+i])+out.channels[2*n+i];
+    return out;
+}
 }

@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <vector>
+#include <span>
 
 namespace IQM::HDRVDP3 {
 
@@ -61,6 +62,21 @@ JNDResponseSingle luminance_to_jnd_response_single(
 float pupil_luminance_reduction_single(
     const std::vector<float>& adaptation, unsigned width, unsigned height,
     double area, double age);
+// Double native pathway; adaptation and four LMSR planes are row-major.
+struct RGBJNDResponseDouble {
+    double geometric_mean=0, pupil_reduction=0;
+    std::vector<double> post_pupil, channels, response;
+};
+struct RGBJNDResponseSingle {
+    float pupil_reduction=0;
+    std::vector<float> channels,response;
+};
+RGBJNDResponseSingle rgb_to_jnd_response_single(const JNDLUT& lut,
+    std::span<const float> clamped_lmsr,std::span<const float> adaptation,
+    unsigned width,unsigned height,double area,double age);
+RGBJNDResponseDouble rgb_to_jnd_response_double(const JNDLUT& lut,
+    std::span<const double> clamped_lmsr, std::span<const double> adaptation,
+    unsigned width, unsigned height, double area, double age);
 
 } // namespace IQM::HDRVDP3
 

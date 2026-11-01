@@ -1,0 +1,6 @@
+[
+  {"key":"projection","file":"assets/projection.spv","sha256":"67f733533c648c8aa9eeae74619542773e5cba0ec138899a4792bf9a8476c07e"},
+  {"key":"adaptation","file":"assets/adaptation.spv","sha256":"ab393b2f1e6444a8c259d84de74ca0ae9cae8dc5315bca3a8e168f9681b75427"},
+  {"key":"jnd","file":"assets/jnd.spv","sha256":"92218929a52641a10a3872a4d36aead95942b515a3809af88055e1f751ad93df"},
+  {"key":"comparison","file":"assets/comparison.spv","sha256":"d9f817d08d17f1a5fa681f08e784735e2d20af3e1abfbe5a8b4189da07e80183"}
+]

@@ -8,7 +8,8 @@
 #include <string>
 #include <iostream>
 
-IQM::Bin::VulkanInstance::VulkanInstance(bool enableValidation) {
+IQM::Bin::VulkanInstance::VulkanInstance(bool enableValidation,
+    const std::string& preferredDevice, bool requireFloat64) {
     this->context = vk::raii::Context{};
 
     vk::ApplicationInfo appInfo{
@@ -36,7 +37,7 @@ IQM::Bin::VulkanInstance::VulkanInstance(bool enableValidation) {
     this->instance = vk::raii::Instance{this->context, instanceCreateInfo};
 
     this->initDebugMessenger(enableValidation);
-    this->initQueues();
+    this->initQueues(preferredDevice, requireFloat64);
 }
 
 void IQM::Bin::VulkanInstance::waitForFence(const vk::raii::Fence &fence) const {
@@ -46,7 +47,7 @@ void IQM::Bin::VulkanInstance::waitForFence(const vk::raii::Fence &fence) const 
     }
 }
 
-void IQM::Bin::VulkanInstance::initQueues() {
+void IQM::Bin::VulkanInstance::initQueues(const std::string& preferredDevice, bool requireFloat64) {
     std::optional<vk::raii::PhysicalDevice> physicalDevice;
     // try to access faster dedicated transfer queue
     int computeQueueIndex = -1;
@@ -56,7 +57,13 @@ void IQM::Bin::VulkanInstance::initQueues() {
     for (const auto& device : devices) {
         auto properties = device.getProperties();
 
-        physicalDevice = device;
+        const std::string name(properties.deviceName.data());
+        if (!preferredDevice.empty() && name.find(preferredDevice) == std::string::npos)
+            continue;
+        if (requireFloat64 && !device.getFeatures().shaderFloat64)
+            continue;
+        computeQueueIndex = -1;
+        transferQueueIndex = -1;
 
         auto queueFamilyProperties = device.getQueueFamilyProperties();
 
@@ -73,10 +80,16 @@ void IQM::Bin::VulkanInstance::initQueues() {
             i++;
         }
 
-        this->selectedDevice = std::string(properties.deviceName.data());
+        if (computeQueueIndex < 0) continue;
+        physicalDevice = device;
+        this->selectedDevice = name;
         break;
     }
 
+    if (!physicalDevice)
+        throw std::runtime_error(requireFloat64
+            ? "No matching Vulkan compute device supports shaderFloat64"
+            : "No matching Vulkan compute device found");
     this->_physicalDevice = physicalDevice.value();
     this->queueFamilyIndex = computeQueueIndex;
     this->transferQueueFamilyIndex = transferQueueIndex;
@@ -113,14 +126,17 @@ void IQM::Bin::VulkanInstance::initQueues() {
 
     std::vector<char*> deviceExtensions = {};
 
+    const vk::PhysicalDeviceFeatures features{.shaderFloat64 = requireFloat64 ? VK_TRUE : VK_FALSE};
     const vk::DeviceCreateInfo deviceCreateInfo{
         .queueCreateInfoCount = static_cast<uint32_t>(queues.size()),
         .pQueueCreateInfos = queues.data(),
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
         .ppEnabledExtensionNames = deviceExtensions.data(),
+        .pEnabledFeatures = requireFloat64 ? &features : nullptr,
     };
 
     this->_device = vk::raii::Device{this->_physicalDevice, deviceCreateInfo};
+    this->float64Enabled = requireFloat64;
     this->_queue = std::make_shared<vk::raii::Queue>(this->_device.getQueue(this->queueFamilyIndex, 0));
 
     if (dedicatedTransferQueue) {

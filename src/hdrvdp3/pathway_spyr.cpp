@@ -24,8 +24,23 @@ static std::vector<uint32_t> code(const std::filesystem::path& path){
 }
 }
 namespace IQM::HDRVDP3 {
-PathwaySPYRResult run_pathway_spyr(const IQM::VulkanInstance& instance,const std::vector<float>& reference,const std::vector<float>& test,unsigned w,unsigned h,const PathwaySPYRFilters& filters,const PathwaySPYRAssets& assets){
- if(!((h==80&&w==96)||(h==96&&w==80))||reference.size()!=size_t(h)*w||test.size()!=reference.size())throw std::invalid_argument("Unvalidated SPYR shape");
+PathwaySPYRResult
+#if defined(IQM_HDRVDP3_SQUARE_SPYR_DIAGNOSTIC)
+run_square_spyr_diagnostic(
+#else
+run_pathway_spyr(
+#endif
+const IQM::VulkanInstance& instance,const std::vector<float>& reference,const std::vector<float>& test,unsigned w,unsigned h,const PathwaySPYRFilters& filters,const PathwaySPYRAssets& assets){
+#if defined(IQM_HDRVDP3_SQUARE128_SPYR_DIAGNOSTIC)
+ constexpr unsigned baseCount=256;const bool shapeOK=h==128&&w==128;
+#elif defined(IQM_HDRVDP3_GENERAL_SPYR_DIAGNOSTIC)
+ const unsigned baseCount=(h/8)*(w/8);const bool shapeOK=(h==80||h==96)&&(w==80||w==96);
+#elif defined(IQM_HDRVDP3_SQUARE_SPYR_DIAGNOSTIC)
+ constexpr unsigned baseCount=144;const bool shapeOK=h==96&&w==96;
+#else
+ const unsigned baseCount=(h/8)*(w/8);const bool shapeOK=(h==128&&w==128)||(h==80&&w==96)||(h==80&&w==80)||(h==96&&w==80)||(h==96&&w==96);
+#endif
+ if(!shapeOK||reference.size()!=size_t(h)*w||test.size()!=reference.size())throw std::invalid_argument("Unvalidated SPYR shape");
  std::vector<uint32_t> input;for(const auto* v:{&reference,&test})for(float x:*v){if(!std::isfinite(x))throw std::invalid_argument("Nonfinite SPYR input");input.push_back(std::bit_cast<uint32_t>(x));}
  const auto& device=*instance.device();const bool chain=true,bands=true;
     const auto props=instance.physicalDevice()->getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();
@@ -50,7 +65,7 @@ PathwaySPYRResult run_pathway_spyr(const IQM::VulkanInstance& instance,const std
  std::array<unsigned,9> widths{w,w,w/2,w/4,w/8,w,w,w/2,w/4},heights{h,h,h/2,h/4,h/8,h,h,h/2,h/4};
  std::array<size_t,11> counts{};std::vector<Buffer> buffers;
  for(unsigned j=0;j<9;++j){buffers.push_back(buffer(instance,2*widths[j]*heights[j]*4));if(j)counts[j-1]=2*widths[j]*heights[j];}
- counts[8]=242;counts[9]=240;counts[10]=361;
+ counts[8]=2*(baseCount+1);counts[9]=2*baseCount;counts[10]=3*baseCount+1;
  for(unsigned j=8;j<11;++j)buffers.push_back(buffer(instance,unsigned(counts[j]*4)));
  upload(buffers[0],input);
         const unsigned stages=lowStages+(chain?3:0);
@@ -74,16 +89,21 @@ PathwaySPYRResult run_pathway_spyr(const IQM::VulkanInstance& instance,const std
             instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eComputeShader|vk::PipelineStageFlagBits::eHost,{}, {barrier},{},{});
         }
 {instance.cmdBuf()->end();vk::CommandBuffer cmd=*instance.cmdBuf();vk::raii::Fence fence(device,vk::FenceCreateInfo{});instance.queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&cmd},fence);instance.waitForFence(fence);instance.cmdBuf()->reset();}
- const auto* base=static_cast<const float*>(buffers[4].memory.mapMemory(0,960));
- bool valid=true;for(unsigned b=0;b<2;++b){int mn=1000,mx=-1000;for(unsigned k=0;k<120;++k){const float v=base[b*120+k];if(!std::isfinite(v)){valid=false;continue;}if(v!=0){const int e=std::ilogb(std::abs(v));mn=std::min(mn,e);mx=std::max(mx,e);}}if(mx!=-1000&&(mn < -90||mx>100||mx-mn>16))valid=false;}
+ const auto* base=static_cast<const float*>(buffers[4].memory.mapMemory(0,2*baseCount*4));
+ bool valid=true;for(unsigned b=0;b<2;++b){int mn=1000,mx=-1000;for(unsigned k=0;k<baseCount;++k){const float v=base[b*baseCount+k];if(!std::isfinite(v)){valid=false;continue;}if(v!=0){const int e=std::ilogb(std::abs(v));mn=std::min(mn,e);mx=std::max(mx,e);}}if(mx!=-1000&&(mn < -90||mx>100||mx-mn>16))valid=false;}
  buffers[4].memory.unmapMemory();if(!valid)throw std::runtime_error("Actual SPYR base exceeds mean domain");
  instance.cmdBuf()->begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
         if(chain)for(unsigned j=lowStages;j<stages;++j){
             struct ResidualPush{uint32_t groups,h,w,reserved;};
             instance.cmdBuf()->bindPipeline(vk::PipelineBindPoint::eCompute,*pipelines[j-lowStages+2]);
             instance.cmdBuf()->bindDescriptorSets(vk::PipelineBindPoint::eCompute,*residualLayout,0,{*sets[j]},{});
-            instance.cmdBuf()->pushConstants<ResidualPush>(*residualLayout,vk::ShaderStageFlagBits::eCompute,0,ResidualPush{j==lowStages?2u:1u,h/8,w/8,0});
-            instance.cmdBuf()->dispatch(j==lowStages+1?2:1,1,1);
+            unsigned second=j==lowStages&&assets.variableMeanCount?baseCount:h/8;
+#if defined(IQM_HDRVDP3_GENERAL_MEAN_DIAGNOSTIC)
+            // Isolated alternate mean ABI; production v1/v2 payloads stay pinned.
+            if(j==lowStages)second=baseCount;
+#endif
+            instance.cmdBuf()->pushConstants<ResidualPush>(*residualLayout,vk::ShaderStageFlagBits::eCompute,0,ResidualPush{j==lowStages?2u:1u,second,w/8,0});
+            instance.cmdBuf()->dispatch(j==lowStages+1?(baseCount+63)/64:1,1,1);
             vk::MemoryBarrier barrier{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eShaderRead|vk::AccessFlagBits::eHostRead};
             instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eComputeShader|vk::PipelineStageFlagBits::eHost,{}, {barrier},{},{});
         }
@@ -93,7 +113,7 @@ PathwaySPYRResult run_pathway_spyr(const IQM::VulkanInstance& instance,const std
  PathwaySPYRResult out;
  for(unsigned j=0;j<11;++j){out.stages[j].resize(counts[j]);const auto* data=static_cast<const uint32_t*>(buffers[j+1].memory.mapMemory(0,counts[j]*4));std::memcpy(out.stages[j].data(),data,counts[j]*4);buffers[j+1].memory.unmapMemory();}
  instance.cmdBuf()->reset();
- for(unsigned k=0;k<240;++k){const float v=std::bit_cast<float>(out.stages[10][k]);if(!std::isfinite(v)||(v!=0&&(std::ilogb(std::abs(v)) < -90||std::ilogb(std::abs(v))>100)))throw std::runtime_error("Actual residual exceeds norm domain");}
+ for(unsigned k=0;k<2*baseCount;++k){const float v=std::bit_cast<float>(out.stages[10][k]);if(!std::isfinite(v)||(v!=0&&(std::ilogb(std::abs(v)) < -90||std::ilogb(std::abs(v))>100)))throw std::runtime_error("Actual residual exceeds norm domain");}
  return out;
 }
 }

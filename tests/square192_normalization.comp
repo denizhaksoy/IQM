@@ -1,0 +1,23 @@
+#version 450
+#ifdef IQM_NORMALIZATION_STANDALONE
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint value[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint value[];} dst;
+layout(push_constant) uniform Push {uint count,a,b,c;} p;
+#endif
+// Float32 division by192*192=9*4096, with one nearest-even rounding.
+uint divideRounded(uint n,uint d){uint q=n/d,r=n-q*d;return q+uint(2u*r>d||(2u*r==d&&(q&1u)!=0u));}
+uint normalizeWord(uint bits){
+    uint sign=bits&0x80000000u,e=(bits>>23u)&255u,m=bits&0x7fffffu;
+    if(e==255u)return bits;
+    if(e==0u)return sign|divideRounded(m,36864u);
+    m|=0x800000u;
+    if(e<=16u){uint n=e>=13u?m<<(e-13u):m,d=e>=13u?9u:9u<<(13u-e);return sign|divideRounded(n,d);}
+    uint shift=m>=9437184u?3u:4u,outExponent=e-(shift==3u?15u:16u);
+    uint q=divideRounded(m<<shift,9u);
+    if(q>=0x1000000u){q>>=1u;++outExponent;}
+    return sign|(outExponent<<23u)|(q&0x7fffffu);
+}
+#ifdef IQM_NORMALIZATION_STANDALONE
+void main(){uint i=gl_GlobalInvocationID.x;if(i<p.count)dst.value[i]=normalizeWord(src.value[i]);}
+#endif

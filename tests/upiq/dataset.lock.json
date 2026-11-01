@@ -1,0 +1,21 @@
+{
+  "dataset": "UPIQ: Unified Photometric Image Quality dataset (04.2021)",
+  "doi": "10.17863/CAM.68372",
+  "handle": "1810/321331",
+  "item_uuid": "c2d00e29-07b5-4b67-bcfc-80893b17fa53",
+  "reference_images": 84,
+  "distorted_images": 4159,
+  "version_note": "Updated pix_per_deg column; do not substitute the older CAM.62443 metadata.",
+  "archive": {
+    "url": "https://api.repository.cam.ac.uk/server/api/core/bitstreams/016c5d46-dd55-458c-a6a9-29aa0ecedebe/content",
+    "bytes": 2520028189,
+    "md5": "b3adf6f25c2b02b86fadca275ee6a517"
+  },
+  "readme": {
+    "url": "https://api.repository.cam.ac.uk/server/api/core/bitstreams/a38a84f6-9de0-4ef8-8de9-e0a60062c013/content",
+    "bytes": 7823,
+    "md5": "9f2149846d18aa836deb6e92e3c2b293"
+  },
+  "source_of_sizes_and_checksums": "Cambridge DSpace API ORIGINAL bundle 62fb36db-9c81-4877-b471-972e4630ef50, inspected 2026-10-31",
+  "published_metric_report": "https://www.cl.cam.ac.uk/research/rainbow/projects/colorvideovdp/reports/benchmark/upiq_HDR-VDP-3/index.html"
+}

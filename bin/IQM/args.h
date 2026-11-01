@@ -15,6 +15,9 @@ namespace IQM::Bin {
         std::string runtimeDirectory;
         std::optional<std::string> spectralDirectory;
         std::optional<std::string> exportDirectory;
+        std::string encoding = "luminance";
+        std::optional<std::string> rgbDisplay;
+        std::optional<std::string> device;
         double pixelsPerDegree = 30;
         double observerAge = 24;
     };

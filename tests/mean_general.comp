@@ -1,0 +1,52 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint words[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint words[];} dst;
+layout(push_constant) uniform Push {uint groups,count,b,c;} p;
+// Diagnostic building block, not a public runtime payload.
+// Caller must validate count in [1,4096], finite normal Float32 or zero,
+// unbiased exponents [-90,100], exponent span <=16 before dispatch.
+// At most 24+16+12=52 magnitude bits: the exact sum also fits binary64.
+uvec2 negate64(uvec2 v){uint lo=~v.x+1u;return uvec2(lo,~v.y+uint(lo==0u));}
+uvec2 add64(uvec2 a,uvec2 b){uint lo=a.x+b.x;return uvec2(lo,a.y+b.y+uint(lo<a.x));}
+uvec2 shift64(uvec2 v,uint s){
+    if(s==0u)return v;
+    if(s<32u)return uvec2(v.x<<s,(v.y<<s)|(v.x>>(32u-s)));
+    return uvec2(0u,v.x<<(s-32u));
+}
+bool atLeast(uvec2 a,uvec2 b){return a.y>b.y||(a.y==b.y&&a.x>=b.x);}
+uint meanWord(uvec2 sum,int base){
+    uint sign=sum.y&0x80000000u;uvec2 n=sign!=0u?negate64(sum):sum;
+    if((n.x|n.y)==0u)return 0u;
+    int top=n.y!=0u?32+findMSB(n.y):findMSB(n.x);
+    int divisorTop=findMSB(p.count);
+    // Ensure a nonnegative denominator shift even after severe cancellation.
+    int target=divisorTop+24;
+    if(top<target){uint s=uint(target-top);n=shift64(n,s);base-=int(s);top=target;}
+    uvec2 threshold=shift64(uvec2(p.count,0u),uint(top-divisorTop));
+    int exponent=base+top-divisorTop-(atLeast(n,threshold)?0:1);
+    // The denominator occupies at most 29 bits for this input domain.
+    uint denominator=p.count<<uint(exponent-base-23),q=0u,r=0u;
+    for(int i=top;i>=0;--i){
+        uint bit=i>=32?(n.y>>uint(i-32))&1u:(n.x>>uint(i))&1u;
+        r=(r<<1u)|bit;q<<=1u;if(r>=denominator){r-=denominator;q|=1u;}
+    }
+    q+=uint(2u*r>denominator||(2u*r==denominator&&(q&1u)!=0u));
+    if(q>=0x1000000u){q>>=1u;++exponent;}
+    return sign|(uint(exponent+127)<<23u)|(q&0x7fffffu);
+}
+void main(){
+    uint group=gl_GlobalInvocationID.x;
+    if(group>=p.groups||p.count<1u||p.count>4096u)return;
+    uint offset=group*p.count,minimum=255u;
+    for(uint i=0u;i<p.count;++i){uint v=src.words[offset+i];if((v&0x7fffffffu)!=0u)minimum=min(minimum,(v>>23u)&255u);}
+    uvec2 sum=uvec2(0u);
+    if(minimum!=255u)for(uint i=0u;i<p.count;++i){
+        uint v=src.words[offset+i];if((v&0x7fffffffu)==0u)continue;
+        uvec2 term=shift64(uvec2((v&0x7fffffu)|0x800000u,0u),((v>>23u)&255u)-minimum);
+        sum=add64(sum,(v&0x80000000u)!=0u?negate64(term):term);
+    }
+    uint mean=minimum==255u?0u:meanWord(sum,int(minimum)-150);
+    uint outputOffset=group*(p.count+1u);dst.words[outputOffset]=mean;
+    for(uint i=0u;i<p.count;++i){precise float centered=uintBitsToFloat(src.words[offset+i])-uintBitsToFloat(mean);dst.words[outputOffset+1u+i]=floatBitsToUint(centered);}
+}

@@ -1,0 +1,54 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#include <IQM/hdrvdp3/fftw_single_provider.h>
+#include <IQM/hdrvdp3/general_quality_single.h>
+#include <IQM/hdrvdp3/pq_single.h>
+#include <IQM/hdrvdp3/resize.h>
+#include <algorithm>
+#include <bit>
+#include <chrono>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <unordered_map>
+namespace fs=std::filesystem;using namespace IQM::HDRVDP3;
+void help(){std::cout<<"IQM HDR-VDP-3 Single CPU/FFTW quality\n"
+ "Usage: IQM-hdrvdp3-cpu --input test.png --ref reference.png\n"
+ "  --encoding pq-bt2020-rgb16 --ppd NUMBER --model-data DIR\n"
+ "  --fftw PATH_TO_FLOAT_FFTW_DLL --output FRESH_DIRECTORY\n"
+ "Profile: quality/sp0, age24, OLED, ambient200lux, reflectivity0.005,\n"
+ "peak2000cd/m2 before ambient. RGB16 PNG codes must already be PQ BT2020.\n"
+ "Distorted input is bicubic-resized in PQ to the reference size and clamped.\n"
+ "CPU backend only; no Vulkan initialization or implicit backend fallback.\n";}
+int main(int argc,char**argv){try{
+ if(argc==2&&std::string(argv[1])=="--help"){help();return 0;}
+ const std::vector<std::string> keys{"--input","--ref","--encoding","--ppd","--model-data","--fftw","--output"};
+ std::unordered_map<std::string,std::string> options;
+ for(int i=1;i<argc;i+=2){std::string key=argv[i];if(std::find(keys.begin(),keys.end(),key)==keys.end()||i+1>=argc||!argv[i+1][0]||std::string(argv[i+1]).starts_with("--")||!options.emplace(key,argv[i+1]).second)throw std::invalid_argument("Unknown, missing or duplicate argument: "+key);}
+ for(const auto& key:keys)if(!options.contains(key))throw std::invalid_argument("Required argument: "+key);
+ if(options.at("--encoding")!="pq-bt2020-rgb16")throw std::invalid_argument("Only explicit pq-bt2020-rgb16 encoding is supported");
+ size_t parsed=0;double ppd=std::stod(options.at("--ppd"),&parsed);if(parsed!=options.at("--ppd").size()||!std::isfinite(ppd)||ppd<26||ppd>256)throw std::invalid_argument("PPD must be finite in [26,256]");
+ fs::path data=options.at("--model-data"),out=options.at("--output");if(fs::exists(out)||!fs::create_directories(out))throw std::invalid_argument("Fresh output directory required");
+ FFTWProviderSingle fft(options.at("--fftw"));auto backend=fft.backend();
+ auto xyz=load_xyz_display_samples(data/"ciexyz31.csv",data/"emission_spectra_oled.csv");
+ auto spectral=load_rgb_spectral_samples(data/"log_cone_smith_pokorny_1975.csv",data/"cie_scotopic_lum.txt",data/"emission_spectra_oled.csv");
+ unsigned w=0,h=0;auto start=std::chrono::steady_clock::now();std::ofstream log(out/"progress.log");
+ auto prepare=[&](const std::string& file,const char* side){
+   log<<side<<" start\n"<<std::flush;std::cout<<side<<" CPU/FFTW Single\n"<<std::flush;
+   if(!stbi_is_16_bit(file.c_str()))throw std::invalid_argument("Explicit RGB16 PNG required");int iw,ih,channels;
+   std::unique_ptr<stbi_us,decltype(&stbi_image_free)> raw(stbi_load_16(file.c_str(),&iw,&ih,&channels,3),stbi_image_free);
+   if(!raw||iw<16||ih<16||channels!=3)throw std::invalid_argument("RGB16 image decode/shape failed");
+   unsigned sw=unsigned(iw),sh=unsigned(ih);size_t sn=size_t(sw)*sh;if(!w){w=sw;h=sh;}size_t n=size_t(w)*h;
+   std::vector<float> encoded(3*sn);for(size_t c=0;c<3;++c)for(size_t i=0;i<sn;++i)encoded[c*sn+i]=normalize_pq_u16_single(raw.get()[3*i+c]);raw.reset();
+   if(sw!=w||sh!=h){std::vector<float> resized(3*n);for(size_t c=0;c<3;++c){std::vector<float> plane(encoded.begin()+c*sn,encoded.begin()+(c+1)*sn);auto values=resize_bicubic(plane,int(sh),int(sw),int(h),int(w));for(size_t i=0;i<n;++i)resized[c*n+i]=std::clamp(values[i],0.f,1.f);}encoded=std::move(resized);}
+   auto linear=pq_to_display_single(encoded,{200.,.005,2000.});encoded.clear();encoded.shrink_to_fit();
+   auto result=prepare_quality_side_single(linear,w,h,ppd,xyz,spectral,backend);log<<side<<" ready\n"<<std::flush;return result;
+ };
+ auto reference=prepare(options.at("--ref"),"reference"),test=prepare(options.at("--input"),"test");
+ auto result=evaluate_quality_single(reference,test,w,h,ppd,backend);
+ double elapsed=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
+ std::ofstream f(out/"score.json");f.precision(17);f<<"{\"scope\":\"IQM public Single CPU/FFTW quality\",\"backend\":\"cpu-fftw\",\"encoding\":\"pq-bt2020-rgb16\",\"width\":"<<w<<",\"height\":"<<h<<",\"ppd\":"<<ppd<<",\"age\":24,\"display\":\"oled\",\"ambient_lux\":200,\"reflectivity\":0.005,\"peak\":2000,\"fftw_threads\":3,\"fftw_planner\":\"estimate\",\"elapsed_seconds\":"<<elapsed<<",\"Q_text\":\""<<result.scores.Q<<"\",\"Q_JOD_text\":\""<<result.scores.Q_JOD<<"\",\"Q_hex\":\""<<std::hex<<std::setw(8)<<std::setfill('0')<<std::bit_cast<uint32_t>(result.scores.Q)<<"\",\"Q_JOD_hex\":\""<<std::setw(8)<<std::bit_cast<uint32_t>(result.scores.Q_JOD)<<std::dec<<"\",\"base_frequency\":"<<result.base_frequency<<"}\n";
+ if(!f)throw std::runtime_error("Score output failed");std::cout<<std::setprecision(17)<<"Q="<<result.scores.Q<<" Q_JOD="<<result.scores.Q_JOD<<'\n';return 0;
+}catch(const std::exception&e){std::cerr<<"HDR-VDP-3 CPU error: "<<e.what()<<'\n';return 1;}}

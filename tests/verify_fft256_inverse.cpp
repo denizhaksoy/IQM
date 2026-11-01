@@ -2,6 +2,7 @@
 #include <vulkan_res.h>
 #include <IQM/base/vulkan_runtime.h>
 #include <cmath>
+#include <bit>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -25,10 +26,15 @@ static std::vector<float> read(const std::filesystem::path& path,unsigned width=
     std::string extra;if(file>>extra)throw std::runtime_error("Trailing reference values");return values;
 }
 int main(int argc,char** argv){
+    const bool squareForward=(argc==6||argc==7)&&std::string(argv[5])=="--forward192x192";
+    const bool squareInverse=(argc==6||argc==7)&&std::string(argv[5])=="--inverse192x192";
+    const bool square=squareForward||squareInverse;
+    const bool squareLA=square&&argc==7&&std::string(argv[6])=="la";
+    if(square&&argc==7&&!squareLA&&std::string(argv[6])!="mtf")return 2;
     const bool mixed192Raw=argc==6&&std::string(argv[5])=="--inverse192x160-raw";
     const bool mixed192Normalized=argc==6&&std::string(argv[5])=="--inverse192x160";
     const bool mixedRaw=mixed192Raw||(argc==6&&std::string(argv[5])=="--inverse160x192-raw");
-    const bool mixedNormalized=mixed192Normalized||(argc==6&&std::string(argv[5])=="--inverse160x192");
+    const bool mixedNormalized=squareInverse||mixed192Normalized||(argc==6&&std::string(argv[5])=="--inverse160x192");
     const bool mixedInverse=mixedRaw||mixedNormalized;
     const bool inverse192Axis=argc==6&&std::string(argv[5])=="--inverse192-axis";
     const bool inverseAxis=inverse192Axis||(argc==6&&std::string(argv[5])=="--inverse160-axis");
@@ -38,7 +44,7 @@ int main(int argc,char** argv){
     const bool mixed192Axis=argc==6&&std::string(argv[5])=="--forward192-axis";
     const bool mixedAxis=mixed192Axis||(argc==6&&std::string(argv[5])=="--forward160-axis");
     const bool mixed192Forward=argc==6&&std::string(argv[5])=="--forward192x160";
-    const bool mixedForward=mixed192Forward||(argc==6&&std::string(argv[5])=="--forward160x192");
+    const bool mixedForward=squareForward||mixed192Forward||(argc==6&&std::string(argv[5])=="--forward160x192");
     const bool axisOnly=mixedAxis||(argc==6&&std::string(argv[5])=="--forward-axis");
     const bool referenceABI=rectangleForward||(argc==6&&std::string(argv[5])=="--forward-reference");
     const bool forward=mixedForward||axisOnly||referenceABI||(argc==6&&std::string(argv[5])=="--forward");
@@ -48,12 +54,13 @@ int main(int argc,char** argv){
         unsigned h=256,w=256;
         if(mixedAxis||mixedForward||inverseAxis||mixedInverse){h=160;w=192;}
         if(mixed192Axis||mixed192Forward||inverse192Axis||mixed192Raw||mixed192Normalized){h=192;w=160;}
+        if(square){h=192;w=192;}
         if(rectangle){std::ifstream shape(std::filesystem::path(argv[1])/"inverse_input.txt");unsigned packed;
             if(!(shape>>h>>packed)||packed%2)throw std::runtime_error("Invalid rectangular fixture");w=packed/2;
             if(rectangleBase?!((h==8&&w==16)||(h==16&&w==8)):!((h==128&&w==256)||(h==256&&w==128)))throw std::runtime_error("Unvalidated rectangle");}
-        auto input=rectangle?read(std::filesystem::path(argv[1])/"inverse_input.txt",2*w,h):read(std::filesystem::path(argv[1])/(label+(forward?"_mtf_stage0.txt":"_mtf_stage2.txt")),2*w,h);
+        auto input=rectangle?read(std::filesystem::path(argv[1])/"inverse_input.txt",2*w,h):read(std::filesystem::path(argv[1])/(label+(squareLA?(forward?"_la_stage0.txt":"_la_stage2.txt"):(forward?"_mtf_stage0.txt":"_mtf_stage2.txt"))),2*w,h);
         if(rectangleForward){const auto real=read(std::filesystem::path(argv[1])/"real_input.txt",w,h);for(size_t k=0;k<real.size();++k){input[2*k]=real[k];input[2*k+1]=0;}}
-        const auto expected=mixedInverse?read(std::filesystem::path(argv[1])/(label+(mixedRaw?"_native_inverse_unscaled.txt":"_native_inverse.txt")),2*w,h):inverseAxis?read(std::filesystem::path(argv[1])/"axis0_expected.txt",2*w,h):mixedForward?read(std::filesystem::path(argv[1])/(label+"_native_forward.txt"),2*w,h):mixedAxis?read(std::filesystem::path(argv[1])/"axis0_compact.txt",h+2,w):rectangle?read(std::filesystem::path(argv[1])/(rectangleForward?"forward.txt":"inverse.txt"),2*w,h):read(std::filesystem::path(argv[1])/(label+(axisOnly?"_axis0_compact.txt":forward?"_native_forward.txt":"_native_inverse.txt")),axisOnly?258:512);
+        const auto expected=mixedInverse?read(std::filesystem::path(argv[1])/(label+(mixedRaw?"_native_inverse_unscaled.txt":squareLA?"_la_native_inverse.txt":"_native_inverse.txt")),2*w,h):inverseAxis?read(std::filesystem::path(argv[1])/"axis0_expected.txt",2*w,h):mixedForward?read(std::filesystem::path(argv[1])/(label+(squareLA?"_la_native_forward.txt":"_native_forward.txt")),2*w,h):mixedAxis?read(std::filesystem::path(argv[1])/"axis0_compact.txt",h+2,w):rectangle?read(std::filesystem::path(argv[1])/(rectangleForward?"forward.txt":"inverse.txt"),2*w,h):read(std::filesystem::path(argv[1])/(label+(axisOnly?"_axis0_compact.txt":forward?"_native_forward.txt":"_native_inverse.txt")),axisOnly?258:512);
         if(rectangle){auto row=input;for(unsigned y=0;y<h;++y)for(unsigned x=0;x<w;++x)for(unsigned ch=0;ch<2;++ch)input[2*(x*h+y)+ch]=row[2*(y*w+x)+ch];}
         if(forward)for(size_t i=1;i<input.size();i+=2)if(input[i]!=0)throw std::runtime_error("Forward input must be real");
         IQM::Bin::VulkanInstance instance(true);const auto& device=*instance.device();
@@ -103,11 +110,14 @@ int main(int argc,char** argv){
             }}temporary.memory.unmapMemory();
             std::cout<<(inverseAxis?"inverse_axis":"forward_axis")<<" values="<<expected.size()<<" mismatches="<<mismatches<<" max="<<std::setprecision(17)<<maximum<<'\n';return mismatches?1:0;
         }
-        const auto* actual=static_cast<const float*>(output.memory.mapMemory(0,bytes));size_t mismatches=0;
-        for(size_t i=0;i<expected.size();++i){ const size_t complex=i/2,channel=i%2; const float value=actual[2*((complex%w)*h+complex/w)+channel]; if(!std::isfinite(value)||value!=expected[i]){if(mismatches<5)std::cout<<"index="<<i<<" actual="<<value<<" expected="<<expected[i]<<char(10);++mismatches;}}
+        const auto* actual=static_cast<const float*>(output.memory.mapMemory(0,bytes));size_t mismatches=0,bitMismatches=0;
+        for(size_t i=0;i<expected.size();++i){ const size_t complex=i/2,channel=i%2; const float value=actual[2*((complex%w)*h+complex/w)+channel]; bitMismatches+=std::bit_cast<uint32_t>(value)!=std::bit_cast<uint32_t>(expected[i]); if(!std::isfinite(value)||value!=expected[i]){if(mismatches<5)std::cout<<"index="<<i<<" actual="<<value<<" expected="<<expected[i]<<char(10);++mismatches;}}
         std::ofstream dump(output_dir/(forward?"forward_row_major.txt":"inverse_row_major.txt"));dump<<h<<' '<<2*w<<'\n'<<std::setprecision(std::numeric_limits<float>::max_digits10);
         for(size_t i=0;i<expected.size();++i){const size_t complex=i/2,channel=i%2;dump<<actual[2*((complex%w)*h+complex/w)+channel]<<'\n';}
+        if(square){std::ofstream binary(output_dir/"actual_column_major.u32",std::ios::binary);binary.write(reinterpret_cast<const char*>(actual),bytes);std::ofstream report(output_dir/"strict_results.txt");report<<"values="<<expected.size()<<" numeric_errors="<<mismatches<<" bit_errors="<<bitMismatches<<"\n";}
         output.memory.unmapMemory();
+        if(square&&bitMismatches){std::cout<<"Square192 strict bit mismatches="<<bitMismatches<<"\n";return 1;}
+        if(square){std::ofstream(output_dir/"PASS.txt")<<"Square192 FFT output words bitwise exact,including signed zero;not full metric acceptance.\n";}
         if(rectangleBase){std::cout<<"residual values="<<expected.size()<<" mismatches="<<mismatches<<'\n';return mismatches?1:0;}
         const auto* axis0=static_cast<const float*>(temporary.memory.mapMemory(0,bytes));
         std::ofstream first(output_dir/"axis0_storage.txt");first<<w<<' '<<(forward?h+2:2*h)<<'\n'<<std::setprecision(std::numeric_limits<float>::max_digits10);

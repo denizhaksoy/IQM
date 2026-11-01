@@ -1,0 +1,13 @@
+// Declared archive subset, not a claim that original train_video_info.csv was recovered.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const [dataset,out]=process.argv.slice(2);if(!out||fs.existsSync(out))throw Error('Usage: staged-dataset fresh-root');
+const hashes={};function csv(name){const p=path.join(dataset,'metadata',name),bytes=fs.readFileSync(p);hashes[name]=crypto.createHash('sha256').update(bytes).digest('hex');const text=bytes.toString('utf8').replace(/^\uFEFF/,'').replace(/\r/g,'');if(text.includes('"'))throw Error('Unsupported quoted CSV');const lines=text.trim().split('\n').map(l=>l.split(',')),header=lines.shift();return lines.map(row=>{if(row.length!==header.length)throw Error('CSV shape');return Object.fromEntries(header.map((h,i)=>[h,row[i]]));});}
+const rows=csv('video_info_with_bitrate.csv'),bright=csv('sureal_bright_mos_and_dmos.csv'),dark=csv('sureal_dark_mos_and_dmos.csv');
+const refs=['4k_ref_Bonfire','4k_ref_CargoBoat','4k_ref_football1'];
+function label(table,id){const found=table.filter(r=>r.video===id);if(found.length!==1)throw Error('Label missing/duplicate');return found[0];}
+const cases=rows.filter(r=>refs.includes(r.ref)&&r.video!==r.ref).map(r=>({video:r.video,reference:r.ref,content:r.content,width:Number(r.w),height:Number(r.h),metadata_frames:Number(r.frm_cnt),bright:label(bright,r.video),dark:label(dark,r.video),decoded_alignment_verified:false,prediction:null}));
+if(cases.length!==27||new Set(cases.map(c=>c.video)).size!==27||refs.some(ref=>cases.filter(c=>c.reference===ref).length!==9))throw Error('Expected declared 3x9 subset differs');
+const inventory=JSON.parse(fs.readFileSync(path.join(dataset,'metadata/videos.json'),'utf8').replace(/^\uFEFF/,''));const names=new Set(inventory.map(v=>path.posix.basename(v.FullName,'.mp4')));
+if(cases.some(c=>!names.has(c.video)||!names.has(c.reference)))throw Error('Archive inventory mapping incomplete');
+const manifest={scope:'explicit 27-distortion/3-content archive subset; candidate for public FR comparison, not author-confirmed cohort reproduction',organizer_source:'https://sites.google.com/view/wacv2023-workshop-quality-va/competition',original_train_video_info_csv_verified:false,excluded_references:refs,target:'bright_mos',recalibration:false,correlation_mapping:null,source_csv_sha256:hashes,cases};
+fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'candidate_cohort.json'),JSON.stringify(manifest,null,2)+'\n');console.log('27 unique distorted videos, 3 reference groups, complete bright/dark labels; original training CSV still unverified');

@@ -1,0 +1,19 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint words[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {uint words[];} dst;
+layout(push_constant) uniform Push {uint groups,h,w,reserved;} p;
+// Paired row-major mean+centered bands -> column-major complex difference.
+// No second mean subtraction. Compatible with general mean's contiguous ABI.
+void main(){
+    if(p.h==0u||p.w==0u||p.h>64u||p.w>64u)return;
+    uint count=p.h*p.w,i=gl_GlobalInvocationID.x;
+    if(i>=p.groups*count)return;
+    uint pair=i/count,row=i%count,y=row/p.w,x=row%p.w,stride=count+1u;
+    float reference=uintBitsToFloat(src.words[pair*2u*stride+1u+row]);
+    float test=uintBitsToFloat(src.words[pair*2u*stride+stride+1u+row]);
+    precise float difference=test-reference;
+    uint column=pair*count+x*p.h+y;
+    dst.words[2u*column]=floatBitsToUint(difference);
+    dst.words[2u*column+1u]=0u;
+}

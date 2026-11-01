@@ -1,3 +1,4 @@
+#include <IQM/hdrvdp3/pathway_runtime.h>
 #include <IQM/hdrvdp3/evaluation.h>
 #include <IQM/hdrvdp3/corrdn.h>
 #include <IQM/hdrvdp3/local_adapt.h>
@@ -1228,6 +1229,27 @@ std::cout << "Q_err=" << scores.error << "\nQ=" << scores.Q << "\nQ_JOD=" << sco
 EvaluationResult evaluate_quality(const IQM::VulkanInstance& instance,
     const LuminanceImage& reference,const LuminanceImage& test,
     const EvaluationOptions& options,const EvaluationTrace& trace) {
+    if(!options.pathwayRuntimeDirectory.empty()) {
+        const unsigned w=reference.width,h=reference.height;
+        if(!((h==128&&w==128)||(h==80&&w==80)||(h==80&&w==96)||(h==96&&w==80)||(h==96&&w==96))||test.width!=w||test.height!=h)
+            throw std::invalid_argument("Pathway runtime requires matching80x80/80x96/96x80/96x96/128x128 images");
+        if(options.pixelsPerDegree!=30||options.observerAge!=24||options.spectralSamples||!options.spectralDataDirectory.empty())
+            throw std::invalid_argument("Pathway runtime requires30ppd/age24 and fixed D65 without spectral overrides");
+        if(reference.pixels.size()!=size_t(w)*h||test.pixels.size()!=reference.pixels.size())throw std::invalid_argument("Luminance pixel count mismatch");
+        for(const auto* image:{&reference,&test})for(float v:image->pixels)if(!std::isfinite(v)||v<=0)throw std::invalid_argument("Positive finite luminance required");
+        if(trace.directory.empty()||std::filesystem::exists(trace.directory))throw std::invalid_argument("Fresh export directory required");
+        const auto assets=load_pathway_runtime(options.pathwayRuntimeDirectory,w,h);
+        PathwayQualityTrace data;const auto scores=evaluate_pathway_quality(instance,reference.pixels,test.pixels,w,h,assets,&data);
+        if(!std::filesystem::create_directories(trace.directory))throw std::runtime_error("Cannot create export directory");
+        auto dump=[&](const char* name,const std::vector<float>& v){std::ofstream file(trace.directory/name,std::ios::binary);file.write(reinterpret_cast<const char*>(v.data()),v.size()*4);if(!file)throw std::runtime_error("Cannot write pathway export");};
+        dump("input_reference.f32",reference.pixels);dump("input_test.f32",test.pixels);dump("scores.f32",{scores.Q,scores.Q_JOD});
+        dump("reference_P.f32",data.P[0]);dump("test_P.f32",data.P[1]);dump("log_adaptation.f32",data.logAdaptation);
+        std::vector<float> errors;for(const auto& b:data.masking.bands)errors.push_back(b.error);
+        std::ofstream quality(trace.directory/"quality.txt");quality<<std::setprecision(17);for(float e:errors)quality<<e<<' ';quality<<'\n'<<scores.error<<' '<<scores.Q<<' '<<scores.Q_JOD<<'\n';if(!quality)throw std::runtime_error("Cannot write quality export");
+        std::ofstream(trace.directory/"input_source.txt")<<trace.inputSource<<'\n';
+          std::ofstream(trace.directory/"pathway_profile.txt")<<(w==128&&h==128?"v4;":w==80&&h==80?"v3;":w==96&&h==96?"v2;":"v1;")<<w<<'x'<<h<<";30ppd;age24;D65;sp0;map"<<(w==128&&h==128?14:13)<<";CPU model/LUT/NCSF;host transfers\n";
+        return {scores,std::move(errors)};
+    }
     return evaluate_quality_impl(instance,reference,test,options,trace);
 }
 #ifdef IQM_HDRVDP3_DIMENSION_DIAGNOSTIC

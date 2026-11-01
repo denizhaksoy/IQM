@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$VulkanBin='')
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$VulkanBin='',[switch]$RGB)
 $ErrorActionPreference='Stop'
 
 if(Test-Path -LiteralPath $OutputDirectory){throw 'Fresh output directory required'}
@@ -14,6 +14,24 @@ $reference=Join-Path (Split-Path $tests -Parent) 'shaders/hdrvdp3/hdrvdp3_map_re
 $map=[IO.File]::ReadAllText($reference);$begin=$map.IndexOf('float divide_finite(');$end=$map.IndexOf('float exact_sqrt(')
 if($begin -lt 0 -or $end -le $begin){throw 'Missing finite divide helper'}
 $shader=[IO.File]::ReadAllText("$output/general_comparison.comp")
+if($RGB){
+ $anchor='uint i=gl_GlobalInvocationID.x;if(i>=p.count)return;'
+ if([regex]::Matches($shader,[regex]::Escape($anchor)).Count -ne 1){throw 'Comparison entry changed'}
+ $branch=@'
+ if(p.mode==3u){
+  uint n=p.w*p.h;bool changed=false;
+  for(uint c=0u;c<3u;++c){
+   float r=uintBitsToFloat(src.words[c*n+i]),t=uintBitsToFloat(src.words[(3u+c)*n+i]);
+   precise float d=t-r;
+   // Native 0/0 is NaN (false); positive/0 is Inf (true).
+   bool channel=r==0.0?t!=0.0:divide_finite(abs(d),r)>0.001;
+   changed=changed||channel;
+  }
+  dst.words[i]=uint(changed);return;
+ }
+'@
+ $shader=$shader.Replace($anchor,$anchor+"`n"+$branch)
+}
 if([regex]::Matches($shader,'// DIVIDE_HELPER').Count -ne 1){throw 'Missing helper marker'}
 [IO.File]::WriteAllText("$output/general_comparison.comp",$shader.Replace('// DIVIDE_HELPER',$map.Substring($begin,$end-$begin)))
 Get-FileHash -LiteralPath $reference|ConvertTo-Json|Set-Content "$output/helper_source_hash.json"

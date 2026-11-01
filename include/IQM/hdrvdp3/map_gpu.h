@@ -11,7 +11,7 @@ namespace IQM::HDRVDP3 {
 struct MaskingMapsGPU { std::vector<float> raw,pooled; };
 struct BaseSelectionGPU { std::vector<float> magnitudes; std::size_t index; };
 // Explicit extended map contract;full128 quality support is30ppd/age24 only.
-enum class MapGPUProfile : unsigned { Bounded=13, Extended128Components=14, RectangularResiduals=15, RectangularMaps=16 };
+enum class MapGPUProfile : unsigned { Bounded=13, Extended128Components=14, RectangularResiduals=15, RectangularMaps=16, RGBResponse=17 };
 // Synchronous parity backend. Host prepares filter/LUT coefficients;
 // GPU evaluates adaptation preparation/pupil, resize/CSF, masking/D and quality.
 // Default uses generate_power_shaders.ps1 (ABI13). The explicit extended
@@ -38,6 +38,8 @@ public:
     std::vector<float> mean_adaptation(const std::vector<float>& reference,const std::vector<float>& test);
     std::vector<float> adaptation_input(const std::vector<float>& retinal,const std::array<double,3>& matrix = D65_AGE24_LMR);
     std::vector<JNDResponseSingle> jnd_response(const std::vector<float>& luminance,const JNDLUT& lut,float pupil_reduction,const std::array<double,3>& matrix = D65_AGE24_LMR);
+    // ABI17 only: four planar LMSR channels before response clamp; no D65 scale.
+    std::vector<JNDResponseSingle> jnd_response_lmsr(const std::vector<float>& planar_lmsr,const JNDLUT& lut,float pupil_reduction);
     std::vector<float> log_adaptation(const std::vector<float>& input);
     std::vector<float> normalized_difference(const std::vector<float>& reference,const std::vector<float>& test,float normalization);
     std::vector<double> comparison_mask(const std::vector<float>& reference,const std::vector<float>& test);

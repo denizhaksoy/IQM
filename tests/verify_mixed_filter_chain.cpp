@@ -27,6 +27,12 @@ static std::vector<float> read(const Path& path,unsigned h,unsigned w){
     std::string extra;if(f>>extra)throw std::runtime_error("Trailing values");return result;
 }
 int main(int argc,char** argv){try{
+ if(argc==2&&std::string(argv[1])=="--reject-unvalidated"){
+  VulkanInstance instance(true);const IQM::HDRVDP3::MixedFilterAssets empty;
+  try{(void)IQM::HDRVDP3::run_mixed_filter(instance,std::vector<float>(128*128,1.0f),128,128,IQM::HDRVDP3::MixedFilterMode::OpticalMTF,empty);}
+  catch(const std::invalid_argument&){std::cout<<"Production filter rejects unvalidated128x128 before loading assets PASS\n";return 0;}
+  throw std::runtime_error("Production dimension guard unexpectedly accepted");
+ }
  if(argc!=10&&argc!=11)throw std::runtime_error("Usage:native h w mtf|la ref|test forward.spv inverse.spv io.spv fresh-output [input.f32]");
  const Path source(argv[1]),out(argv[9]);if(std::filesystem::exists(out)||!std::filesystem::create_directories(out))throw std::runtime_error("Fresh output required");const unsigned h=std::stoul(argv[2]),w=std::stoul(argv[3]),fh=2*h,fw=2*w,n=fh*fw,pixels=h*w;const std::string mode(argv[4]),label(argv[5]);const bool mtf=mode=="mtf";if((!mtf&&mode!="la")||(label!="ref"&&label!="test")||!((h==80&&w==96)||(h==96&&w==80)))throw std::runtime_error("Unvalidated filter case");
  auto input=read(source/(label+(mtf?"_luminance.txt":"_adapt_input.txt")),h,w);if(argc==11){std::ifstream f(argv[10],std::ios::binary|std::ios::ate);if(f.tellg()!=std::streamoff(pixels*4))throw std::runtime_error("Bad override input");f.seekg(0);f.read(reinterpret_cast<char*>(input.data()),pixels*4);if(!f)throw std::runtime_error("Truncated override");}

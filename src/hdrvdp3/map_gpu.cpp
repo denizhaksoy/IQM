@@ -42,7 +42,7 @@ struct MapGPU::State {
     vk::raii::Pipeline pipeline=nullptr;
     State(const IQM::VulkanInstance& owner,const std::string& shader_path,uint32_t expected_abi=13):instance(owner),abi(expected_abi) {
         const auto& device=*instance.device();
-        if(expected_abi==14||expected_abi==15||expected_abi==16||expected_abi==82||expected_abi==85){
+        if(expected_abi==14||expected_abi==15||expected_abi==16||expected_abi==17||expected_abi==82||expected_abi==85){
             const auto properties=instance.physicalDevice()->getProperties2<vk::PhysicalDeviceProperties2,vk::PhysicalDeviceFloatControlsProperties>();
             const auto& controls=properties.get<vk::PhysicalDeviceFloatControlsProperties>();
             if(!controls.shaderDenormPreserveFloat32||!controls.shaderRoundingModeRTEFloat32)
@@ -118,7 +118,7 @@ struct MapGPU::State {
     }
 };
 MapGPU::MapGPU(const IQM::VulkanInstance& instance,const std::string& shader_path,MapGPUProfile profile) {
-    if(profile!=MapGPUProfile::Bounded&&profile!=MapGPUProfile::Extended128Components&&profile!=MapGPUProfile::RectangularResiduals&&profile!=MapGPUProfile::RectangularMaps)
+    if(profile!=MapGPUProfile::Bounded&&profile!=MapGPUProfile::Extended128Components&&profile!=MapGPUProfile::RectangularResiduals&&profile!=MapGPUProfile::RectangularMaps&&profile!=MapGPUProfile::RGBResponse)
         throw std::invalid_argument("Unknown GPU map profile");
     state=std::make_unique<State>(instance,shader_path,uint32_t(profile));
 }
@@ -404,6 +404,23 @@ std::vector<JNDResponseSingle> MapGPU::jnd_response(const std::vector<float>& lu
         }
         result[i].response=packed[13*i+12];
     }
+    return result;
+}
+std::vector<JNDResponseSingle> MapGPU::jnd_response_lmsr(const std::vector<float>& planar,const JNDLUT& lut,float pupil) {
+    if(state->abi!=17)throw std::invalid_argument("LMSR JND requires ABI17");
+    if(planar.empty()||planar.size()%4||planar.size()/4>std::numeric_limits<uint32_t>::max()/52)
+        throw std::invalid_argument("Invalid planar LMSR dimensions");
+    if(!std::isfinite(pupil)||pupil<=0)throw std::invalid_argument("Invalid pupil reduction");
+    const uint32_t n=uint32_t(planar.size()/4);std::vector<uint32_t> words;
+    for(float value:planar){if(!std::isfinite(value))throw std::invalid_argument("Nonfinite LMSR input");words.push_back(std::bit_cast<uint32_t>(value));}
+    for(const auto* table:{&lut.log_luminance,&lut.cone,&lut.rod})for(double value:*table)
+        words.push_back(std::bit_cast<uint32_t>(float(value)));
+    for(const auto* table:{&lut.cone,&lut.rod})for(size_t i=0;i+1<JND_LUT_SIZE;++i)
+        words.push_back(std::bit_cast<uint32_t>(float(((*table)[i+1]-(*table)[i])/(lut.log_luminance[i+1]-lut.log_luminance[i]))));
+    words.push_back(std::bit_cast<uint32_t>(pupil));
+    const auto packed=state->execute(words,{13*n,37,n,0,0,0,0,4*n});
+    std::vector<JNDResponseSingle> result(n);
+    for(size_t i=0;i<n;++i){for(size_t ch=0;ch<3;++ch){result[i].lmr_before[ch]=packed[13*i+ch];result[i].lmr_after[ch]=packed[13*i+3+ch];result[i].log_query[ch]=packed[13*i+6+ch];result[i].channels[ch]=packed[13*i+9+ch];}result[i].response=packed[13*i+12];}
     return result;
 }
 MaskingMapsGPU MapGPU::mutual_masking(const std::vector<float>& reference,const std::vector<float>& test,int h,int w,float normalization) {

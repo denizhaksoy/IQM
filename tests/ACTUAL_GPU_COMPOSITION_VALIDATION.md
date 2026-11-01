@@ -193,3 +193,10 @@ input checks reject before GPU access. See PATHWAY_QUALITY_API_VALIDATION.md.
 This supersedes the earlier statement that single-call composition was still
 pending;historical file-replay results retain their original scopes. Public
 CLI runtime packaging and geometry integration remain open.
+
+Public API/CLI integration has now passed for80x96/96x80 through an explicit
+version1 runtime package: sixPFM native score/input/P/log bit checks,three
+unsupported settings,12 malformed packages andthe existing11pair/1166export
+regression. See PATHWAY_CLI_VALIDATION.md. Earlier pending-public-integration
+statements describe historical checkpoints;this profile now has acceptance.
+Broader geometry/viewing/device/RGB/output scopes remain unvalidated.

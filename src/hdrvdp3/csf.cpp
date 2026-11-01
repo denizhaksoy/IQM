@@ -214,6 +214,8 @@ static const std::array<double,256>& csf_log_grid() {
     return grid;
 }
 
+CSFLUT csf_log_luminance_grid(){return csf_log_grid();}
+
 double sample_csf_lut_log(const CSFLUT& lut, double log_luminance) {
     const auto& grid=csf_log_grid();
     const double query = std::clamp(log_luminance, grid.front(), grid.back());

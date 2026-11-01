@@ -1,0 +1,21 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {double v[];} src;
+layout(set=0,binding=1,std430) writeonly buffer Output {double v[];} dst;
+layout(push_constant) uniform Push {uint count;uint unused1;uint unused2;uint unused3;} p;
+// Diagnostic double-double arithmetic, explicitly rounded operations.
+dvec2 pairSum(double a,double b){precise double s=a+b;precise double v=s-a;precise double lo=(a-(s-v))+(b-v);return dvec2(s,lo);}
+dvec2 addPair(dvec2 a,dvec2 b){dvec2 s=pairSum(a.x,b.x);precise double tail=a.y+b.y;precise double lo=s.y+tail;return pairSum(s.x,lo);}
+dvec2 mulPair(dvec2 a,dvec2 b){precise double hi=a.x*b.x;precise double err=fma(a.x,b.x,-hi);precise double cross=a.x*b.y+a.y*b.x;precise double low=err+cross;return pairSum(hi,low);}
+dvec2 divPair(dvec2 a,dvec2 b){precise double q=a.x/b.x;dvec2 r=addPair(a,-mulPair(b,dvec2(q,0.0lf)));precise double c=(r.x+r.y)/b.x;return pairSum(q,c);}
+dvec2 candidateLog(double x){
+ int e;double m=frexp(x,e);if(m<0.70710678118654752440lf){m=m*2.0lf;e-=1;}
+ dvec2 z=divPair(pairSum(m,-1.0lf),pairSum(m,1.0lf));
+ dvec2 z2=mulPair(z,z),power=z,sum=z;
+ for(int k=3;k<=41;k+=2){power=mulPair(power,z2);sum=addPair(sum,divPair(power,dvec2(double(k),0.0lf)));}
+ dvec2 logarithm=mulPair(sum,dvec2(2.0lf,0.0lf));
+ dvec2 scale=mulPair(dvec2(double(e),0.0lf),dvec2(0.69314718055994530942lf,2.31904681384629961549e-17lf));
+ return addPair(scale,logarithm);
+}
+void main(){uint i=gl_GlobalInvocationID.x;if(i>=p.count)return;dvec2 value=candidateLog(src.v[i]);precise double natural=value.x+value.y;dst.v[2u*i]=natural;dvec2 decimal=mulPair(value,dvec2(0.43429448190325182765lf,1.098319650216765073e-17lf));precise double result=decimal.x+decimal.y;dst.v[2u*i+1u]=result;}

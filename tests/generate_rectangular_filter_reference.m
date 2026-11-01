@@ -11,10 +11,18 @@ endfunction
 function a=read_real(path)
  f=fopen(path,'r');assert(f>=0);shape=fscanf(f,'%d',2);a=single(reshape(fscanf(f,'%f'),shape(2),shape(1)).');fclose(f);
 endfunction
+function a=pathway_stage(root,h,w,label,stage)
+ path=fullfile(root,'stages',sprintf('h%d_w%d',h,w),[label '_' stage '.txt']);
+ if exist(path,'file'),a=read_real(path);return;endif
+ % New square native traces retain visual stages in their MAT trace instead
+ % of the historical rectangular stage-file tree. Preserve the old route.
+ assert((h==80&&w==80)||(h==96&&w==96)||(h==128&&w==128));s=load(fullfile(root,sprintf('h%d_w%d',h,w),'trace.mat'));
+ a=s.trace.(['visual_' label]).(stage);assert(isa(a,'single'));
+endfunction
 args=argv();out=args{1};h=str2double(args{2});w=str2double(args{3});pattern=args{4};
 mixed=numel(args)>4&&strcmp(args{5},'--mixed');
 pathway=numel(args)==7&&strcmp(args{6},'--pathway');pathway_source='';if pathway,pathway_source=args{7};endif
-if mixed,assert((h==80&&w==96)||(h==96&&w==80));
+if mixed,assert((h==128&&w==128)||(h==80&&w==80)||(h==80&&w==96)||(h==96&&w==80)||(h==96&&w==96));
 else,assert((h==64&&w==128)||(h==128&&w==64));endif
 assert(any(strcmp(pattern,{'asymmetric','impulse','hdr_ramp'})));
 assert(!exist(out,'dir'));assert(mkdir(out));
@@ -39,7 +47,7 @@ for label={'ref','test'}
  padding=hdrvdp_determine_padding(input,p);assert(strcmp(padding,'symmetric'));
  prepared=padarray(input,[h,w],padding,'post');forward=fft2(prepared);filtered=forward.*filter;inverse=ifft2(filtered);
  retinal=clamp(fast_conv_fft(input,filter,padding),1e-5,1e10);
- if pathway,n='reference';if strcmp(name,'test'),n='test';endif;assert(isequal(retinal,read_real(fullfile(pathway_source,'stages',sprintf('h%d_w%d',h,w),[n '_retinal.txt']))));endif
+ if pathway,n='reference';if strcmp(name,'test'),n='test';endif;assert(isequal(retinal,pathway_stage(pathway_source,h,w,n,'retinal')));endif
  assert(isequal(retinal,clamp(real(inverse(1:h,1:w)),1e-5,1e10)));
  write_real(fullfile(out,[name '_luminance.txt']),input);
  write_complex(fullfile(out,[name '_mtf_stage0.txt']),complex(prepared),true);
@@ -51,7 +59,7 @@ for label={'ref','test'}
  prepared=padarray(log(max(adapt,1e-6)),[h,w],'replicate','post');
  forward=fft2(prepared);filtered=forward.*gaussian;inverse=ifft2(filtered);
  adaptation=hdrvdp_local_adapt(adapt,ppd);
- if pathway,assert(isequal(adapt,read_real(fullfile(pathway_source,'stages',sprintf('h%d_w%d',h,w),[n '_adaptation_input.txt']))));assert(isequal(adaptation,read_real(fullfile(pathway_source,'stages',sprintf('h%d_w%d',h,w),[n '_adaptation.txt']))));endif
+ if pathway,assert(isequal(adapt,pathway_stage(pathway_source,h,w,n,'adaptation_input')));assert(isequal(adaptation,pathway_stage(pathway_source,h,w,n,'adaptation')));endif
  assert(isequal(adaptation,exp(real(inverse(1:h,1:w)))));
  write_real(fullfile(out,[name '_adapt_input.txt']),adapt);
  write_real(fullfile(out,[name '_adaptation.txt']),adaptation);

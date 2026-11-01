@@ -71,4 +71,33 @@ SpectralSamples load_d65_spectral_samples(const std::filesystem::path& cone_path
     }
     return out;
 }
+XYZDisplaySamples load_xyz_display_samples(const std::filesystem::path& xyz_path,
+    const std::filesystem::path& emission_path) {
+    const auto xyz=read_table(xyz_path,3),emission=read_table(emission_path,3);
+    XYZDisplaySamples out;out.wavelength.resize(420);out.xyz.resize(420);out.emission.resize(420);
+    const double step=(780.0-360.0)/419;
+    for(size_t i=0;i<210;++i){out.wavelength[i]=360+i*step;out.wavelength[419-i]=780-i*step;}
+    for(size_t c=0;c<3;++c){auto sensor=resample(xyz,c,out.wavelength),primary=resample(emission,c,out.wavelength);
+        for(size_t i=0;i<420;++i){out.xyz[i][c]=sensor[i];out.emission[i][c]=primary[i];}}
+    return out;
+}
+RGBSpectralSamples load_rgb_spectral_samples(const std::filesystem::path& cone_path,
+    const std::filesystem::path& rod_path,const std::filesystem::path& emission_path) {
+    const auto cone=read_table(cone_path,3),rod=read_table(rod_path,1),emission=read_table(emission_path,3);
+    RGBSpectralSamples out;
+    std::vector<double> wavelength(420);
+    const double step=(780.0-360.0)/419;
+    for(size_t i=0;i<210;++i){wavelength[i]=360+i*step;wavelength[419-i]=780-i*step;}
+    std::array<std::vector<double>,3> cones;double smallest=0;
+    for(size_t channel=0;channel<3;++channel){cones[channel]=resample(cone,channel,wavelength);for(double value:cones[channel])smallest=std::min(smallest,value);}
+    const auto rods=resample(rod,0,wavelength);
+    std::vector<std::array<double,4>> sensitivity(420);
+    for(size_t i=0;i<420;++i){
+        for(size_t channel=0;channel<3;++channel)sensitivity[i][channel]=std::pow(10.0,cones[channel][i]==0?smallest:cones[channel][i]);
+        sensitivity[i][3]=rods[i];
+    }
+    for(size_t color=0;color<3;++color){out[color].wavelength=wavelength;out[color].sensitivity=sensitivity;out[color].emission=resample(emission,color,wavelength);}
+    return out;
+}
+
 }

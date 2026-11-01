@@ -50,6 +50,7 @@ double sample_csf_lut(
 );
 
 // Sample an already logarithmic adaptation map without an exp/log roundtrip.
+CSFLUT csf_log_luminance_grid(); // Actual native pow/log-rounded Double nodes.
 double sample_csf_lut_log(const CSFLUT& lut, double log_luminance);
 // Octave interp1 with a single-precision query uses single arithmetic in ppval.
 float sample_csf_lut_log_single(const CSFLUT& lut, float log_luminance);

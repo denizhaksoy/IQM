@@ -17,9 +17,11 @@ namespace IQM::Bin {
 
     class VulkanInstance : public IQM::VulkanInstance {
     public:
-        VulkanInstance(bool enableValidation = false);
+        VulkanInstance(bool enableValidation = false,
+                       const std::string& preferredDevice = "", bool requireFloat64 = false);
 
         std::string selectedDevice;
+        bool float64Enabled = false;
 
         vk::raii::Context context;
         vk::raii::Instance instance = VK_NULL_HANDLE;
@@ -45,7 +47,7 @@ namespace IQM::Bin {
 
         void waitForFence(const vk::raii::Fence &fence) const override;
     private:
-        void initQueues();
+        void initQueues(const std::string& preferredDevice, bool requireFloat64);
         static std::vector<const char *> getLayers();
         void initDebugMessenger(bool enableValidation);
     };

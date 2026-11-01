@@ -1,0 +1,12 @@
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+const [exe,independent,official,data,shader,out,linear]=process.argv.slice(2);
+if(!out||fs.existsSync(out))throw Error('Usage: executable optical-root official-root model-data shader fresh-root');fs.mkdirSync(out,{recursive:true});
+const args=[independent,official,data,shader,'3840x2160',path.join(out,'results')];
+if(linear)args.push(linear);
+const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+const run=cp.spawnSync(path.resolve(exe),args,{encoding:'utf8',windowsHide:true,maxBuffer:16*1024*1024});
+fs.writeFileSync(path.join(out,'stdout.log'),run.stdout||'');fs.writeFileSync(path.join(out,'stderr.log'),run.stderr||'');
+const reportedValidationErrors=/Validation Error|VUID-/i.test((run.stdout||'')+(run.stderr||''));
+fs.writeFileSync(path.join(out,'run.json'),JSON.stringify({executable:path.resolve(exe),executable_sha256:sha(exe),shader_sha256:sha(shader),args,exit:run.status,reportedValidationErrors},null,2));
+if(run.error)throw run.error;if(run.status!==0||reportedValidationErrors||!fs.existsSync(path.join(out,'results/PASS.txt')))throw Error('GPU acceptance failed; inspect logs');
+console.log(fs.readFileSync(path.join(out,'results/PASS.txt'),'utf8'));console.log('No reported Vulkan validation errors');

@@ -1,6 +1,3491 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-10-25 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-11-01 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Publication work authorized (2026-11-01)
+
+User explicitly requested sending necessary changes to GitHub. Preparing source,
+headers, test/reproduction tools, new shaders and reports on feature/hdr-vdp3.
+Selection manifest validation/github_publish_20261101_run01/paths.nul contains
+452 files (~3.3MB), including accumulated validated Double/Single dependencies.
+Excluded source datasets, localbuilds, validation artifacts, logs, backups,
+untracked glslang checkout and local AGENTS.md. Preserve dirty lib/VkFFT and
+the pre-existing staged/unstaged hdrvdp3_corrdn_test.glsl separately; commit only
+explicit selected paths so its original indexblob stays intact.
+Pre-publication checks: CPU CLI and GPU4K main targets build successfully;
+71 selected JavaScript files syntaxchecked; selected files checked for common
+privatekey/token patterns. Numerical scope remains exactly the reports above,
+not whole dataset or full GPU completion. No numerical/shader rebuild needed.
+Next publication steps: selected-path commit, normal push, remoteSHA verification;
+record actual published SHA after success. Do not forcepush or reset/clean.
+
+## Latest checkpoint: day summary complete, two videos/33 framepairs, CPU CLI/GPU4K (2026-11-01)
+
+User asked autonomous remaining work and one day output before writing weekly
+report together. Completed day report tests/HDRVDP3_DAILY_PROGRESS_2026-11-01.md
+and matchingJSON, generated only after acceptance artifacts passed. No email/
+weekly report sent; no subjective score/accuracy invented.
+
+LOWRES FULL VIDEO session9616 now exited0: validation/live_hdr_540p_video_20261101_run01,
+all480timestamps/counts matched, all16selected0:30:450 frameQ/QJOD exact.
+Video meanQJOD8.5345268249511719 hex41088d6c, C++=official; hash/metadata summary
+and independent Octave orderedSingle aggregation passed, stored acceptance.json
+andaggregation_octave.json. Previous4Kvideo mean8.4828519821166992 hex4107b9c3.
+Together32unique framepairs across2resolution variants of SAMEcontentDaylight1.
+Additional Bonfire720pframe0 makes33distinctrealHDRframepairs exactQandQJOD.
+Do not count CLI/frozen/prototype repeats as additional independent cases.
+
+PUBLIC CPU CLI/library: IQM-hdrvdp3-cpu mainCMake target built successfully,
+reusable generalSingle front-end API, explicit FFTW provider/encoding/model
+settings, PQ-domain resize. Actual CLI exact at540pDaylight1 and720pBonfire,
+7CLIguards passed. ROOT public_cpu_cli_acceptance_20261101_run01 preserves
+used binary/source; comparison/provenance records in each public_cpu_*case.
+README now links measured scope/help; multi-metricIQM GPUprofiles unchanged.
+
+GPU LIBRARY: project_rgb_single_gpu in projection_single_gpu.h/.cpp, plus new
+2Ddispatch shader supports full4K. Library-backed acceptance
+validation/live_hdr_gpu4k_library_20261101_run01: native49,766,400 + LMSR66,355,200
+=116,121,600 Single values bitwise equal on IntelArcPro, no reported Vulkan
+validation errors. snapshot/ saves binary/shader/source and input/model hashes.
+This is GPUmatrix stages only; CPUopticalinputs and CPUmodelcalibration explicit.
+Full GPUFFT/adaptation/JND/masking/quality notintegrated. PriorGPUshaders and
+protectedcorrdn hash unchanged; VkFFTdirty retained.
+
+Candidate public27cohort manifest in validation/live_hdr_public_candidate_20261101_run01
+has27unique distortions/3refs,completebright/darklabels, but originaltrainCSV
+NOTverified. CodaLabpage publicly retrieved and textdecoded safely; no full
+trainingCSV exposed. Correlation notcomputed: current fullvideo results are
+only2distortions ofonecontent; Bonfire isframe-only. Originalphase/PNGdepth/
+privatechallengecohort/backend remainunverified.
+
+Next exact work: broaden fullvideo contents/bitrate-resolution ladder using
+generalized metadata-checked runner and declaredcohort, then enough-video
+SROCC/rawPLCC with explicitly documented policy (no guessedRMSEfitting).
+Continue remaining generalGPU stages while preserving numerical parity.
+Do NOT claim all310files/originalchallenge/fullmetricdone. UPIQ remains separate.
+No commit/push/reset/cleanup; prior references/artifacts/dirtychanges preserved.
+
+## Historical active follow-on: daily report request, public CPU CLI, GPU4K and lowerres full video
+
+User requested autonomous remaining work and one final day summary, then weekly
+report together. Do NOT send email/messages or invent subjective accuracy.
+ACTIVE batch session9616: validation/live_hdr_540p_video_20261101_run01,
+540p_2.2M_Daylight1 versus4k_ref_Daylight1, all16phase0 samples. Generalized
+tests/run_live_hdr_video_pair.cjs now verifies CSV pairing/count dynamically and
+accepts optional testId/referenceId; old accepted runs preserved. Summarizer and
+Octave aggregator now use dynamic indices. Wait/check batch; do not restart.
+
+Implemented src/hdrvdp3/general_single_pathway.cpp reusable Single prepare/eval
+API, include/IQM/hdrvdp3/fftw_single_provider.h explicit Windows FloatFFTW owner.
+Main project target IQM-hdrvdp3-cpu uses library, explicit pq-bt2020-rgb16,
+ppd/model-data/fftw/output arguments. Existing multi-metricIQM GPUprofiles unchanged.
+Build passed. tests/validate_hdrvdp3_cpu_cli.cjs:7checks passed in
+validation/public_cpu_cli_checks_20261101_run01. Actual publicCLI exact on
+Daylight1 540pframe0 (Q4098b8ee/JOD40b58220) and NEW Bonfire720p_2.6M frame0
+(Q7.088564395904541 hex40e2d585;JOD7.9553570747375488 hex40fe9249).
+Roots public_cpu_540p_20261101_run01,public_cpu_bonfire720_20261101_run01;
+Bonfire sourcePNG/probes live_hdr_bonfire720_frame0_20261101_run01; stock
+live_hdr_bonfire720_score_20261101_run01. Checks compare inputsha/settings/hex.
+Frozen used publicexe/source public_cpu_cli_acceptance_20261101_run01.
+
+GPU progress: new hdrvdp3_rgb_projection_2d.comp only (oldshaders preserved),
+2Ddispatch avoids workgroup limit. InitialLMSR test66,355,200values exact;
+bothnativecolor/LMSR tests116,121,600values ZERO bitdiffs. Added LIBRARY API
+projection_single_gpu.h/.cpp (GPU per-pixel FMA/clamps, CPUprepared coefficients),
+repeated through library: validation/live_hdr_gpu4k_library_20261101_run01 PASS,
+IntelArcPro, no reported Vulkanvalidationerrors. Inputoptical is independently
+validated CPUFFT, NOT fullGPU chain. Snapshot in thatroot/snapshot binds
+binary/shader/source/model/tensorhashes; run01/run02 prototype artifacts preserved.
+Targets IQM-hdrvdp3-gpu4k-projection and IQM-hdrvdp3-cpu built successfully.
+Report tests/PUBLIC_SINGLE_CPU_AND_GPU4K.md. Protected shaderhash unchanged;
+VkFFT dirty kept. No blindshadercompilation/commit/push/reset/cleanup.
+
+Candidate27archive subset prepared with3refs Bonfire/CargoBoat/football1,
+completebright/darklabels: validation/live_hdr_public_candidate_20261101_run01.
+OriginaltrainCSV NOT verified, correlation NOT performed. CodaLab public HTML
+nowretrieved into validation/live_hdr_cohort_source_20261101_run01 (decoded as
+dataonly, noteval); it repeats FR27rule/examples but exposes no fulltrainingCSV.
+
+NEXT: finish session9616; run summarize_live_hdr_video.cjs and Octave aggregation
+on lowerresroot. Then tests/write_hdrvdp3_daily_summary.cjs requires allacceptance
+files and writes factual MD+JSON; intended output
+tests/HDRVDP3_DAILY_PROGRESS_2026-11-01.md. It counts33distinctframepairs only if
+both16-framevideos pass plusBonfireframe0. Do not claim full310/cohort/GPU/correlation.
+Update latesthandoff with final mean/report paths when done.
+
+## Historical checkpoint: full16-frame video parity and 540p resize score exact (2026-11-01)
+
+COMPLETED validation/live_hdr_video_20261101_run01, session43541 exited0.
+All480 decoded reference/test timestamps and counts equal. Selected zeroindices
+0:30:450 (16samples), phase0/RGB48 explicitly local reconstruction choices.
+Every frame Q AND QJOD exact; 14new independent C++/stock runs,0/30 reused only
+after newly decoded PNG SHA matches accepted bundle. Ordered Single meanQJOD
+8.4828519821166992, hex4107b9c3, official=C++. video_score.json complete/exact.
+tests/summarize_live_hdr_video.cjs passed all selected-frame input/hash checks,
+created acceptance.json with CSV pair/bright/dark label provenance. BrightMOS
+55.33486906/DMOS30.60362545 are humanlabels, NOT metricQJOD expectedvalues.
+Correlation notperformed: one distorted video insufficient.
+tests/verify_live_hdr_video_aggregation.m independently reproduced Single ordered
+mean in CPUOctave11.3.0: classSingle,hex4107b9c3,exacttrue. Saved aggregation_octave.json.
+Report tests/LIVE_HDR_VIDEO_PAIR_VALIDATION.md. Pointer
+validation/live_hdr_video_completed_path.txt -> validation/live_hdr_video_20261101_run01.
+
+Also COMPLETED 540p_2.2M_Daylight1 frame0 versus4Kreference, PQ-domain bicubic
+Single upsample/clamp BEFORE inversePQ. Independent C++ Q4.7725744247436523
+hex4098b8ee;QJOD5.6721343994140625 hex40b58220, exactstock3.0.7.
+Frozen run03 lowres540 repeat passed; report tests/LIVE_HDR_540P_VALIDATION.md,
+pointer validation/live_hdr_540p_completed_path.txt -> validation/live_hdr_single_demo_20261101_run03.
+Command: node validation/live_hdr_single_demo_20261101_run03/run_demo.cjs lowres540
+Newer run03 has resize source/exe/allthree cases; only lowres540 rerun with this
+frozen exe. Equalres frozen checks and fullvideo use earlier run02 unchanged.
+
+Next priorities: full lower-resolution video validation; additional contents and
+bitrate/resolution ladder; verified cohort/reference-exclusion manifest before
+cross-video subjective correlations. Organizer public FR subset evidence and
+historical template now in protocol audit; private subset/authorPNGdepth/phase/
+execution version remain unresolved. Then mainCLI/generalVulkan integration.
+This is ONE full video pair plusone lowerresframe, NOT all310files or original
+published challenge reproduction. UPIQ acceptance remains separate/unfulfilled.
+Main library and standalone builds passed; protected shaders/VkFFT/prior dirty
+files preserved. No commit/push/reset/cleanup or shader compilation.
+
+## Historical checkpoint: independent Single CPU PNG-to-score exact on two 4K frames (2026-11-01)
+
+FOLLOW-ON WORK (now completed above): tests/run_live_hdr_video_pair.cjs started full16-frame
+Daylight1 local reconstruction into validation/live_hdr_video_20261101_run01.
+Exec session43541. It verifies all480 decoded frame timestamps/counts match,
+selects indices0:30:450, RGB48, runs clean reference and independent frozen C++
+in parallel perframe, and requires every Q/QJOD bitexact before Single ordered
+meanQJOD aggregation. Up to2 workers only with >14GiB free RAM (machine31.4GiB,
+initialfree16.5). Reuses0/30 scores only if newly decoded PNG bytes match accepted
+bundle exactly. Do NOT claim fullvideo pass until video_score.json complete/exact.
+If interrupted, inspect progress.log/failure.txt and process/session before
+starting another batch; preserve all run files. This remains one video pair,
+not full LIVE dataset or original challenge equivalence.
+
+ADDITIONAL ACTIVE/COMPLETED WORK: 540p_2.2M_Daylight1 was selected from CSV,
+extracted without overwriting old files, decoded frame0 with ref4K into
+validation/live_hdr_540p_frame0_20261101_run01. tests/live_hdr_preprocessing/frame.cpp
+now resizes distorted Single PQ planes bicubic/clamp before inversePQ, keeping
+reference geometry (frozenrun02 batch unaffected). Official preprocessingroot
+live_hdr_540p_preprocessing_20261101_run01 and stockscore live_hdr_540p_score_20261101_run01.
+Independent PNG-to-score live_hdr_540p_cpp_20261101_run01 EXACT:
+Q4.7725744247436523 hex4098b8ee;QJOD5.6721343994140625 hex40b58220.
+tests/compare_live_hdr_frame_outputs.cjs checked input/settings/provenance/hex.
+Report tests/LIVE_HDR_540P_VALIDATION.md. New bundle live_hdr_single_demo_20261101_run03
+contains source/exe/allthreePNGcases; frozen lowres540 repeat session31328 exited0
+EXACT in results_lowres540_1793564583103. Earlier run02 equalres checks preserved.
+Do not claim resized-intermediate equality: only full quality score checked here.
+
+Protocol audit further updated with organizer sources: public FR leaderboard
+27 predictions excluding3referencevideos Bonfire,CargoBoat,football1; bright
+SurealMOS target; separate reserved finaltest. Organizer page says27sources/
+243PVS, different fromcurrent31/310 release. Historical template pinned commit
+0c8ce3ef1d69240d3f43b2cf1061a47dd83e9b5f (2022-11-29), README/commitJSON in
+validation/live_hdr_challenge_audit_20261101_run01; confirms p3.2xlarge/V100 and
+yuv420p10le HEVCMP4. Current main has newer L40S/CUDA12.8 and mustnotbeusedas
+2023evidence. Actualauthorbackend/PNGprecision/privatecohort stillunknown.
+
+Report tests/LIVE_HDR_SINGLE_PIPELINE_VALIDATION.md. User requested sustained
+work and final feedback. New public fft_single.h, optical_single.h/.cpp,
+general RGB JND in jnd.h/jnd_single.cpp, sp0_single.h/.cpp,
+general_quality_single.h/.cpp (prepared-stage quality). Integrated into main
+IQM-HDRVDP3, strict FP. Explicit CPU Float FFTW provider tests/single_fftw_backend.h
+uses installed Octave libfftw3f-3.dll, threads3/estimate; DLL SHA256
+2DDA2A429AD7A9088260C21E0E2E5FD13FF66771832F82D4DA3E836B2875B55E.
+Single image FFT/products, Double MTF/Gaussian filters, symmetric optical
+postpad and replicate adaptation postpad, same crop/layout/normalization.
+
+Fresh official instrumented captures live_hdr_capture_20261101_run03/run04
+under validation: full adaptation/response, then six normalized bands. Both
+assert unchanged stock Q/JOD bits. Independent roots live_hdr_fft_20261101_run01,
+live_hdr_jnd_20261101_run01, live_hdr_pyramid_20261101_run02. Across both sides:
+optical49,766,400; LMSR66,355,200; adaptation16,588,800; JND16,588,800;
+pyramid38,685,600. TOTAL187,984,800 Single stage values, ZERO bit differences.
+No exhaustive remaining masking/CSF array parity claim; scores checked separately.
+Failed pyramid run01 retained: Float base mean incorrect, fixed to Octave11.3
+mean(Single) Double accumulation/finalSingle. Pupilgeomean staysFloat.
+Failed quality run01 retained: pooling psychometric response instead of rawD;
+fixed -> live_hdr_quality_20261101_run02 exact Q/QJOD from independent stages.
+
+Complete standalone tests/live_hdr_preprocessing/frame.cpp computes PNG->PQ->
+color->FFT->LMSR->adaptation->JND->pyramid->quality in one C++ process, no Octave
+scorer or reference intermediate injection. Wrapper tests/run_live_hdr_frame.cjs
+checks PNGsha/precision/backend/ppd/Qhex, records executable/model/DLL provenance.
+First complete run validation/live_hdr_frame_cpp_20261101_run01 took99.48sec:
+Q4.075747013092041 hex40826c85;Q_JOD4.9195575714111328 hex409d6d04.
+
+Second sample: tests/decode_live_hdr_frame.cjs decoded explicit zeroindex30,
+RGB48 from both Daylight1 MP4s, preserving probes/commands/version/hashes in
+validation/live_hdr_frame30_20261101_run01. AuthorPNGdepth stillunresolved.
+Reference preprocessing/score roots live_hdr_frame30_preprocessing_20261101_run01
+and live_hdr_frame30_score_20261101_run01. CPUOctave63.63sec; Q7.4749040603637695
+hex40ef326a;Q_JOD8.2962665557861328 hex4104bd82.
+
+Frozen working bundle validation/live_hdr_single_demo_20261101_run02 includes
+exe,bothPNGpairs,stockscorefiles,models,notice,source snapshot,SHA manifest.
+tests/package_live_hdr_single.cjs builds fresh bundles. Node demo verifies
+bundle/externalDLL hashes. Direct PS script policyblocked; no policychanged.
+Run fromrepo: node validation/live_hdr_single_demo_20261101_run02/run_demo.cjs frame0030
+or frame0000. Each creates freshout. BOTH frozen-package runs exited0 EXACT:
+results_frame0030_1793538174683 and results_frame0000_1793538185136.
+Main IQM-HDRVDP3 build passed. Bundle source separately configured/built target
+live-frame-single in validation/live_hdr_demo_build_20261101_run01: PASSED.
+Protectedshader SHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+unchanged; VkFFTdirty preserved. No commits/push/reset/cleanup/shadercompilation.
+
+Scope: CPU diagnostic, equal-resolution RGB16/BT2020/OLED/age24/quality/sp0,
+ppd62.729130063099447, ambient200*.005/pi,peak2000. Existing normal IQM CLI/
+fixed GPU profiles unchanged. NOT complete LIVE dataset/published challenge/
+general Vulkan integration. Two frames do not constitute a video score.
+Next exact step: remaining zeroindices60:30:450 for this480-frame pair after
+timestamp/count alignment checks; aggregate mean frameQJOD only with all16.
+Then validate lowerres PQbicubic inputs, broaden contents/geometry, establish
+challenge cohort/reference inclusion/correlation policy. OriginalauthorPNGdepth,
+framephase/cohort/backend stillunknown. Fullbenchmark/correlations notdone.
+
+## Latest checkpoint: Single color and spectral stages bitwise equal (2026-11-01)
+
+Report tests/LIVE_HDR_SINGLE_COLOR_VALIDATION.md. Added public independent
+linear_color_single.h/.cpp and optical_response_single.h/.cpp; integrated with
+IQM-HDRVDP3 under /fp:strict. General Single quality orchestration NOT complete.
+BT2020->nativeRGB uses independent existing Double spectral calibration with
+Single matrix coefficients/FMA. Native opticalRGB->LMSR similarly preserves
+Double spectral/age calibration and Single image arithmetic.
+
+Fresh capture roots validation/live_hdr_capture_20261101_run01 and run02.
+tests/capture_live_hdr_single.cjs creates instrumented COPY of clean3.0.7,
+verifies sourcehash/anchors, generates hash-pinned runner with stock Qhex checks.
+tests/iqm_capture_single.m logs class/shape/samplehex; run02 also exports full
+optical/LMSR arrays. Clean tree unchanged. Both use same full-size frame inputs.
+Run01 class trace: matrixDouble, nativeSingle, frequency/MTFDouble, opticalSingle,
+spectralmatrixDouble, LMSR/adaptation/response/basebandSingle. Base135x240.
+Instrumented Q/QJOD checked against stock Single hex40826c85/409d6d04.
+
+Independent C++ BT2020->native: 24,883,200 values each reference/test,
+49,766,400 total, ZERO bitdiff/maxULP0. Results run01/*_color_cpp.json.
+Isolated C++ opticalRGB->LMSR: 33,177,600 each, 66,355,200 total,
+ZERO bitdiff/maxULP0. Results run02/*_optical_cpp.json. IMPORTANT spectral
+test INPUTS are official optical arrays, so NOT independent opticalFFT/endtoend
+parity. Additional adaptation_input/log API outputs remain not array-validated.
+Total newly compared stagevalues116,121,600. Tested age24/OLED/BT2020 only.
+Tools tests/live_hdr_preprocessing/{color.cpp,optical.cpp}; standalone builds
+passed and main build-vs2026 IQM-HDRVDP3 target passed, existingglfw3warning.
+
+Next exact step: explicit Single FFT provider (Octave libfftw3f-3.dll available)
+and independent optical convolution comparison, preserving Double filter,
+Single FFT/product, symmetricpostpad, normalization/crop/layout equivalence.
+Then validate local adaptation and connect general RGB Single JND/pyramid/quality.
+Do not call isolated-stage reference inputs an independent pipeline. No new
+video aggregation/correlation/dataset-equivalence/metriccompletion claim.
+No commits/push/reset/cleanup; old artifacts/references/shaders/VkFFT preserved.
+
+## Latest checkpoint: exact Single PQ preprocessing and first 4K reference score (2026-11-01)
+
+Continued toward metric completion. Report: tests/LIVE_HDR_SINGLE_PREPROCESSING.md.
+Protocol manifest: tests/live_hdr_protocol.json; unresolved author settings remain
+null, local RGB48/CPU choices explicitly separated. Sampling runner not implemented.
+New public C++ API include/IQM/hdrvdp3/pq_single.h, src/hdrvdp3/pq_single.cpp:
+explicit ambient/reflectivity/peak, uint16 normalization and Single ST2084/display
+conversion, invalid-input rejection. Added to IQM-HDRVDP3 with strict FP.
+No resizing/YCbCr/luma transform/Double promotion in this API.
+
+Fresh root validation/live_hdr_single_20261101_run01 contains clean-reference
+Single linear tensors for reference/test Daylight1 frame0 at3840x2160, and hashes
+in preprocessing.json. tests/prepare_live_hdr_reference.m exports clean pq2lin
+and im2single behavior. Independent C++ public API comparison: 24,883,200 values
+per image, total49,766,400, ZERO bit differences/maxULP0.
+Exhaustive uint16 tests: validation/live_hdr_single_stages_20261101_run01;
+65536 codes x five stages (unit,pow_m,ratio,linear,final), allzero bitdiffs.
+api_cpp.json additionally verifies rejection of four invalid normalized inputs.
+Tools: tests/live_hdr_preprocessing/{compare.cpp,stages.cpp,CMakeLists.txt},
+tests/probe_live_hdr_single_stages.m. MSVC19.51 /fp:strict; exact scope is this
+platform/configuration. Equal-resolution pair only; bicubic port not validated.
+
+FIRST LIVE full-size OFFICIAL quality baseline (not C++ score):
+validation/live_hdr_frame_score_20261101_run01/score.json, reference.log.
+tests/score_live_hdr_reference_frame.m uses clean official3.0.7 CPU Octave11.3.0,
+FFTWthreads3 estimate, Single inputs, BT2020, ppd62.729130063099447,
+quiettrue/use_gpufalse; remaining defaults retained. Runtime58.95seconds.
+Q Single4.075747013092041 hex40826c85;
+Q_JOD Single4.9195575714111328 hex409d6d04.
+Exit0; logs retain factorial-shadow, ncsf invalidUTF8 and ordinary Octave exit
+warnings. Original author PNG precision/backend/cohort remain unresolved.
+Main integration build: cmake --build build-vs2026 --config Release --target
+IQM-HDRVDP3 PASSED (existing glfw3 config warning). Standalone tools build passed.
+An initial wrong build root lacked this target; corrected to build-vs2026.
+
+Next exact step: inspect/capture Single intermediate classes and layouts from
+clean official quality chain, then implement independent general Single path.
+Current general C++quality remains Double-only. Compare original-size frame Q
+andQ_JOD exactly before expanding sample frames/lowerres/video aggregation.
+NO C++quality/LIVEdataset equivalence, correlation or metric-completion claim.
+No commit/push/reset/cleanup; prior work, reference files, shaders and VkFFT kept.
+
+## Latest checkpoint: Section 6 LIVE HDR protocol audit (2026-11-01)
+
+User explicitly requested identification of undocumented settings/differences
+BEFORE implementing the evaluation pipeline. Audit is now documented in
+`tests/LIVE_HDR_PROTOCOL_AUDIT.md`; no video scoring pipeline was implemented.
+Read-only metadata checker: `tests/audit_live_hdr_metadata.cjs`.
+Command: `node tests/audit_live_hdr_metadata.cjs validation/live_hdr_639290787607997134 validation/live_hdr_protocol_20261101_audit01`.
+Fresh results root: `validation/live_hdr_protocol_20261101_audit01`.
+310 unique rows, 31 references/self-pairs, 279 distorted pairs; ten rows per
+reference. No duplicate/missing archive mappings or declared frame-count
+mismatches. Bright and dark labels each have 310 unique complete finite
+MOS/CI95/DMOS rows. SHA256 of source CSV bytes retained in metadata_audit.json.
+These are metadata checks, not full-stream decode/alignment verification.
+
+Re-read paper Section 6 and clean v3.0.7 source. Fixed-frame_0001 bug confirmed:
+literal example repeats first frame despite kk=1:30:N_frames. Intended-example
+interpretation is zero indices 0,30,..., but paper does not state phase.
+Example specifies im2single, PQ-domain bicubic distorted resize/clamp, 2000-nit
+peak cap plus ambient, mean per-frame Q_JOD. Paper does not independently pin
+all these details. Default BT2020 spectral model oled despite Samsung TV comment;
+age24, hdrvdp MTF, sp0Filters; GPU requested then disabled if unavailable.
+Clean helper measured ppd=62.729130063099447 and ambient=0.31830988618379069.
+Octave geometry probe log stored in audit root; exit0 with usual exit warning.
+Original decoder/PNG precision, frame phase, challenge cohort/reference policy,
+execution backend and correlation procedure/prediction vector remain unverified.
+No original-submission numerical equivalence or metric completion claim.
+
+Next exact step: create provenance-aware protocol manifest, retaining unresolved
+fields rather than inventing them; verify all stream headers and selected-frame
+alignment. Then compare Single preprocessing and one original-size frame against
+clean official v3.0.7 before porting missing Single semantics to C++/Vulkan.
+Current Double-only general path is not original-example Single parity.
+No LIVE metric scores generated. No commit/push/reset/cleanup; dirty files and
+VkFFT preserved. Python Windows alias unusable; metadata audit uses Node instead.
+
+## Latest checkpoint: user-supplied LIVE HDR archive identified and staged (2026-10-31)
+
+User supplied C:/Users/DenizAksoy/Downloads/LIVE_HDR_MP4.zip (not UPIQ).
+Read-only inspected archive,nevermodified/moved sourceDownload. It is LIVE HDR
+Video Quality Assessment Database,2022 Shang/Ebenezer/Bovik/Wu/Wei/Sethuraman,
+matching README and officialLIVEHDRwebpage. Useful forHDRVDP3paperWACVvideo
+protocol;doNOTsilentlysubstituteforUPIQquality-calibrationdatasetrequirement.
+Root validation/live_hdr_639290787607997134;pointer validation/live_hdr_identified_path.txt.
+Archivebytes6282588368,SHA2564C4DB97ADDBEECB7AC52D6EDCFA78BF0387AB2002DBFB9A7BBC276E40597F8D3.
+This is localprovenancefingerprint,notverifiedagainstauthorpublishedchecksum.
+
+632ZIPentriesincludeApple__MACOSXmetadata. Actual310MP4videos,31unique4krefs,
+310video_info_with_bitrate.csvrows;allvideo/refmappingsresolve,no missingnames.
+CopiedonlyREADMEand3CSVstometadata;license/citationretainedinREADME. Bright/dark
+MOS/DMOS arehumanlabels,notexpectedmetricQ/QJOD. SourceCSVcontainsCRCRLFand
+blankfirstheader;normalizeCRonlyinmemoryforparsing (ImportCsvH1warningexpected).
+Noall-videoCRC/decodeorbenchmarkacceptanceclaim.
+
+Selectedonly4k_ref_Daylight1.mp4and4k_3M_Daylight1.mp4extractedintosample_pair.
+Bothffprobe3840x2160,yuv420p10le,bt2020nc,smpte2084,bt2020,60000/1001fps,
+480frames,8.008s. Metadatafpscolumn60isnominal;indexframesratherthantimestamp
+rounding. FFmpegversionandfullcommands/logssaved. frame_0001/reference.png and
+ test.png arefirstframe(zeroindex0),rgb48be16bit3840x2160;noresize/tonemap.
+ThesearestillPQcodes,NOTlinearHDRmetricinputs. Benchmarkscorecountremains0.
+
+Officialreferenceexamplehdr_video_pq_eotf.m copiedintometadata withpq2lin.m.
+Protocolcandidatefromsource:im2single PNG;lower-resdistortedframesbicubicresize
+andclamp0..1;inversePQ;Eambient200lux*reflectivity.005/pi added;peak2000nits
+plusambientclamp;rgb-bt.2020;display64.5in3840x2160distance1.296m,helpercomputed
+ppd;defaultage24;every30thframeandaverageQJOD. IMPORTANTsnippetforloopuseskkbut
+bothfilepathsarefixedframe_0001.png,soitliterallyrepeatsfirstframe. DoNOT silently
+claimrunningthatloopreproducesintendedpublishedvideoevaluation. Resolveandrecord
+framesamplingprotocolwhenbuildingharness. Publishedpaperactualsubset/settings
+maydifferfromthis310-filepublicrelease;doNOTclaimfullpublishedresultreproduction.
+
+Next actionable step: LIVE HDR is now locallyavailable,so focusonactual-data
+frameinput/preprocessing andcleanreferenceper-framebaseline. Preserveoriginal
+4Kgeometry. ImplementindependentPQ+ambient/peak preprocessing andcomparecodevalues
+andphysicalluminancefirst. OfficialexampleusesSingle;currentgenericDoubleCPU
+pathrejectsSingle,sofulloriginalprotocolrequiresSinglepathworkorclearlyseparate
+Double-onlydiagnostic,NOTsilentprecisionconversion. UPIQstillunavailable/separate.
+No metricfinishedorLIVEHDRscoreequivalenceclaim. No commit/push/reset/cleanup.
+
+## Latest checkpoint: original-size independent C++ Double quality exact engineering cases (2026-10-31)
+
+User says continue until original reference dataset equivalence/completion can
+truthfully be claimed. Dataset acceptance remains unfulfilled;UPIQ unavailable.
+Do NOT infer completion from this engineering checkpoint. No UPIQ images/scores.
+Root validation/general_quality_639290762115433659;pointer validation/general_quality_completed_path.txt.
+Report tests/GENERAL_DOUBLE_QUALITY_VALIDATION.md.
+
+Significant functional progress: new public general_quality_double.h/.cpp CPU
+orchestration,compiled into IQM-HDRVDP3;existingmainGPUCLIprofilesunchanged.
+IndependentC++preparation/opticalFFT/adaptation/JND/variableheightsp0/masking/CSF/
+basefrequency/Q/QJOD. ExplicitFFTcallbacks;diagnosticCPUFFTWbackend only,no
+Octave scorer orintermediate injection. CPUfullrespath separatefromacceptedv10GPU.
+InitialdomainDoubleRGB,axes>=16,ppd26..256(FFTlocaladaptbranch),age0..90,
+defaultquality/sp0/symmetricopticalsurround;NativeRGB,sRGB-display,linear709/2020,
+XYZ. DoesNOTsupportSingle semantics,ppd<26spatialGauss,othertasks/options.
+
+Official3.0.7ZIP downloaded freshly fromSourceForge (10875321bytes),SHA256
+BAA5C25CCA2E38176345A2A5423793459FBF571282396640C5E4AC85BF8381B3;
+cleanextractedunderofficial_clean/hdrvdp-3.0.7. Cleanhdrvdp3.mSHA256
+0F9F267F68B042C167EF03F41DAAF07388AE192AB30F81B243766863F9A5402A.
+OldC:/HDR-VDP-3_Ref hasextra diagnosticprinting/inspection inhdrvdp3.m and
+hdrvdp_visual_pathway.m;diffssaved,allotherstock.mfilesmatch. Oldrefsnotchanged.
+DoNOTcallolderlocaldirectorybyte-identical/unmodifieddistribution. Newbaseline
+usescleanstockQscores,theninstrumentedcopywhoseQ/QJODcheckedagainststockeachcase.
+
+Newstandaloneproject tests/hdrvdp3_general_double builds general-double-quality,
+prepare-general-double-image,general-double-contract (MSVC19.51/fp:strict).
+FFTWproviderloads explicitnormalisedWindowsDLLpath,3threads,estimate,unaligned,
+preserveinput,clearedwisdom;sharednumericalFFTlibrarydoesnotproxyreferencecode.
+FirstfailedDLLloadingforwardslashcasepreserved;make_preferredfixedconstructor.
+FirstrectanglepyramidsdifferentbutsameRGB/adaptation/P tracedfailure. GNUOctave
+convn sortsaxesbydecreasinglength,changingtaporderandFMAcontiguousdimension.
+Genericcorrelate/mutualmasknowpreservepermutation;allfinalcasesexact. Oldsquare
+CPU/GPUfunctionsuntouched. Octaveofficialsource oct-convn.cc capturedforinspection;
+no downloadedsourcecompiled/linkedbythisnewimplementation.
+
+Final8engineeringconfigs:80x64native30/age24;97x65native30/24;
+96x96sRGB30/24;256x192native60/45;1024x683sRGB30/24;
+96x80linear70945/35;96x80linear202045/35;65x97XYZ30/60.
+TOTAL12383347Doublewords,0bitdifferences inclRGB,adaptation,P,allpyramidbands,
+meanlog,allbanderrors,Q/QJOD. Originalwavy_facade1024x683usedwithoutresizewith
+localgreenchange;otherpatternssynthetic/reinterpretedacrossencodings,not8photos.
+C++16bitPNGreader2098176sourceDoubleRGBsamplesbyte-exactvsOctaveimread. Additional
+actualPNGfilepair(actual16bitdistortedPNG)independentlydecoded/scoredbyC++ and
+cleanstockreferenceviaJSONmanifest:2scoresbitexact,protocol/inputhashesmatch.
+run_general_implementation.cjs invokesonlyC++executables;notOctave;Singleprecision
+rejected;unitPNGvsabsoluteEXRpoliciesexplicit;failuresrecorded/notsilentlyskipped.
+ItsDoubleEXRpathusesverifiedcachedfloatdatawithoutphotometricrescaling.
+
+13APIinput/viewing/unknownencoding/missingbackendrejectscheckedbyerrormessages,
+notjustanyexception. Newunitinmainstaticlib/mainIQMbuildpasses;v10OLEDstress
+3numeric/inputexportsbyte-identical,Vulkanlogpreserved. NewCPUmoduleunusedby
+mainCLIhandler;doNOTsaypublicmainCLIacceptsarbitrarysize. audit_general_quality.cjs
+recomparesalltracebytes/scores/counts;PASS. PowerShellTeeAPI_contract.txtUTF16;
+auditexplicitlydecodesit (initialtextauditfailurepreservedinconversationaltrace).
+Finalcpp_final_quick/extended/linear accepted;earlierfailed/provisionalrunsremain.
+
+Acquisitionagain:upiq_acquisition/status.jsonHTTP500,downloaded/validatedfalse.
+InternetArchiveCDXfallbackreturned503offlineHTML(archival_index.jsoniserrorHTML,
+notvaliddatasetmetadata). Noalternativeusablearchive. Userhasnoarchive;donotask
+again. OfficialREADME/CSVstillunavailable,actualdatasetmanifestcannotbeinvented.
+
+Commands:
+cmake -S tests/hdrvdp3_general_double -B <root>/build -G 'Visual Studio 18 2026' -A x64;
+cmake --build <root>/build --config Release --target general-double-quality
+prepare-general-double-image general-double-contract;mainIQMbuild26097exit0.
+export_general_double_reference.m <cleanref> <fresh> quick|extended|linear;
+C++runner <case> <modeldata> <FFTWdll> <fresh> [--scores-only];
+run_general_implementation.cjs <manifest> <C++exe> <imageexe> <models> <FFTWdll> <out>;
+compare_predictions.cjs <reference.json> <actual.json> <freshcomparison>;
+audit_general_quality.cjs <root> PASS. Extended67242exit0,PNG89433exit0.
+Sources/executables/hashinventoryfrozen. ProtectedcorrDn SHA/stagedblobunchanged;
+VkFFTdirtypreserved. No commit/push/reset/clean/externalmessages.
+
+Exact next step: originalUPIQcontentaccessisexternalblocker. Briefrecheckonfuture
+session;onaccessverifyzipMD5/size,readcorrectedPPDandunits/precisionmetadata and
+buildactualUPIQmanifest. Thenruncleanstockbaseline+independentC++ fullimages,
+completeunsupportedSingle/lowPPD/displaybranchesbasedonactualmetadata. No
+GPU-onlymicrostagesornewdemoasbenchmarksubstitute. Ifserverstill500,noinfinite
+retries/nofakecompletion;continueunaffectedgenericfunctionalityandstateUPIQ0.
+Thischeckpointmakesfull-sizeC++comparisonpossiblebutdoesnotfulfilUPIQgoal.
+
+## Latest checkpoint: UPIQ acquisition pinned; original-size reference/EXR setup checked (2026-10-31)
+
+User explicitly prioritizes actual Mantiuk/reference dataset and equivalent
+predictions;not another small-demo/GPU-stage acceptance. User confirmed they
+have never downloaded a UPIQ ZIP/folder;do not ask them again for an existing
+archive. No UPIQ image or score has been obtained. Full metric NOT complete.
+
+Root: validation/upiq_639290576672243959. Setup-only pointer validation/upiq_setup_completed_path.txt.
+Do NOT create a benchmark-completed pointer. setup_results.json explicitly has
+0UPIQreference/implementationcases,dataset_downloaded:false,full_benchmark_parity:false.
+
+Official April2021 metadata successfully acquired through DSpace API:
+DOI10.17863/CAM.68372;handle1810/321331;itemc2d00e29-07b5-4b67-bcfc-80893b17fa53;
+ORIGINALbundle62fb36db-9c81-4877-b471-972e4630ef50. Metadata says corrected
+pix_per_deg column. Archive2520028189bytes,MD5b3adf6f25c2b02b86fadca275ee6a517,
+bitstream016c5d46-dd55-458c-a6a9-29aa0ecedebe. README7823bytes,
+MD59f2149846d18aa836deb6e92e3c2b293,bitstreama38a84f6-9de0-4ef8-8de9-e0a60062c013.
+Pinrecord tests/upiq/dataset.lock.json derivedfrommetadata/bitstreams.json.
+Metadata source https://api.repository.cam.ac.uk/server/api/pid/find?id=1810%2F321331
+
+ContentGET forREADMEandZIP returnsHTTP500:An internal read or write operation
+failed. Exactresponsebodies/headers preserved. First32byte archive range also500.
+OldofficiallegacydownloadURL also500;projectpathupiq_dataset.zip404. Previous
+READMEversionalso500. Acquisitionutility tried againlater,same500;noapproval
+rejection. No viable mirrorfound(HFAPIreturned unrelatedtextdataset,do notuse).
+PublicHDRVDP3/UPIQreportHTMLandper-datasetPNG downloaded from officialCambridge
+ColorVideoVDP reports path;image-onlyreport,not per-pair fullprecision goldens.
+
+Added Get-UPIQ.ps1:fixedofficialpin/freshoutput,size+MD5verify,thenSHA256;can
+validate a supplied localarchive in future. HTTPerrorbody is.partial andstatus
+false,neveracceptedZIP. Current acquisition andacquisition_retry contain227byte
+servererrorJSON,notdatasets. Fullverifiedarchive must stillbedownloaded.
+
+Referenceharness tests/upiq/run_reference_manifest.m callsunmodifiedofficial3.0.7,
+assertsfunctionresolution,logs input/sourceSHA256,originaldimensions,precision,
+encoding,ppd,age,display,scoretext+nativehex;noresize/crop/tonemap;CPUOctave11.3,
+FFTW3threads3/estimate/clearedwisdom. Officialhdrvdp3.m SHA256 remains
+F0D4BAC0247A9BAD7630456038EBE2FDFFBF8DD59725E96B6A4E74B205F79AC5.
+PNG16bit officialexamplewavy_facade identity1024x683:10/10,reference_smoke_v2;
+notUPIQ/notimplementationcomparison. Initialsmoke missingdata-pathfailed,
+preserved reference_smoke;fixeddataaddpath. Octaveshutdownexecution_exception
+warningbutexit0andcompleteindependentlyauditedresults. Noofficialsourcechanged.
+
+EXRingestion added in tests/upiq/decode_exr.cpp,create_exr_controls.cpp;
+Build-EXR-Decoder.ps1 usesinstalledOctaveMinGWOpenEXR/Imath headers/libsDLLs.
+Single-partnon-deepFLOAT/HALF,explicitRGB/XYZchannelnames,originaldatawindow
+andrawFloat32samples;norescale/colorinference. Missing/subsampled/UINTreject.
+Nonzeroorigin handledSlice::Make. 420words across4RGB/XYZFLOAT/HALFcontrols
+signedzero/tinyvaluesbyte-exact;positive97x65control18915wordsexact,also native
+reference10/10 atoriginalsize viaEXRpreparedcache. Unique19335controlwords,
+notbenchmarkdata. Sourcebuildexr_buildfailed missingOpenEXRinclude;fixedin
+exr_build_v2/v3;alloldbuildsretained. Latestuseddecoderexr_build_v3.
+prepare_exr_inputs.cjs hashesactualEXRanddecodedbytes,doesnotinfercalibration;
+run_reference_manifest.m verifieshashes/layout/display-datawindowequality,
+rejectsunknownEXRpolicy andnonfinite/negativephysicalinputs. Cachedpathskept
+absolute,Windowsabsolute path resolutioncorrected beforeEXRreferenceexecution.
+
+compare_predictions.cjs demandsrecordedids,hashes,dimensions,precision,encoding,
+ppd,age,display,scoredecimal/nativehex;reportsbitandULPdifferences,neveraccepts
+missingcases.5contracttests(identicalselfcheck,1ULPerror,missingcase,wrongppd,
+wrongimage)pass;not actualimplementationpredictions. audit_setup.cjs independently
+checksmetadata/pins/downloadfailure/referenceprovenance/EXRbytes and3EXRnegative
+cases. SETUP_CHECKED.txt deliberatelynotmetricacceptance.
+
+Commands:
+Get-UPIQ.ps1 -OutputDirectory <fresh> (networkescalationapproved;returns2on500);
+Build-EXR-Decoder.ps1 -OutputDirectory <fresh-build>;
+node tests/upiq/prepare_exr_inputs.cjs <manifest> <decoder> <fresh-prepared>;
+octave-cli.exe --no-gui --quiet tests/upiq/run_reference_manifest.m
+ C:/HDR-VDP-3_Ref <manifest> <fresh-out>;
+node tests/upiq/check_comparison_contract.cjs <root>;
+node tests/upiq/audit_setup.cjs <root> PASS. Build/run91710/22052exit0.
+Sources/exes/metadatahashesfrozen. ProtectedcorrDnSHA/stagedblobunchanged and
+VkFFTdirtypreserved. No commit,push,reset,clean,emails/externalmessages.
+
+Exactnextstep: recheckofficialcontentavailability briefly onnextsession;obtain
+archiveviaGet-UPIQ andverifyofficialsize/MD5 beforeextraction. ReadactualREADME
+andcorrectedCSV;writeUPIQadapter withoutguessingPPD,displaymodel,units,precision.
+UseEXRcachefororiginalfloat samples;generatefulloriginal-resolutionofficial
+Q/QJODbaseline thenextendimplementationdimensions/viewingconditions accordingly.
+MainIQMstillfixedprofiles,nooriginal-resolutionUPIQacceptance. DoNOT callreference
+runner ashidden implementation fallback orreportreference-onlyrunsasourparity.
+Ifsourceoutagepersists,workongenericimplementation/formatcapability explicitly
+outsidebenchmarkclaims;do not loopfutileHTTPcalls or invent/substituteUPIQdata.
+
+## Dataset requirement clarification (2026-10-31)
+
+User now explicitly requires the dataset used by Rafal Mantiuk / the official
+reference, per supervisor, and asks whether it has been obtained. Audited local
+reports: no UPIQ dataset download or UPIQ end-to-end validation is recorded;
+existing synthetic fixtures and Memorial HDR crop are not that benchmark.
+Do not represent demo-ready as metric-complete or benchmark-validated.
+
+Official HDR-VDP-3 paper Sec3/5 identifies UPIQ for quality calibration;Sec6 uses
+LIVE HDR for WACV2023 video evaluation,not recalibration. Sources checked:
+https://www.cl.cam.ac.uk/~rkm38/pdfs/mantiuk2023hdrvdp3.pdf
+https://www.cl.cam.ac.uk/research/rainbow/projects/upiq/
+https://www.repository.cam.ac.uk/items/f27972b1-fa51-46fd-9f23-603670312e6e
+OlderUPIQrecord84refs/4159distorted,PNG/OpenEXR+CSV,linksnewerversion
+https://doi.org/10.17863/CAM.68372 (handle1810/321331).
+Only metadata/pages inspected this turn; no image archive downloaded/no tests.
+
+Priority next: obtain correct UPIQ version/README and viewing/encoding metadata,
+implement a dataset manifest and run official3.0.7 baseline on original images,
+then compare implementation Q/Q_JOD under identical precision/parameters.
+Current fixed96 paths cannot substantiate full-resolution UPIQ acceptance;
+resizing/cropping would create a different benchmark. Subjective JOD/MOS labels
+are not expected to equal a model prediction exactly;compare our scores to
+reference implementation,then assess correlations separately. Full benchmark
+requirement takes priority over further GPU-only micro-stage work.
+
+## Latest checkpoint: supervisor demonstration package ready (2026-10-31)
+
+User priority: have a runnable metric to demonstrate to professor while further
+implementation continues. Delivered a local self-contained Windows demo package,
+not an all-input/full-GPU completion claim. Root validation/professor_demo_639290563942725365.
+Completed pointer validation/professor_demo_completed_path.txt;package under
+package;HDRVDP3-Demo.zip (3963689bytes);accepted report relocated-results/report.html.
+Guide tests/HDRVDP3_DEMONSTRATION.md. No metric C++/shader arithmetic changed.
+
+Added scripts/hdrvdp3/Build-Demo.ps1,Run-Demo.ps1,DEMO_README.md;README links guide.
+Builder copies frozen v10 IQM executable and sRGB runtime,accepted native RGB
+runtime and six spectral model files. Four pairs with actualPFMinputs+PNGpreviews:
+sRGBstress,ramps,identity andMemorialChurchHDR-derivednativeRGBcrop,allOLED.
+OriginalnativeRGBsource command/main_rgb checkpoint suppliesreal inputs andgoldens;
+oldreferences/sourcephotographnotmodified. Crop provenance/virtualunits/native
+primaries assumption recorded. Previewtone mapping neverusedasmetricinput.
+Package contains87 hashed files,requires WindowsVulkanDriver/Float64GPU/MSVCruntime;
+no compiler/Octave/Node/referenceinstallation/network neededforreplay. Optional
+-EnableValidation requiresinstalledlayer;-OpenReport explicitlyopenslocalHTML.
+
+Run-Demo executesall4cases withfreshresults,checks8qualityvaluespercase plus
+all16expectedbinaryexportsperrun,logscommands/results,createsHTMLwithbothinputs.
+Expectedqualityvalues storedasoriginal17digitstrings;WindowsPowerShellJSON
+numericserialization hadrounded1bandvalue ininitialattempt. Firstfailedpackage
+preserved aspackage_rounding_failed. Secondnumericrunpassedall4cases,thenpreview
+inspectioncaughtintegerMath.Max/Min overloadquantizingRGB;fixedexplicitDoubles.
+package_preview_failed/original_preview_images retainoldpreviews. first-results
+PNGs updateddisplay-onlyafterexecution,metricinputs/exe/runtime/results unchanged;
+preview_correction.txt explains. Finalcopiedpackage replayusescorrectedpreviews
+throughoutandranfromdifferentCWD withspacesinpath(relocated demo).
+
+Results:4uniqueexistingpairs run2times;32qualityvalues+16binaryexports exactperrun,
+64/32replaycomparisonstotal;notnewreferencecorpuscoverage. Vulkanlogsclean.
+ScoresQ/QJOD:stress5.1837547121689243/6.1033661559446406;
+ramps9.8450571153464637/9.9523073729608242;identity10/10;
+HDRphoto9.7738552093505859/9.922581672668457.
+Fixed96x96,30ppd,age24,OLED,quality/defaultsp0;hybridCPU/GPU. Packagedoesnotclaim
+arbitrarydimensions,allviewingconditions,modes,devices,absolutecapturecalibration.
+
+Commands:
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/hdrvdp3/Build-Demo.ps1
+-OutputDirectory <root>/package;
+powershell -NoProfile -ExecutionPolicy Bypass -File <package>/Run-Demo.ps1
+-OutputDirectory <fresh-results> -EnableValidation;firstaccepted27585exit0.
+Relocatedrun76144exit0from<root>/relocated demo;node
+ tests/hdrvdp3_evaluation/audit_professor_demo.cjs <root> PASS;
+Compress-Archive <root>/package ->HDRVDP3-Demo.zip. IndependentNodeauditscheck
+allnumericbits/exporthashes/previewdimensions/reportscopeand87payloads bothcopies.
+Source snapshot and artifact hashes frozen. ProtectedcorrDn SHA/stagedbloband
+VkFFTdirtypreserved. No commit/push/reset/clean/externalmessage performed.
+
+Exact next step: demonstration objective now achieved within explicit profile.
+Resume implementation at remaining opticaladaptationln in project() andquality
+meanlog preparation,as preceding v10handoff;then exp/pow. Keep demo checkpoint
+frozen as runnable known-good baseline. Generaldimensions/viewingconditions and
+additionalpredictionmodes remain separate functional work,not hidden by demos.
+When reportingstatus distinguish demonstrationready fromfullHDRVDP3equivalence.
+
+## Latest checkpoint: production GPU JND logarithms, runtime v10 exact (2026-10-31)
+
+Root: validation/double96_log_639290557075459411. Completed pointer: validation/double96_log_completed_path.txt.
+Report: tests/DOUBLE96_GPU_LOG_VALIDATION.md.
+Accepted package: accepted_pack/runtime_repro/runtime. Builder -GPULogarithm
+implies all prior flags;v10 has22 manifest payloads(16SPV+6models),defaultv1.
+Pinned AMD MIT originalsource files vendored under tests/hdrvdp3_models/winlibm;
+no online or native capture dependency for package generation. Generatedshader
+retainslicense,package includesCOPYING-win-libm.asm. Payloadshader byte-identical
+toaccepted isolatedFMA kernel(D1C9205B25E42C9C8388C07E076024C94144FF3097896F790FDF8AE9A97E76A8).
+
+Optional16thpipeline(index15),logarithms API accepts1..36864 positive-normal
+finiteDoubles,returnsinterleavedln/log10. Existing73728Doublebuffers fitoutput.
+Impl helpercalledwithmutexheld,publicAPIlocks;JNDnestedusedoesnotrelock.
+JNDv10adaptationln andclampedL/M/rodquerylog10nowGPU. CPUcolumn-orderreduction,
+exp,pupilmodel,andLUTslopesremain. Qualityguard>=15preservesv10qualitycallback.
+Oldv1-v9CPUlogpath retained;otheroptical/qualitypreprocessinglogs stillCPU.
+Runtimev10requireslogarithm+allpriorpayloads,SHA/path/SPIRVheaderchecksbeforeGPU.
+
+Stage:1493028 nativeJNDwords(1492992GPUarrays+36CPUscalars),414730controlJNDwords
+(414720GPUarrays+10CPUscalars),1344072directproductionlogAPIwords vsOctaveoracle.
+Total3251830exact,3251784GPU-returnedvalues+46CPUscalars;0bitdifferences.
+LogAPIcorpus overlaps preceding isolatedtest,doNOTaddasnewcoverage. Controls
+includeall2048JNDgridvalues,customtie,in/outendpointsandearlier5sets.
+15stage/APInegativechecks. 9publicCLIconfigs72qualityDoubles497664decodedf32words
+exact,13CLInegatives;v1-v9 27numeric/inputexportsbyte-identical;14v10runtime
+rejectionsbeforeGPUcreation. Vulkanlogsclean. Samefixed96/30ppd/age24/defaultsp0,
+RTXA500andhistorical2distortedpairs+identityacross3displays. No fullGPU claim.
+
+Commands/artifacts:
+- build_srgb96_double_runtime.ps1 -GPULogarithm -RawData C:/HDR-VDP-3_Ref/data
+  -OutputDirectory <root>/accepted_pack/runtime_repro;package.log;session85202exit0.
+- cmake -S tests/hdrvdp3_double_gpu -B <root>/build -G 'Visual Studio 18 2026' -A x64;
+  build targetdouble96-log-test then mainIQM;session54991exit0.
+- <stageexe> <v10runtime> <cpu-root> <isolated-log-root> <freshstage>;
+  stage.log,stage/PASS.txt;session10064exit0.
+- validate_srgb_public_cli.cjs <root>/public_v10;validate_log_legacy.cjs <root>;
+  validate_log_runtime.cjs <root>;session12025exit0.
+- audit_double96_log.cjs <root> validation/double_log_winlibm_639290554223038982;
+  final_audit_PASS.txt/results.json independentbytes/countchecksPASS.
+InitialCLIsetupproducedPowerShellmetadataobjects inJSON;preservedentiredirectory
+aspublic_v10_setup_failed,acceptedfreshpublic_v10usesexplicitstringvalues.
+No numericalfailedrunsoroldreferencesdeleted. PROFILEmetadataCPU/GPUboundary
+clarifiedafterruns,payloadsunchanged;runtimehashinventoryrefreshed.
+source_snapshot_final overlaysv9snapshot,usedexecutablesandartifacthashesfrozen.
+ProtectedcorrDn SHA25603DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6,
+stagedblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7unchanged;VkFFTdirtypreserved.
+No commit,push,reset,clean performed.
+
+Exact next step: reuseoptionalGPUlogpipelineforremainingopticaladaptationlog
+in SRGBQuality96GPUDouble::project andqualitymean-logadaptationpreparation.
+ExposeoptionalbackendcallbackforqualitymeanlogratherthanchangingsharedCPU
+quality_double.cpp. Preservev10rounding/scope,gateextendedbehaviorwithnext
+runtimeversionifneeded. Compareopticaladaptationlogandqualitymeanlogagainst
+nativearrays,thenfull9CLI+v1-v10regressions. Afterlogs,exp/powstillneedexplicit
+sourceorderimplementationandtheirindependentvalidation;donotclaimmetriccomplete.
+
+## Latest checkpoint: source-order GPU log/log10 exact isolated stage (2026-10-31)
+
+Root validation/double_log_winlibm_639290554223038982; completed pointer validation/double_log_winlibm_completed_path.txt.
+Report tests/WINLIBM_DOUBLE_LOG_VALIDATION.md. No production v9 changes.
+Breakthrough: AMD win-libm source operation-order candidates reproduce observed
+MSVC/Octave rounding exactly. Pinned MIT upstream6121d02aef0c775947d5dc655d7fc4ccfe2144ab;
+https://github.com/amd/win-libm. Originalsources/licenses underupstream,
+upstream_hashes.json records SHA256. Generator usesfive257entry exactbit tables,
+normal mantissa/exponent path andnearone special branch;FMA andseparate SSEorder
+variants. This is algorithm-defined table reduction,not corpuslookup correction.
+NearoneGPUdivision usesexistingFMAresidualcorrection. NoFloat32 conversions.
+
+Both fma/sse original663580 andexpanded672036 inputruns havezero bit errors
+forbothlog/log10 againstCPU. Octaveexpandedqueryoraclealso exact. Uniquecoverage
+1344072 outputwords;smaller/variant runs overlap DO NOTaddcounts. Expanded
+controls8456(positive-normal neighbors ofallnormalpowers2,257tablecenters at
+3exponents,nearone thresholds). Originalcaptured663552+28controls retained.
+No invalid-domain/subnormal handling claimed. RTX A500,RTE64/signedzero64,
+denormPreserve64false;SPIRVvalid;Vulkanlogsclean. No fullmetricintegration or
+fullallinput/device parityclaim. Bothsourcevariants matching doesnotidentify
+actualWindowsdispatcher orprove variantsallinputequivalent.
+
+Changes:generate_winlibm_log_candidate.cjs, audit_winlibm_log.cjs,
+verify_double_log_candidate.cpp optional --boundaries;genericNodeauditnow
+records corpus_exact separately andalways production_accepted:false. This
+corrects overly broad metadata label frominitialfirstzero-erroraudit;preserved
+older frozen artifacts areunchanged. Initialgeneratordiagnosticfailed table
+padding/colonlabel parsing;fixed withstrict258thzero-padding validation and
+bothlabel forms before any numericalrun. Sourceandgeneratedshaders archived.
+
+Commands:node tests/hdrvdp3_evaluation/generate_winlibm_log_candidate.cjs
+<upstream> <fresh.comp> fma(or sse);compile_double192_multiply.ps1 into freshshader;
+cmake --build <root>/build --config Release --target double-log-candidate-test;
+<exe> <native-root> <shader> <fresh-run> --boundaries(capture run.log);
+Octave exporter onfma_boundaries/run/input.f64 ->octave_boundaries.f64;
+node tests/hdrvdp3_evaluation/audit_winlibm_log.cjs <root>
+validation/double_log_candidate_639290551273713565. FinalauditPASS.
+MSVCbuild84628exit0. Combinedboundaryrun92355 endedPowerShellexit1 because
+Octavestderr shutdown execution_exception warning;explicitOctavefailureguard
+nottriggered,complete672036pairs independentlyauditedexact;warningpreserved.
+Sourcefetchrequiredsandboxescalation forWindowsTLScredential access;approved,
+noapprovalrejection. Originaldownloadfails preserved as nofile,oldrefsuntouched.
+Usedrunnerbaselinepriorfrozenexe;expandedrunnernewbuild. Usedexes/source/hash
+inventoryfrozen;protectedcorrDn andstagedblobunchanged,VkFFTdirtypreserved.
+No commit,push,reset,clean performed.
+
+Exact next step: integrate optional logarithm pipeline/runtimev10 into production
+Double96 backend andreplace selectedCPUlog/JNDquerypreparation. Validate full
+intermediate andQ/JOD equalityon9configs,legacyv1-v9 numericexports andruntime
+rejections beforepromotion. Generatedkerneluses2SSBO,pushfirstuint=count,
+outputinterleavedlog/log10;compatiblewithadditionalunusedbinding2 inexisting
+backenddescriptorlayout. CPUexp/pow stillremain; doNOTcallmetriccomplete/fullGPU.
+
+## Latest checkpoint: actual GPU Double log candidates measured (2026-10-31)
+
+Artifacts validation/double_log_candidate_639290551273713565; completed pointer validation/double_log_candidate_completed_path.txt.
+Report tests/DOUBLE_LOG_CANDIDATE_VALIDATION.md. No production v9 modification.
+Added two isolated shaders, verify_double_log_candidate.cpp standalone CMake
+ target double-log-candidate-test, Node bit/ULP audit, GCC binary128 diagnostic,
+Octave query exporter and independent Octave audit. Positive normal finite
+arguments only; no subnormal/negative/zero/NaN/Inf handling claimed. Sources
+native adaptation/post-pupil captures(two distorted pairs+identity,3displays,
+2sides),column order;actual JND L/M/rod inputs clamped pow10(-5)/pow10(5).
+663552 captured inputs+28controls=663580;both log/log10 perinput(cross-operation
+outputs beyond each actual production query type). CPU MSVC19.51/fp:strict.
+
+Baseline frexp+atanh41 shader:21893 log mismatches(max2ULP),166560 log10(max3).
+Compensated Double-pair shader:99 log and137 log10 mismatches(all1ULP).
+No nonfinite outputs;SPIR-V valid,RTE64/signedzero64,no Float32/no OpFConvert.
+Vulkan validation logs clean;RTX A500,denormPreserve64false. Neither candidate
+accepted forproduction. Node audits reconstruct allcounts/histograms pergroup.
+GCC/libquadmath binary128 independent check:all99/137disagreements favorGPU
+candidate overCPU;194log/232log10 totalchecked includingcontrols/matchedsample,
+no sampled matching failures. This is finiteprecision diagnostic,not proof of
+all-input correct rounding andnotpermission to replace native arithmetic.
+
+Octave11.3 query oracle(export_double_log_queries.m):all663580 log/log10 pairs
+matchCPU bitwise;GPU retains99/137disagreements. Notcompleteofficialmetricrun.
+Octaveexit0 withcompleteauditedoutput,printed ignoring const execution_exception
+whilepreparingtoexit;warningpreserved inoctave_queries.log. CPU/native query
+roundingthereforeconfirmedforthisobservedenvironment. No tolerance promotion.
+
+Commands:compile_double192_multiply.ps1 -OutputDirectory <freshshader>
+-ShaderSource tests/double_log[_compensated]_candidate.comp;
+cmake -S tests/hdrvdp3_double_gpu -B <root>/build -G 'Visual Studio 18 2026' -A x64;
+cmake --build <root>/build --config Release --target double-log-candidate-test;
+<exe> <native-root> <shader/multiply.spv> <fresh-run>,capture run.log;
+node tests/hdrvdp3_evaluation/audit_double_log_candidate.cjs <root>[ /compensated];
+GCC -O2 -std=c++17 -fno-fast-math tests/audit_double_log_quad.cpp -lquadmath;
+quad-audit.exe <root>/compensated/run <freshreport>;
+octave-cli.exe --no-gui --quiet tests/export_double_log_queries.m <input> <fresh>;
+node tests/hdrvdp3_evaluation/audit_double_log_octave.cjs <root>.
+Build90729/runbaselineexit0,compensated49107exit0,quad97281exit0. Initial unused
+exe preserved;native file name adaptation corrected before numerical execution.
+Sources/exes/final hashes frozen;protected corrDn hash/staged blob unchanged,
+VkFFTdirty preserved. No commit,push,reset,cleanup.
+
+Exact next step: investigate source-defined log/log10 arithmetic reproducing
+Octave/UCRT rounding (not simply correctly-rounded math). Testfullquerycorpus
+andadditionalboundaryinputs;doNOT add corpus-specific lookup corrections.
+Currentcompensatedcandidate is accuracydiagnostic only. FullGPU nonlinear
+workalso stillrequires exp/pow;v9exacthybridremainsproductionbaseline.
+
+## Latest checkpoint: Double transcendental capability and pow corpus (2026-10-30)
+
+Artifacts: validation/double_math_probe_639289555561227814; completed pointer validation/double_math_probe_completed_path.txt.
+Report tests/DOUBLE_TRANSCENDENTAL_DIAGNOSTIC.md. Production v9 remains unchanged.
+Added probe_double_transcendentals.ps1 (fresh outputs only): installed glslang
+accepts Double sqrt/fma, valid SPIR-V with Double instructions/no OpFConvert;
+rejects Double log/log2/exp/exp2/pow with compiler exit2/no matching overload.
+This is capability evidence only; no GPU transcendental evaluation occurred.
+
+Added standalone export_double_pow_queries.cpp target double-pow-query-export
+in tests/hdrvdp3_double_gpu/CMakeLists.txt. MSVC /fp:strict; source native root
+validation/srgb_csf_639288068563510612, preserved column order and native params.
+query_corpus/queries.f64 contains1158704 (x,exponent,CPUresult) triples24bytes;
+groups.tsv records offsets. Six per-pixel quality power queries per band plus
+45 final-error queries and35controls. Two distorted pairs+identity,3displays,
+5bands. Independent audit verifies386208 excitation/psychometric power results
+against native captures and45 final band errors bit-exact. Other pow results
+are CPU oracle data, not independently exported native checks. Compile initial
+attempt failed mixed float INFINITY initializer; corrected explicit double cast,
+rebuild/run session80333 exit0. Earlier failed build retained. Probe shaders are
+isolated and shared shaders_out is untouched.
+
+Commands: powershell -NoProfile -ExecutionPolicy Bypass -File
+ tests/hdrvdp3_double_gpu/probe_double_transcendentals.ps1 -OutputDirectory <fresh>;
+cmake -S tests/hdrvdp3_double_gpu -B <root>/build -G 'Visual Studio 18 2026' -A x64;
+cmake --build <root>/build --config Release --target double-pow-query-export;
+<root>/build/Release/double-pow-query-export.exe <native-root> <fresh-corpus>;
+node tests/hdrvdp3_evaluation/audit_double_pow_queries.cjs <root> <native-root>.
+All final checks passed. Used exe/source/hash inventory archived. No commit/push.
+
+Exact next step: implement isolated explicit Double logarithm range-reduction
+candidate (GLSL built-ins cannot compile these Double overloads), obtain actual
+log-query corpus from adaptation/post-pupil values, run GPU and quantify every
+bit mismatch against CPU/native. Then evaluate exp/pow candidates using this
+pow corpus. Do not promote an approximation to exact production or silently
+convert through Float32. Keep current v9 hybrid path while parity is unresolved.
+
+## Latest checkpoint: hybrid GPU quality arithmetic and pooling v9 (2026-10-30)
+
+Artifacts: validation/double96_quality_639289541135475932; completed pointer
+validation/double96_quality_completed_path.txt. Report:
+tests/DOUBLE96_GPU_QUALITY_VALIDATION.md. Runtime accepted_pack/runtime_repro/runtime.
+Optional -GPUQuality implies previous flags; v9 has 15 shaders plus 6 models.
+New double96_quality.comp performs weighted masking, excitation arithmetic,
+Double sqrt, corrected division, comparison multiplication and sequential
+column-order normalized pooling. CPU powers, psychometric, final error power,
+final Q/Q_JOD and other nonlinear preprocessing remain. This is hybrid only.
+Inf denominator guard preserves signed zero; native Double sqrt passed directly.
+Optional denominator/raw-pooling traces expose values before final CPU power.
+
+stage_rawpool/PASS.txt:1158714 native/derived Double quality words exact;
+643730 control words exact;10 rejection checks. Total 1802444, zero bit errors:
+1501990 GPU-returned values,300454 CPU values. Derived sqrt/raw-pooling oracles
+use C++ arithmetic, not native exported fields. Original stage overlaps coverage.
+9 CLI configurations/72 quality Doubles/497664 decoded input Float32 words exact;
+13 CLI and13 runtime negatives passed. v1-v8 retained24 numeric/input files.
+Vulkan inspected logs clean. Tests cover original two distorted pairs plus
+identity across3 displays; fixed96/30ppd/age24/defaultsp0 on RTX A500595.95.
+No arbitrary dimensions/device/denormal or full-GPU parity claim.
+
+Commands: cmake --build build-vs2026 --config Release --target IQM;
+node tests/hdrvdp3_evaluation/audit_double96_quality.cjs <artifact-root>.
+Stage exe in build/Release/double96-quality-test.exe under artifact root;
+final accepted stage_rawpool;public_v9;v1_regression through v8_regression;
+v9_runtime_rejections.json. Build session2647,stage64626,CLI43409,legacy5735
+completed0;runtime53799 produced13-rejection PASS. Final audit passes.
+Package PROFILE metadata clarified after runs, payloads unchanged.
+Frozen source_snapshot_final and used executables/hash inventory record state.
+Global git diff --check still reports pre-existing whitespace in mtf_gpu_test.cpp;
+no unrelated edits applied. Protected corrDn SHA256 remains
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6;
+staged blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7;VkFFT remains dirty.
+No commit/push/reset/clean performed.
+
+Exact next step: add isolated Double log/exp/pow GPU diagnostic comparing bitwise
+against native/UCRT query arithmetic before promoting any replacement. Preserve
+current hybrid production path on any mismatch. Remaining CPU stages include
+EOTF/calibration/padding, log/exp/JND query preparation, CSF model/base nonlinear
+calculations, all quality powers/psychometric/error power/final scores.
+
+## Latest checkpoint: hybrid GPU CSF maps + CLIv8 exact (2026-10-30)
+
+Root validation/double96_csf_639289513048590286;completed pointer
+validation/double96_csf_completed_path.txt. Report
+ tests/DOUBLE96_GPU_CSF_VALIDATION.md. JNDv7 checkpoint finalized/frozen first
+thiscontinuation;see preceding entry. New double96_csf.comp implements GPU
+resize/clamp/interpolation/reciprocal,base Neumaier mean andscalar-noise fill.
+CPU mean-log10 preparation,256model table/grid/slopes,pow10/compute_ncsf base
+scalar remain. DoNOTdescribe completeGPU CSF orGPU transcendentals.
+
+csf.cpp new csf_log_luminance_grid returns COPY ofexistingprivate actual
+pow/log-rounded grid;oldsample_csf functions/arithmetic unchanged. GPU
+upper_bound usesactual256Doublegrid,notidealuniform;separate product/add.
+Noise reciprocalFMA residual correction handlesInfquotient beforeFMA. GPU
+base mean column-order Neumaier +correcteddivision144,CPU pow10/model noise,
+thenGPU broadcast(+Infvalid). NoisepositiveInf explicitlyallowed by API;
+NaN/nonpositive rejected,otherCSF arrays/tables finite/shapechecked.
+
+Production optional14thpipeline index13. ReuseGPUbicubic pipeline9 for
+96->48/24/12;normalizations==1 enforced. Descriptor0 for96input->buffer1;
+descriptor2 resizedbuffer2->3;output log/sensitivity/noise packed3N plus
+base meanscalar. Sourceplans CPU. Contextmutex/fence protects coeff updates.
+JND>=13 featureguard permitsv8. Runtimev8requires20payloads(14SPV+6model),
+-GPUCSF implies allpreviousflags. Defaultv1;oldv1-v7 CPUCSF preserved.
+CLIprofileGPU CSF-linear yes;CPU model/base nonlinear scalar. No native
+capturefiles required inproduction. Packageaccepted_pack/runtime_repro/runtime.
+PROFILEmetadata clarifiedafterruns,inventoryrefreshed;payloads unchanged.
+
+Stage native590841hybridDoublewords:579312GPU-returnedmapvalues+11520CPUtable
+values+9CPU base-luminance scalars. Controls328245:321840GPUmapvalues+6400CPU
+tables+5CPUscalars. Total919086 comparisons,901152mapvalues/17920tables/14
+scalars. Base noise values GPU copies ofCPU scalar,notallGPU arithmetic.
+All135savedmaps bytecheckednativecolumn->row. Same2distortedpairs+identity,
+3spectra*5bands;notnewrealimagecoverage. Fivecontrolsets lower/upperclamp,
+all256gridnodes,impulse/border,ramp;zero-basefrequency+Infnoise tested.
+8badstagecases(shape2,band,negative/NaN/Inf frequency,NaN/Inf input)reject.
+
+public_v8:9PFMCLIconfigs,72qualityDouble scalars exact,497664inputwords exact,
+13CLIinvalidcases pass. Twelvev8runtime negatives rejectbeforeGPU. V1-v7
+OLEDstress each3numeric/inputexports byte-identical;21files,notprofile-byte
+claim. SharedCSFsource changed interface,sooldFloat32 BT2020OLED commandalso
+rerun:ALL16exports byte-identical ondefaultIntel. AllacceptedlogsnoVUID/[ERROR].
+No failednumericalruns. MainRelease/stagebuild49833complete0 (historical
+unrelatedwarnings);package69618,stage42146,CLI21817,legacy93444,BT202031892,
+negative50295complete0. Nojobsrunning.
+
+Audit node tests/hdrvdp3_evaluation/audit_double96_csf.cjs <root> checks135
+nativearrays/counts/9qualitybands/scores/CPUboundaryflags/regressions/logs/
+negativecounts;results.json/final_audit_PASS.txt. validate_csf_runtime.cjs
+createsfreshv8_rejections. CMaketargetdouble96-csf-test args<v8runtime>
+<nativecpu-root> <fresh-output>. Packagebuildercommand -OutputDirectory
+<fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUCSF. Defaultprofile96sq/30ppd/age24/
+qualitysp0,NVIDIARTXA500Float64/RTE64/signedzero64,denorm64unavailable.
+
+Frozenmain/test/source/runtime/hashinventory. No commit/push/reset/clean/
+shaders_out edits;dirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged. CPU EOTF/calibration/
+padding/log/exp/pow,base nonlinear model andquality/pooling remain. Working
+fixedhybridCLI;notfullGPU/generalgeometry/viewing/prediction/deviceparity.
+
+EXACT NEXT STEP: evaluate_quality_band_double GPU arithmetic. Pow terms
+(self^q,neighbor^q,noise^(2p),absdiff^p,psychometric^pf,Minkowski^.8) currently
+CPU Double andmustnotbe replaced withFloat32GLSLpow. Canfirstmove exact
+mask-noise weighted sums,excitation/sign products,maskedsignal,andmeasured
+Double sqrt/division withCPU pow preparation boundary explicit. Native
+mask_noise/excitation/difference/psychometric/masked/error traces5bands provide
+oracle. MeasureGPU Double sqrt vsCPU beforepromotion;handle+Infnoise and
+signedzero soFMA residual onInf doesn'tcreateNaN. Pooling native column-order
+sum includes per-element division byN BEFOREaddition,not sum-then-divide.
+KeepCPU finalpow/log/exp scores until exactGPU math verified. Validate maps/
+edge/Inf controls thenoptionalbackend/runtime/CLI;don'tclaimfullGPU frompartial
+CPU pow preprocessing. Alternative research exactDoubleGPUlog/pow isneeded
+foractualfullGPU metric,withalgorithmicparity priority overperformance.
+
+## Latest checkpoint: hybrid JND GPU linear stages + CLIv7 exact (2026-10-30)
+
+Root validation/double96_jnd_639289063974280074;completed pointer
+validation/double96_jnd_completed_path.txt. Finalized Oct30;work began previous
+session. Report tests/DOUBLE96_GPU_JND_VALIDATION.md. New double96_jnd.comp
+performs GPU post-pupil multiplication,2048-node upper_bound,bounded interval
+selection,separate product+addition interpolation,zeroS plane and(L+M)+R.
+CPU geometricmean/log/exp,pupil model,Doublelog10queries andtable/slopes remain.
+Explicit GPU->CPU post_pupil query boundary,thenCPUqueries->GPU interpolation.
+DoNOTdescribe this as fullGPU JND or wholemetric completion.
+
+Production optional13thpipeline index12 uses descriptor0:buffer0source,
+filtermodel,buffer1output. Phase0 4*9216multiply;phase1 3*9216queries +5*2048
+model(grid/cone/rod/2slopes) ->4*9216channels +9216P. CPU source slopes have
+native separately rounded division;GPU multiply/add precise,no FMA. Rod reads
+LMSRchannel3;channel2S skipped;outputfourthplane+0. CPU geomean traversal
+xtheny,pupil area96*96/30/30,age24. Checks positivefinite inputs/monotonic LUT.
+API optionaljndcallback+shape/finite/scalarchecks;oldv1-v6 CPUJND preserved.
+
+Runtimev7requires19payloads(13SPV+6model);-GPUJND implies priorGPU flags.
+Defaultbuilderstillv1. CLIpassesmodule;metadataGPU JND-linear yes;CPU log/exp
+queries. Source-built accepted_pack/runtime_repro/runtime with spirv-val.
+PROFILEmetadata clarifiedafterruns;payloads unchanged/inventory refreshed.
+
+Final stage_fullgrid:1492992 nativeGPU array words +36CPU scalars exact;
+controls414720GPU words+10CPU scalars exact. Total1907758 hybrid comparisons,
+1907712GPUvalues+46CPU scalars. Native18sides(2distortedpairs+identity*3spectra*2)
+post_pupil/JND/P,54savedarrays bytechecked vsnative afterplane/rowconversion.
+Fivecontrols:constant,clampends,channelvariation,exact interiorgridquery,
+all2048gridnodes sweep. 8invalidcases:2shapes,nonpositiveLMSR/adapt,NaNLMSR,
+Infadapt,duplicategrid,NaNcone. Initialstage4controls1824812alsopassed;
+its source/binary saved jnd-four-controls-*;overlap,notadditionalcoverage.
+
+public_v7:9PFMCLIconfigs,72qualityDouble scalars exact,497664decodedinputs
+exact,13CLInegatives pass. Elevenv7badpackages rejectbeforeGPU. V1-v6OLEDstress
+regressions each3numeric/inputexports byte-identical;18files,notprofile-byte
+claim. AllacceptedVulkanlogs noVUID/[ERROR]. No failednumericalruns.
+MainRelease,stagebuild49147 andfullgridtestbuild7790COMPLETE0;packages63528,
+stage77086/fullgrid31920,CLI16463,legacy79364COMPLETE0. Nojobsrunning.
+
+Audit node tests/hdrvdp3_evaluation/audit_double96_jnd.cjs <root> checks54native
+arraybytes/counts/9qualitybands/scores/explicitCPUboundarymetadata/regressions/
+negativecounts/logs. results.json/final_audit_PASS.txt. Runtime negative tool
+validate_jnd_runtime.cjs createsfreshv7_rejections. CMake targetdouble96-jnd-test
+args<v7runtime> <nativecpu-root> <fresh-out>. Build package via
+build_srgb96_double_runtime.ps1 -OutputDirectory <fresh> -RawData
+C:/HDR-VDP-3_Ref/data -GPUJND. Scopefixed96sq/30ppd/age24/defaultsp0,NVIDIA
+RTXA500Float64/RTE64/signedzero64;denorm64unavailable. Priorcorpusreused.
+
+Frozenmain/test/sources/runtime/hashinventory. No commit/push/reset/clean/
+shaders_out edits;dirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged. CPU EOTF/calibration/
+padding/log/exp/CSF/nonlinearquality/pooling remain;notfullGPU/generalparity.
+
+EXACT NEXT STEP: quality_csf_double GPU linear stages. Input mean_log96sq
+stillCPU log10;reuse verifiedGPUbicubic sourceplans forband96/96/48/24/12.
+Clamp resizedlog[-5,5],sample actual CSF loggrid(log10(pow10(csf_grid_exponent)))
+NOTideal uniformgrid,upper_bound interpolation andnative separate product/add.
+Expose sourceDoubleloggrid from csf.cpp ifneeded,CPUgenerate256table/slopes.
+Neuralnoise1/sensitivity requires measuredcorrectedDoubledivision. Baseband
+meanNeumaier order +pow10/compute_ncsf may stayCPU initially,explicit boundary.
+Native log_adaptation/csf/noise/table/base_metadata provideoracles. Validate
+allbands andgrid/end/clamp controls beforebackend/runtime/CLI hookup. Keep
+DoubletranscendentalsCPU untilexactGPUimplementationverified,noFloat32math
+shortcut. CurrentfixedhybridCLI remainsusable.
+
+## Latest checkpoint: GPU comparison masks + publicCLI v6 exact (2026-10-29)
+
+Root validation/double96_comparison_639289055271224765;completed pointer
+validation/double96_comparison_completed_path.txt. Report
+ tests/DOUBLE96_GPU_COMPARISON_VALIDATION.md. Newtests/double96_comparison.comp
+computes strictDouble anyRGB abs(test-ref)/ref>.001,thenproductionbackend
+usesexistingGPUbicubic shader for96/96/48/24/12. SourceResizeAxisPlan CPU
+weights;ratios1/.5/.25/.125 normalizationsEXACT1 checked. Mask staysGPUbetween
+decision/horizontal/verticalpasses. No finalclamp,rings/negativeweightskept.
+
+DivisionusesacceptedFMAresidualcorrection forfinitequotients;Infquotient
+returned beforeFMA toavoidNaN. Explicitdenom0 cases:positive/+0true,0/0false,
+positive/-0false. UnpackDouble2x32 signbitcheck,ONLYShader/Float64capabilities,
+noInt64logicalfeaturerequired. Initialaccepted_pack beforezero-signrefinement
+superseded;acceptedfullfresh final_pack/runtime_repro/runtime. No failed
+numericalruns;initialpackagewasnotusedforacceptedtests. Genericdivision/
+subnormal/allhardwareguarantee notclaimed. PreparednativeRGBpositiveclamped,
+butcontrolsincludezero/negativezero/overflow withnormalfiniteinputs.
+
+Optional12thpipeline index11,descriptor0 ref0/testfilter/output1,thenresize
+via existingpipeline9/set1 1->2 andset2 2->3. CheckednonnegativefiniteRGB27648,
+band0..4. APIoptionalcomparisoncallbackaddedlast,checksfinite/shapeONLY,
+notnonnegative becausebicubicringingnativecomparisoncanbenegative.
+Pyramid>=11 pipelineguardsallowv6;otherstagesretained. CPUfallbackv1-v5 intact.
+
+Runtimev6requires18payloads(12SPV+6model),comparisonrequiredpluspriorkeys.
+Builder-GPUComparison impliesGPUPyramid/Neighbor/Masking/Projection;defaultv1.
+CLIpassesmodule andprofileGPU comparisonYES. Sourcebuild/spirv-val;Float64
+RTE64/signedzero64. PROFILEmetadataupdatedaftertests/inventoryrefreshed,
+no numericalpayloadchanges. No shaders_out edits.
+
+Stage193104nativeDoublecomparisonwords exact(2distortedpairs+identity*
+3spectra*5bands). Referenceinputfromnativeconv1/2/3_input preparedRGB,
+column->row conversion;all45savedoutputmapsbytecheckednativecomparisons.
+Controls85824Doublewords exact(4sets:threshold-nextafter,zeros/negativezero/
+overflow,sparse,smooth;5bands each). Newratio.25/.125 exact. 5invalidstage
+inputsreject(band5,emptyshape,negative,NaN,Inf). Total278928stage/controlwords,
+notnewrealimagecoverage;overlappriorcorpus. Newverify_double96_comparison.cpp
+ targetdouble96-comparison-test args<v6runtime> <nativecpu-root> <fresh-output>.
+
+public_v6:9actualPFMCLIconfigs,72qualityDouble scalars exact,497664inputwords
+exact;13CLIinvalidchecks pass;allprofilesGPUcomparisonYES. V1/V2/V3/V4/V5
+OLEDstress each3numeric/inputexports BYTE-IDENTICAL;15filestotal,notprofile
+byteclaim(newmetadata). TenpackagecasesrejectBEFOREGPU(comparisonmissing/
+hash/magic,v5extraentry,duplicate,missingfile,missingprojection/mutual/
+neighbor/pyramid). AllacceptedlogsnoVUID/[ERROR]. MainRelease/stagebuildpass.
+
+Audit node tests/hdrvdp3_evaluation/audit_double96_comparison.cjs <root>
+checks45nativearraybytes/counts/9qualitybands/scores/flags/regressions/logs/
+negativecounts;results.json/final_audit_PASS.txt. Runtimevalidator
+validate_comparison_runtime.cjs createsfreshv6_rejections. CLIvalidator reused
+withbackend=<root>/final_pack. Builderpowershell -NoProfile -ExecutionPolicy
+Bypass -File tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1
+-OutputDirectory <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUComparison.
+
+All88834initialpkg/68874finalpkg/31706stage+mainbuild/41364stage/39068CLI/
+39222legacy sessionsCOMPLETE0. Tenrejectionscomplete0. Nojobsrunning. Frozen
+main/test/source/model/runtime/hashinventoryunderroot. No commit/push/reset/
+clean/shaders_out edits;dirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged. Scope96sq/30ppd/age24/
+qualitydefaultsp0,NVIDIARTXA500Float64/RTE64/signedzero64;denorm64unavailable.
+CPU EOTF/calibration/padding/log/exp/JND/CSF/nonlinearquality/poolingremain.
+FullGPU/generalreferenceparitynotcomplete;fixedhybridCLI usable.
+
+EXACT NEXT STEP: inspectjnd_double.cpp. Portpupil multiplication andDoubleJND
+LUT lookup/interpolation/P addition. Keepgeometricmeanlog/exp,pupilmodel and
+perpixelDoublelog10queries CPUuntil verifiedGPUtranscendentals available.
+CanCPUgeneratefixedtable/slopes once (native slopesaretable differences/
+log-grid differences,separatelyroundedproduct+addition),GPUbinarysearch
+upper_bound exactendpoint andchannelL/M/R selection(skipS,finalSplane+0).
+GPU post_pupil readback->CPU log10query->GPU interpolation ispartialJNDGPU,
+MUSTlabelCPUquery boundary explicitly. Native18sidepost_pupil/JND/P traces
+provideoracle;controlsgridendpoints/queryties/rodcone layouts. Validatebefore
+optionalAPI/backend/runtime/publicCLI hookup. EventuallyexactDoublelog/exp/
+pow andCSF/pooling stillneededforwholeGPU;noFloat32GLSLshortcut.
+
+## Latest checkpoint: complete GPU SP0 pyramid + CLIv5 exact (2026-10-29)
+
+Root validation/double96_pyramid_639289046961375442;completed pointer
+validation/double96_pyramid_completed_path.txt. Report
+ tests/DOUBLE96_GPU_PYRAMID_VALIDATION.md. Newtests/double96_pyramid.comp
+performsDouble high/lo0/orientation/lo filtering,reflect1,reversedfx/fy,
+16-rowblockFMA/separatetail,downsampling,fivebandnormalizations,Neumaier
+base mean incolumnorder andDC removal. CPUgeneratesoriginal380coefficients
+via create_sp0_model_double;no native intermediate/calibration injection.
+NormalizedbandsreadbackonlyforlaterCPUquality;rawlowchainremainsGPU.
+Mean/DC GPU serial144-term reduction +FMA-remainder-correcteddivision144.
+Power2 banddivisors1/2/4/8/16. Notgenericdivision/subnormalguarantee.
+
+Production optional11thpipeline(index10),usesexistingdescriptor/bufferring:
+high0->1readback;lo0 0->1;orient1->2readback,low1->2;orient2->3,low2->3;
+orient3->4,low3->4normalizedbase;DC4->5,meanatindex144. Coefficientuploads
+isolatedbymutex/fencebetweenpasses. APIoptionalpyramidcallback+checks5bands/
+shapes/finite/base_pre144/meanfinite. Neighbor>=10 checkpreservesv5neighbor;
+mutual/projectionearlierchecksunchanged. Oldruntimev1-v4 CPUpyramid preserved.
+
+Runtimev5requires17payloads(11SPV+6model),pyramidrequiredpluspreviousstages.
+Builder-GPUPyramid impliesneighbor/mutual/projection. Defaultstillv1. CLI
+passesoptionalmodule andprofileGPU pyramidyes/no. Acceptedpackage
+accepted_pack/runtime_repro/runtime sourcebuilt/spirv-val. PROFILEmetadata
+clarifiedafterruns,hashinventoryrefreshed;numericalpayloadsunchanged.
+No failednumericalruns inthischeckpoint.
+
+Stage388818nativeDoublewords EXACT across18sides(2distortedpairs+identity*
+3spectra*2sides):5normalized/DCbands,base_pre,base_mean. All126savedfiles
+bytecheckedagainstnativecolumnmajor afterrowlayoutconversion. Controls86404
+words exact(4inputs:cornerimpulse,centerimpulse,constant,signedpattern).
+3badinputsreject(empty/NaN/Inf). Newverify_double96_pyramid.cpp target
+ double96-pyramid-test args<v5runtime> <nativecpu-root> <fresh-output>.
+Total475222stage/control comparisons,OVERLAPpriorcorpus,notnewimagecoverage.
+
+public_v5:9actualPFMCLIconfigs,72qualityDouble scalars exact,497664decoded
+Float32inputwords exact;13CLIinvalidcasespass. AllprofilesGPU pyramidYES.
+V1/V2/V3/V4OLEDstress each3numeric/inputexports byte-identical;12filestotal,
+notprofilebyteclaim(newmetadata). Ninev5runtimecasesrejectbeforeGPU(pyramid
+missing/hash/magic,v4extraentry,duplicate,missingfile,missingprojection/
+mutual/neighbor). AllacceptedlogsnoVUID/[ERROR]. OriginalSingleencodedinput,
+Double192paddedFFT,30ppd/age24/defaultsp0/DCunchangedinFFTs,12baseDCcorrected;
+NVIDIARTXA500Float64/RTE64/signedzero64,denorm64unavailable.
+
+Audit node tests/hdrvdp3_evaluation/audit_double96_pyramid.cjs <root> checks
+all126nativefiles/counts/9qualitybands/scores/metadata/regressions/logs/
+negativecounts;results.json/final_audit_PASS.txt. Runtimevalidator
+validate_pyramid_runtime.cjs createsfreshv5_rejections. Publicvalidator reused
+withbackend=<root>/accepted_pack. Builderpowershell -NoProfile
+-ExecutionPolicy Bypass -File tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1
+-OutputDirectory <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUPyramid.
+
+All54316package/43520stage+mainbuild/77831CLI/50426legacy sessionsCOMPLETE0;
+stageand9rejectionscomplete0. Nojobsrunning. Frozenmain/test/sources/model/
+runtime/hashinventoryunderroot. No commit/push/reset/clean/shaders_out edits;
+dirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged. FullGPU/generalmetric
+unfinished. CPU EOTF/calibration/padding/log/exp/JND/CSF/comparison/nonlinear
+quality/poolingremain. CurrentfixedprofilehybridCLI usable.
+
+EXACT NEXT STEP: quality comparison masks GPU. Inspectquality_comparison_double:
+anyRGBchannel abs(test-ref)/reference>.001 at96sq,rowmajor,thenDoublebicubic
+resize toband96/96/48/24/12. Reuse verifiedsource-generatedresizeplans and
+GPUhorizontal/verticalorder;newratios.25/.125 requireexplicitnormalization
+check andnewcontrols. Doubledivisionthreshold mustpreservenativeRTE near
+.001;usemeasuredcorrecteddivision,handlezero-reference semantics(positive
+numerator/zero=>comparisontrue,0/0=>false)ratherthanblindFMA correctiononInf.
+PreparednativeRGBalreadyclamped1e-6,butpublicstagecontrols shouldincludezero.
+Validate nativecomparisonarrays5bands/9configs +near-threshold/endian/layout
+controls,thenoptionalAPI/backend/runtime/CLI integration. JND/log/exp/CSF/
+nonlinearpow/pooling remainharderDoubleGPU stages;do notuseFloat32GLSLmath
+asparityshortcut. Keepcurrentv1-v5 defaultCPUfallbackpaths intact.
+
+## Latest checkpoint: GPU neighbor masking + publicCLI v4 exact (2026-10-29)
+
+Root validation/double96_neighbor_639289040796933808;completed pointer
+validation/double96_neighbor_completed_path.txt. Report
+ tests/DOUBLE96_GPU_NEIGHBOR_VALIDATION.md. Newtests/double96_neighbor.comp
+uses source-generatedDoublebicubic axisplans;separate multiply/add,CPU-native
+horizontal thenvertical order,max(resized,0),lowerthenupperneighboraddition.
+Same-size skipresize. No textures/FMA substitution. Planweight/indexgeneration
+make_resize_axis_plan CPU unchanged;actualprofile ratios1/2/.5 andnormalization
+EXACTLY1 enforced beforeupload,notgeneraldivisionproof.
+
+Production optional10thpipeline index9;neighbor callbackaddedafterexisting
+optionalfields. Methodvalidatesall5maskshapes/nonnegative/finite+band0..4.
+Owncontextmutex;reusebuffer0source/buffer1horizontal/buffer2vertical/
+buffer3accumulator/filterplan. Clearandperneighbor GPUsubmissions isolate
+hostcoeffupdates;no CPUimageintermediatebetweenaxes. Sourceindicesencoded
+asexactDoubleintegers. ShaderseparateDoubleproduct/sum anddivisionbychecked1.
+APIneighborresultshape/finite/nonnegative checked. Mutual>=9pipelinecheck
+allowsv4;projection>=8. DefaultCPUneighborforv1/v2/v3 preserved.
+
+Runtimev4requiresneighbor+mutual+projection,16payloads(10SPV+6model).
+Builder-GPUNeighbor implies-GPUMasking then-GPUProjection;defaultstillv1.
+CLIpassesnewmodule andprofileGPU neighbor-masking yes/no. Acceptedpackage
+accepted_pack/runtime_repro/runtime;fullfreshsourcebuild/spirv-val. PROFILE
+metadata clarifiedafterruns andhashinventoryrefreshed,payloadsunchanged.
+No failednumericalattempts thischeckpoint.
+
+Stage:193104nativeDouble neighbor words exact across9configs/5bands;
+64368CPU-oraclecontrolcomparisons exact(impulses,borders,smooth,large/tiny,
+same/up/downsampling). All45savedrowmajor outputsbytecheckedagainstnative
+neighborarrays convertedcolumn->row. Sixbadstagecasesreject:maskcount,
+band5,shape,negative,NaN,Inf. Newverify_double96_neighbor.cpp target
+ double96-neighbor-test args<v4runtime> <nativecpu-root> <fresh-output>.
+Sameprior2distortedpairs+identity/3spectracorpus;notnewrealimagecoverage.
+
+public_v4:9PFMCLIconfigs,72qualityDouble scalars exact,497664inputwords exact,
+13CLIinvalidcasespass;profilesGPUneighborYES. Oldv1/v2/v3OLEDstress each
+quality+twoinputexports BYTE-IDENTICAL;9numeric/inputfiles total,notprofile
+byteclaim. Eightv4packagerejections BEFOREGPU:missingneighbor,baddigest,
+badmagicupdatedhash,v3headerextraentry,duplicate,missingfile,missingprojection,
+missingmutual. AllacceptedlogsnoVUID/[ERROR]. FullGPUmetricnotfinished.
+
+Audit node tests/hdrvdp3_evaluation/audit_double96_neighbor.cjs <root> checks
+nativearraybytes/counts/9scores/bands/profileflag/regressions/logs/negatives;
+results.json/final_audit_PASS.txt. validate_neighbor_runtime.cjs createsfresh
+v4_rejections. ExistingCLIvalidator reusedwithbackend=<root>/accepted_pack.
+Buildercommandpowershell -NoProfile -ExecutionPolicy Bypass -File
+ tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1 -OutputDirectory
+ <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUNeighbor.
+
+All28173package/35928stage+mainbuild/34231stage/93308CLI sessionsCOMPLETE0.
+V1V2V3regressionsand8runtimechecksCOMPLETE0. Nojobsrunning. Frozenmain/test/
+sources/runtime/hashinventoryunderroot. No commit/push/reset/clean/shaders_out
+edits. DirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged. Scope96sq/30ppd/age24/
+qualitydefaultsp0,NVIDIARTXA500Float64/RTE64/signedzero64;denorm64unavailable.
+CPU EOTF/calibration/resizeplans/log/exp/JND/pyramid/CSF/nonlinearquality/
+poolingremain;notallGPU/generalgeometry/viewing/prediction/deviceparity.
+
+EXACT NEXT STEP: DoubleSP0pyramid GPU port. Inspectsp0_double.cpp and
+sp0_model_double.cpp,source-generated380coefficients,reflect1coordinate
+semantics,16-rowblockFMA/separatetail traversal,5bandnormalization and
+OctaveNeumaierbase/DC mean. FirstisolaterawfilterstageGPUwithnativepyramid
+boundaries beforeoptionalproductionAPIbackend hookup. Keepmean/DC CPUuntil
+exactGPUorder verified;do notreuseFloat32shader outputs asDoubleproof.
+Validate18sides/5bands+impulse/edgecontrols,thenfullQ/JODCLI regression.
+KeepDoubletranscendentalsCPUuntil exactGPU math ismeasured,notFloat32GLSL
+shortcuts. Currentv1-v4hybridCLI usable,fullGPUmetric remainsunfinished.
+
+## Latest checkpoint: GPU mutual masking + publicCLI v3 exact (2026-10-29)
+
+Root validation/double96_mutual_639289036948994984;completed pointer
+validation/double96_mutual_completed_path.txt. Report
+ tests/DOUBLE96_GPU_MUTUAL_VALIDATION.md. Projectioncheckpoint completed/frozen
+firstinthiscontinuation. New tests/double96_mutual.comp implements minabs +
+3x3box/zeroborder,fxascending/fydescending,native16-rowFMA +separatelyrounded
+tail/border. Double1/9 coefficient literal. Shapes96/48/24/12square only.
+
+ProductionSRGBQuality96GPUDouble optional9thpipeline,index8,usesbuffer0ref,
+filter/test,buffer1output withdescriptor0. Callback .mutual addedAFTERexisting
+project member;API usesoptionalGPU masks andvalidatesfinite/nonnegative;
+default CPU mutual remains forv1/v2. Projection checksupdated>=8pipelines,
+so v3preservesGPUprojectiontoo. AllFFT/SP0/defaultCPU math otherwiseunchanged.
+
+Runtimev3requiresprojection+mutual(15payloads),v1/13andv2/14preserved. Builder
+-GPUMasking implies-GPUProjection;defaultstillv1. ExistingCLIargsunchanged;
+profileGPU mutual-masking yes/no. accepted_pack/runtime_repro/runtime is the
+ACCEPTEDpackage. Initialfinal/runtime_repro missedimpliedprojection duean
+incompletebuilderedit;preserved,notaccepted. Fixedswitchimplication andfresh
+rebuiltall9shaders inaccepted_pack. PROFILEmetadataclarifiedmasking flagafter
+runs;runtime_hashes refreshed,no numericalpayloadchanged.
+
+Stage:193104nativeDoublemaskvalues exact(2distortedpairs+identity*3spectra*
+5bands),64368CPU-oracle controlcomparisons exact(sparseimpulses,borders,
+signs,large/tinyvalues,FMA/tail). Nativebandinputsconvertedcolumn->row,
+self-maskoracleconvertedcolumn->row;all45savedmaskfiles bytechecked.
+5stagebadcasesreject:width20,heightmismatch,emptyshape,NaNref,Inftest.
+Newverify_double96_mutual.cpp targetdouble96-mutual-test. No furthernewreal
+image/geometrycoverage;overlappriorcorpus. Total257472stage/controlvalues.
+
+public_v3:9actualPFMCLIconfigs,72qualityDouble scalars exact,497664inputwords
+exact,13CLInegativechecks pass. AllprofilesGPUmutualyes. V1andV2OLEDstress
+regression eachquality+twoinputfiles BYTE-IDENTICAL topriornativeexactCLI;
+6numeric/inputfiles total,notprofilebyteclaim(newmetadata). V1/V2mutualCPU.
+7v3runtimecases reject beforeGPU:missingmutual,baddigest,badmagicupdatedhash,
+v2headerextraentry,duplicate,missingfile,missingprojection. Allacceptedlogs
+noVUID/[ERROR]. WholemetricstillhybridCPU/GPU;notfullGPUcompletion.
+
+Audit node tests/hdrvdp3_evaluation/audit_double96_mutual.cjs <root> checks
+savednative masks/counts/9qualityscores/callbackmetadata/negativecounts/
+V1V2regressions/Vulkanlogs;results.json/final_audit_PASS.txt. Validator
+validate_mutual_runtime.cjs createsfreshv3_rejections. ExistingpublicCLI
+validator usedwithbackend=<root>/accepted_pack. Targetargs <v3-runtime>
+<nativecpu-root> <fresh-output>. Sourcepackagebuilder fullfreshcommand:
+powershell -NoProfile -ExecutionPolicy Bypass -File
+ tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1 -OutputDirectory
+ <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUMasking.
+
+All18800stage/mainbuild,13544initialpkg/5357acceptedpkg,95278legacyregression,
+64868CLI sessionsCOMPLETE0. Stageand7rejectionscomplete0. Nojobsrunning.
+Source/main/test/runtime/hashinventoryfrozen. No commit/push/reset/clean/
+shaders_out edits;dirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged. Scope96sq/30ppd/age24/
+qualitydefaultsp0,NVIDIARTXA500Float64/RTE64/signedzero64;denorm64unavailable.
+CPU EOTF/calibration/log/exp/JND/pyramid/neighbor/nonlinearquality/poolingopen.
+
+EXACT NEXT STEP: GPU neighbor masking:inspectquality_neighbor_mask_double and
+resize_bicubic Double source. Preserve nativebicubic weights/antialiasing/
+clamp and lower-then-upperband sumorder;CPUgenerateweights/sourcecoordinate
+mapifneeded,thenGPUweightedlinearoperations,explicitrounding/FMA asreference.
+OnlyresizeoperationswithverifiedDoubleweights/division shouldmove;do notuse
+hardwaretextureinterpolation asreferenceproof. Validate native neighbor masks
+for5bands acrosssamecorpus +border/impulse controls,thenoptionalbackend/API/
+runtimeandpublicCLIQ/JOD regression. NextDoubleSP0pyramid/JNDandremaining
+nonlinearpow/log/exp/pooling needseparateexactGPUimplementation. Avoidclaiming
+fullGPU orallgeometry/viewing/prediction parity fromthese fixedprofilepasses.
+
+## Latest checkpoint: GPU optical/spectral projection + CLIv2 exact (2026-10-29)
+
+Root validation/double96_projection_639288883822821742;completed pointer
+validation/double96_projection_completed_path.txt. Report
+ tests/DOUBLE96_GPU_PROJECTION_VALIDATION.md. New tests/double96_projection.comp
+performsDouble opticalclamp1e-5..1e10,sourcecalibrationRGB->LMSR,clamp1e-8..1e10,
+L+M addition;firstproduct separatelyrounded,green/blueexplicitnestedFMA.
+CPU sourcecalibration andDoublelog preserved;no Float32log substitution.
+
+Productionbackend optional8thmodule/pipeline andseparate82944Doubleoutput;
+existing7shaderconstructor preserved via defaultoptionalspan. project method
+validatesfinite27648input,uploads12matrixcoefficients,dispatch144x64,returns
+raw/clamped/adaptationinput +CPUcomputedlog. Ownmutex/buffers reused andGPU
+completebeforeCPUreadback. OptionalAPI projectcallback addedAFTERexistingtwo
+callbackmembers to preserve sourceaggregate2initializer uses;API skipsCPU
+opticalclamp whenGPUcallbackselected,checksreturnedclamped/logshape/finite.
+Defaultv1 callbackempty keepsoldCPUprojection;notabinaryABIcompatibilityclaim.
+
+Double96loader accepts v1/13payloads andv2/14payloads(projectionrequired).
+Builder -GPUProjection selects v2;defaultbuilder remainsv1. CLIpassesmodule
+andprofile exportsGPU spectral-projection yes/no. No newCLIargs. Runtimev1
+preserved;new v2modeldata/FFTprofile unchanged. Newshader sourcegenerated
+coefficients,explicitRTE64/signedzero64/spirv-val via existingcompiler.
+
+Stage_final:1658880nativeDoublewords exact across18sides(2distortedpairs+
+identity*3spectra*2),coveringrawresponse,clamped,L+Minput,CPUlogboundary.
+Controls276480additionalCPU-oracleDoublewords exact across3spectra,negative/
+zero/lower/upper/above1e10 opticalvalues. 3stagebadinputsreject(empty/NaN/Inf).
+Saved raw/clamp/input arrays byte-equal officialnative captures. Scopeoverlaps
+priorcorpus;notnewrealimage/geometrycoverage;CPUlog values explicitlynotGPU.
+
+public_v2_final:9originalPFMCLIconfigs,72qualityDouble scalars exact,497664
+inputFloat32words exact,13negativeCLIchecks;positivebigendian/scale2 case.
+All9profilemetadata projectionyes. V1OLEDstressregression:quality.txt andtwo
+inputexportsbyte-identical;profileprojectionno(newmetadata). Sixv2runtime
+negativecases rejectBEFOREGPU:missingprojection,baddigest,badmagicwithupdated
+hash,v1headerextraentry,duplicate,missingfile. AllacceptedlogsnoVUID/[ERROR].
+
+Initialruntime_repro erroneouslyv1header+projectionentry;initialpublic_v2
+andstage attempts failedloaderasexpected,beforeGPU. Fixedbuilderversionline;
+fullsourcefreshrebuild acceptedfinal/runtime_repro/runtime. Failedrootsold
+preserved. PROFILEmetadataclarifiedGPUprojection/remainingCPUaftertests,no
+numericalpayloadchanged;runtime_hashes refreshed. All80339/44547packbuilds,
+7331mainbuild,35750stagebuild,18449finalCLIruncomplete;stage_finalcomplete0.
+V1regressionand6negativerunscomplete0. Nojobsrunning.
+
+Audit node tests/hdrvdp3_evaluation/audit_double96_projection.cjs <root>
+checks savednativearraybytes/counts/9scorebands/nativeQ/JOD/yes-no metadata/
+validationlogs/v1regression/v2negatives. results.json/final_audit_PASS.txt.
+New verify_double96_projection.cpp targetdouble96-projection-test args
+<v2-runtime> <nativecpu-root> <fresh-output>. validate_projection_runtime.cjs
+createsfreshv2_rejections folders;runonceorfreshroot. CLIvalidator reused
+validate_srgb_public_cli.cjs withbackend=<root>/final lineage.
+
+MainIQMRelease andnewstagebuild pass. Frozenmain/test/sources/runtime/hash
+inventoryunderroot. No commit/push/reset/clean/shaders_out edits;dirtyVkFFT
+preserved. CorrdnworktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+andstaged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+Scope96sq/30ppd/age24/defaultsp0,192sqDoublepadding/DCunchanged/inverse36864,
+NVIDIA RTX A500/RTE64/signedzero64,denorm64unsupported. WholeGPU/generalmetric
+notcomplete. CPU EOTF/calibration/log/exp/JND/pyramid/masking/poolingremain.
+
+EXACT NEXT STEP: port next source-definedDouble linear/localoperations that
+avoid unverified transcendentals,e.g Double3x3 mutual masking/boxfilter and
+zero-border arithmetic from quality_double.cpp,withnative self_mask traces
+asoracle andexplicitFMA/separateoperationorder. Addoptionalbackendstage and
+newruntimepayload/version onlyafter isolatedbitwisepass,thenfullQ/JODCLI
+regression. AlternativelyDoubleSP0pyramid filtering requires existing16-row
+FMAblock/reversefy ordering,NeumaierDCmean,normalization tostayexact;do not
+reuse Float32 kernels asproof. KeepDoubletranscendentalsCPUuntil independently
+verifiedGPUmath;do notclaimfullGPU. Currentv1/v2hybridCLI remainsusable.
+
+## Latest checkpoint: public PFM/sRGB CLI exact (2026-10-29)
+
+Root validation/srgb_public_cli_639288880035945081;completed pointer
+validation/srgb_public_cli_completed_path.txt. Report tests/SRGB_PUBLIC_CLI_VALIDATION.md.
+MainIQM now routes --hdrvdp3-encoding srgb-display beforelegacy FileMatcher/
+defaultdevice creation to newbin/IQM/srgb_quality.cpp/.h. Loads96sq colorPFM,
+checks[0,1],transposes row->column bySinglecopy,loadsDouble96 runtime,selects
+Float64capablelogicaldevice andcallsproductionbackend/API. No diagnostic
+GPUhelper/nativecaptures/nativeFFTW required. OwnFFTdevice onlynewroute;
+old defaultlegacydevice path preserved. --hdrvdp3-device optionalmatching
+substring forsrgb ONLY;emptydefault filtersdevices byFloat64. Currentmachine
+selectsNVIDIA RTX A500;Intel lacksFloat64. Logicalfeature enabled explicitly.
+
+Args accepts srgb-display,requiresdisplay/30ppd/age24,runtime;modelcomesfrom
+runtime,explicit spectraloverride rejected. Deviceoverride outside newroute
+rejected. Existingrgb/linear/luminance guards preserved. NewCLIprocessor
+compiledonlyHDRVDP3 enabled via bin/CMakeLists target_sources(IQM).
+Outputsquality.txt(5bands,thenerror/Q/JOD),profile.txt,andtwo rawrow-majorf32
+inputexports. Existingexportdirs rejected;otherwiseautofreshvalidationdir.
+No newdiagnosticPPMmaps/otherprediction claim. Mainhelp andREADME updated.
+
+MainRelease buildcomplete0;historicalfloatconversion/VkFFT/unrelatedwarnings
+preserved. 9actualmainCLI runs:2distortedpairs+identity*3spectra,all72Double
+scalars(5banderrors+error/Q/JOD perconfig) exactofficialv3.0.7. All497664
+Float32 decodedinputwords exact;one rampsWCGpair bigendian/scale2PFM exact.
+Samepreviousimages;notnewcontentcoverage;earlier13millionintermediateAPI
+comparisons are historicalSEPARATEscope. Thirteen CLIrejections:ppd,age,
+display,spectraloverride,Intel/nonexistentdevice,oldruntime,existingoutput,
+overone/negative/NaN/Inf pixels,wrong95x96geometry. AllpositiveVulkanlogsclean.
+LegacyBT2020OLED commandrerun withnewmain/defaultIntel:16exportfiles
+BYTE-IDENTICAL includingprofile. NoVUID/[ERROR] inlegacylog.
+
+Validator tests/hdrvdp3_evaluation/validate_srgb_public_cli.cjs takesfreshroot
+withlineage.json(cpu/encoded/backend). Createsoriginalf32->PFMfixtures,all
+commands/logs/exports,results.json/CLI_PASS.txt. Savedoutput audit
+node tests/hdrvdp3_evaluation/audit_srgb_public_cli.cjs <root> PASS. Legacy
+commandderivedunchangedfromlinear_color_completed/cli_rgb-bt.2020/oled,
+onlyexportpathfresh;legacy_regression_PASS.txt. Runnable absolute path
+run_example.ps1 pointsactualOLEDstressPFMs/runtime/main andusesautofresh
+exporteachrun. Execute powershell -NoProfile -ExecutionPolicy Bypass -File
+<root>/run_example.ps1. Noadditional userapprovalneeded tocontinuework.
+
+All70619mainbuild/83254CLIvalidation/95361legacyrunCOMPLETE0. Nojobsrunning.
+FrozenmainEXE/sources/packagecopies/hashinventoryunderroot. No commit/push/
+reset/clean/shaders_out edits. DirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+PUBLICCOMMAND: build-vs2026/bin/Release/IQM.exe --method HDRVDP3 --input
+<encoded-test.pfm> --ref <encoded-reference.pfm> --hdrvdp3-encoding srgb-display
+--hdrvdp3-display oled --hdrvdp3-runtime <Double96-package/runtime>
+--enable-validation. --hdrvdp3-device NVIDIA optional;no spectraloverride.
+Packagebuilder build_srgb96_double_runtime.ps1 -OutputDirectory <fresh>
+-RawData C:/HDR-VDP-3_Ref/data. ProfileONLY96sq/30ppd/age24/defaultsp0/quality.
+FFT/convolution/cropGPU;visual/pyramid/masking/poolingCPU;notfullGPU/allmetric.
+Float64RTE64/signedzero64 acceptedNVIDIA;no denorm64/generaldeviceguarantee.
+
+EXACT NEXT STEP: GPU port remaining nonFFT stages through existing verified
+productionAPI,starting with source-generated Double spectral RGB->LMSR matrix
+projection andoptical/LMSR clamps (explicitFMAorder). Keep transcendental
+log/exp/JND preparations CPU until an exactGPU implementation isverified;
+do not silently useFloat32GLSL log/exp forDoubleparity. Addoptional source-
+generated calibration coefficient input,validateper-stage againstnative,
+thenplugintoAPI and publicCLI;keepcurrenthybridfallbackexplicit supported.
+NextmoveDoublepyramid/SP0 normalization/DC andmasking/pooling blockbyblock.
+GPUEOTF/transcendentals,othergeometry/viewing/predictions/devicesremainopen.
+Do not repeatresolved FFT/CLItests without a relevantnewchange. Currentfixed
+hybridCLI usable,butfullGPU metric andgeneralreferenceparity notcomplete.
+
+## Latest checkpoint: production GPU backend + Double96 runtime exact (2026-10-29)
+
+Root validation/srgb_gpu_backend_639288873352332716;completed pointer
+validation/srgb_gpu_backend_completed_path.txt. Report
+ tests/SRGB_GPU_BACKEND_RUNTIME_VALIDATION.md. New production headers/sources
+srgb_quality96_gpu_double andsrgb_quality96_runtime_double ininclude/src.
+SRGBQuality96GPUDouble borrows callerVulkanphysical/device/queue,requires
+logicalFloat64enabled bool+physicalFloat64/RTE64/signedzero64+compute family;
+owns7pipelines/modules,reusable buffers/descriptors,commandpool/buffer/fence.
+No Bin/test/staticglobal instance dependency inproduction. Callback adapter
+for quality96 API;optional traces. Mutex serializes owncalls;callerexternal
+synchronization for sharedqueue/lifetime required. Inputs finite/shapechecked.
+Shaders trusted;header/magic check notfullSPIRVvalidator. Caller device and
+physical device must correspond. Host-visible coherent memory required.
+
+Test9configs uses SAMEsinglecontext for72convolutions+9baseFFTs;13937256
+Double words bitwise exact,18Q/JOD exact,18API/backendnegativechecks. Prior
+corpus reused,notnewcoverage. Tests/verify_srgb_quality96_gpu_backend.cpp;
+accepted/PASS.txt,scores.tsv. No VulkanVUID/[ERROR]. SourceAPI/nonFFTCPU math
+unchanged. Testfirstcompile missed standardfstream/iostream inheritedfromold
+helper;fixed. Finalstandalonetestandproductionlibrary buildscomplete0.
+
+Distinct double96.runtime version1 profile
+srgb-display-quality-30ppd-age24-sp0;13requiredentries(7SPV+6rawmodelfiles),
+strictheader/key/duplicate/pathconfinement/SHA256 checks. All13digests checked
+before loading displaymodel. SHAutility copied unchanged intoisolated newTU,
+old pathway_runtime.cpp untouched. Digests integrity,NOTsignedauth. Legacy
+runtime profiles untouched. Runtimeusesoriginalrawmodeldata,notnativeintermediates.
+
+New build_srgb96_double_runtime.ps1 rebuilds all7shaders FROMsource into fresh
+runtime_repro/build andruntime_repro/runtime;sourcegeneratedtwiddles;explicit
+RTE64/signedzero64,spirv-val,COPYING preserved. SevenrebuiltSPV SHA256 equal
+prioracceptedbinaries,shader_reproduction_PASS.json. No shaders_out changes.
+validate_double96_runtime.cjs:3displaypositive loads,14negativecases(profile,
+version,missing/duplicate/unknownentry,digest/shortdigest,traversal/absolute,
+truncatedrow,missingfile,badSPVmagicwithupdatedhash,modelcorruption,baddisplay).
+AllPASS. Runtime loader code header/schema/shape checks donot constitute a
+signature/trust guarantee for arbitraryuser-providedshaders.
+
+New srgb-quality96-runtime-run rawf32 example (run_srgb_quality96_runtime.cpp)
+usesproductionloader+GPUbackend+API,no nativecapturepath andnodiagnosticGPU
+helper. RebuiltpackageOLEDstress Q5.1837547121689243/JOD6.1033661559446406,
+error alsoexact. Originalinputs fromsrgb_quality96_api_completed standalone
+inputs. Allstandalonetargets andbuild-vs2026IQM-HDRVDP3 library buildcomplete0.
+Optionalmissingglfw3 configurewarning historical. No publicmainCLI edits.
+
+Audit node tests/hdrvdp3_evaluation/audit_srgb_gpu_backend.cjs <root> verifies
+9scores/PASS/counts/runtime3scalars/reproduction/loaderresults/validationlogs.
+results.json/final_audit_PASS.txt saved. All44948firstbuildfailedthenfixed,
+79428/21570buildscomplete0;48789test,6273package,16663negativecheckscomplete0.
+Runtimeexamplecomplete0. No runningjobs. Source/binary/model/shader hashes
+frozen. No commit/push/reset/clean. DirtyVkFFT preserved. CorrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+REPRODUCE: CMake tests/hdrvdp3_double_gpu targets
+srgb-quality96-gpu-backend-test andsrgb-quality96-runtime-run. Backendtestargs
+<cpu-root> <encoded-root> <chain-root> <base-root> <raw-data> <fresh-output>.
+Packagepowershell -NoProfile -ExecutionPolicy Bypass -File
+ tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1 -OutputDirectory
+ <fresh-package-build> -RawData <raw-data>. Runtimeexampleargs <runtime> oled
+<ref.f32> <test.f32> <fresh-out>;--load-only <runtime> <display> forloadtest.
+Profilescope unchanged96sq/30ppd/age24/defaultsp0,192sqDoublepad,DCunchanged,
+correctedinverse36864;NVIDIA RTX A500;no generic denorm64/device guarantee.
+NonFFTvisual/pyramid/masking/qualityCPUremain;notfullGPUmetric.
+
+EXACT NEXT STEP: public main PFM/srgb-display integration. Existing
+bin/shared/wrappers/hdrvdp3.cpp hdrvdp3 RGB quality route nearline715and
+bin/IQM main/args validators currently rejectsrgb-display;inspectexisting
+HDRVDP3QualityArgs and rgb_imagePFM planar/rowlayout conversions first.
+Require strictDouble96 runtime profile,96x96/30ppd/age24/defaultsp0,explicit
+Float64-capable logicaldevice selection. Use productionbackend/runtime/API,
+transpose PFMrowmajor planar toAPIcolumnmajor WITHOUTextra casts/gamma.
+Keep old defaultFloat32/device/runtime paths unchanged. AddfreshoriginalPFM
+CLI acceptance across3spectra/twodistortedpairs+identity andnegativeprofile/
+geometry/value/device cases BEFOREenabling newroute. Then remaining CPU
+visual/qualityGPUport andexpandedgeometry/viewing/prediction/devicecoverage.
+
+## Latest checkpoint: capture-free library quality96 API exact (2026-10-29)
+
+Root validation/srgb_quality96_api_639288847233774342;completed pointer
+validation/srgb_quality96_api_completed_path.txt. Report
+ tests/SRGB_QUALITY96_API_VALIDATION.md. New production header/source
+include/IQM/hdrvdp3/srgb_quality96_double.h andsrc/hdrvdp3/srgb_quality96_double.cpp.
+evaluate_srgb_quality96_double accepts two original Single planar column-major
+RGB images,XYZ/RGB model samples,explicit convolution/baseFFT callbacks;
+returns error/Q/Q_JOD and5band errors. No file/native-oracle access in library.
+Fixed96x96,30ppd,age24,quality/defaultsp0. Both originalimages validated first;
+backend required;shape/finiteness/DC checks. Caller must provide model samples
+for same display. No implicit FFT fallback. CMake production source +strictFP.
+
+Exact accepted algorithm extracted from prior hybrid diagnostic:independent
+CPU display/spectral/padding/filter/adaptation/JND/pyramid/masking/quality;
+GPU backend supplies all FFT/convolution/crop. No broad wholeGPU claim.
+Production IQM-HDRVDP3 Release build complete0 in build-vs2026;onlynewAPI
+compiled;main CLI not changed or enabled. Optional missingglfw3 configure
+warning historical,library build succeeds. StrictFP MSVC/else preserved.
+
+New tests/verify_srgb_quality96_api.cpp,test targetsrgb-quality96-api-test.
+9configs(2distortedpairs+identity*3spectra),72GPUconvolutions:
+13937256 Double word comparisons exact (pad/filter/forward/inverse/crop/base/
+3scores+5banderrors). Same images as prior roots,OVERLAPPINGscope. All18Q/JOD
+exact;identity10/10. 9negativecases:empty/badshape,bad -1/1.01/Inf/NaN,missing
+backend,malformed convolution shape/nonfinite output. Invalidimages/missing
+callbacks reachnoFFT. accepted/PASS.txt,scores.tsv;validationlogs clean.
+
+New tests/run_srgb_quality96.cpp targetsrgb-quality96-run is rawf32 API usage
+example,no native capture directory orofficialroot runtime argument. Copied
+originalOLEDstress pair into standalone_inputs/reference.f32,test.f32;
+4raw model files into standalone_model;7acceptedSPV standalone_shaders.
+standalone_result/scores.json:error/Q/JOD exact officialOLEDstress result;
+Q5.1837547121689243,JOD6.1033661559446406. Exact arguments standalone_command.json.
+Standalone backend remains tests/double192_gpu_chain_diagnostic.h;not yet
+production device/context/package API. CPU nonFFT remains;not publicPFMCLI.
+
+Audit node tests/hdrvdp3_evaluation/audit_srgb_quality96_api.cjs <root> checks
+PASS/counts/9score rows against official records,standalone3double scores,
+validationlogs. results.json/final_audit_PASS.txt saved. lineage pointsCPU/
+encoded/chain/base roots;all prior files preserved. Accepted.exe/example and
+sources/models/shaders/hashes frozen. All7301/88767builds,45248/36223runs
+COMPLETE0;no running tasks. No commit/push/reset/clean/shaders_out edits.
+DirtyVkFFT preserved;corrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6/staged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+REPRODUCE cmake -S tests/hdrvdp3_double_gpu -B <fresh-build> -G
+'Visual Studio 18 2026' -A x64;build --config Release --target
+srgb-quality96-api-test srgb-quality96-run. APItest args <cpu-root>
+<encoded-root> <chain-root> <base-root> <raw-model-data> <fresh-output>.
+Example args <raw-model-data> oled <ref.f32> <test.f32> <shader-dir> <fresh-out>.
+Rawf32 is27648 Single planar column-major values,no PFM support in example.
+
+EXACT NEXT STEP: extract GPUChain diagnostic adapter into production reusable
+GPU backend/context (explicit Float64 and RTE64/signedzero requirements;
+owned shader modules/pipelines/buffers;no native files/testincludes/static
+Bin::VulkanInstance dependency). Package source-reproducible seven shaders
+and model metadata under a distinct strictDouble96 runtime profile;preserve
+legacy Float32/v1/runtime profiles. Wire main srgb-display PFM route ONLY
+through new API+backend with exact profile/device checks;compare outputs and
+negative cases before enabling. Then remaining CPU visual/pyramid/masking/
+quality GPU port and expanded geometry/viewing/prediction/device coverage.
+API numerical completion here does NOT establish publicCLI/fullGPU completion.
+
+## Latest checkpoint: original sRGB to Q/Q_JOD, all FFTs GPU exact (2026-10-29)
+
+Root validation/srgb_gpu_frontend_639288813195859182;completed pointer
+validation/srgb_gpu_frontend_completed_path.txt. Report
+ tests/SRGB_GPU_FRONTEND_VALIDATION.md. New diagnostic target
+srgb-gpu-frontend-test; OUTPUT_NAME srgb-gpu-frontend-allfft-test.exe.
+New verify_srgb_gpu_frontend.cpp + double192_gpu_chain_diagnostic.h.
+Independent original Single RGB -> CPU display preparation -> actual GPU
+optical convolutions/crops -> CPU spectral/clamp/log -> actual GPU adaptation
+convolution/crop -> CPU exp/JND/pyramid/masking/quality. Base12 frequency FFT
+also GPU. NO native FFTW DLL in final source or used by calculation. Runtime
+module sample during stress:fftw_modules=0. This is hybrid,NOT full GPU metric.
+
+Native values only comparison oracles;no captured padded/FFT/filter/matrix/
+LUT/visual/quality intermediate injected. Raw spectra and original encoded
+Single images are explicit inputs. Actual GPU cropped optical channels feed
+spectral projection/adaptation;actual GPU filtered log feeds exp and full
+quality. Source-generated CPU MTF/Gaussian tables,independent symmetric/
+replicate192sq padding,Double operation order preserved;30ppd/age24/defaultsp0.
+Column-major FFT/interleaved complex,DCunchanged,inverse36864,corrected
+normalization;NVIDIA RTX A500,RTE64/signedzero64,denorm64 unavailable. No
+arbitrary dimensions/viewing/subnormal/device/general-image claim.
+
+allfft_stress/ramps/identity accepted. Two distorted pairs plus identity control,
+3spectra each=9configurations;all18 Q/Q_JOD scalars bitwise reference exact.
+Total17457408 compared Double values (frontend+visual+quality);GPU crop663552
+words additionally byte-checked but OVERLAP inverse scope. Per case24 GPU
+convolutions,1769472 forward component words,884736 inverse real words exact;
+padding/filter884736each,adaptation55296,JND497664,pyramid129606,
+fullquality712890 values exact. Per display quality237630words. Identity all
+Q10/Q_JOD10. Stress/ramps scores exactly prior CPU checkpoint;results.json.
+All final Vulkan logs no VUID/[ERROR]. Saved all24 inverse/crop binary outputs
+per case equal prior official native captures. No new production changes.
+
+Audit: node tests/hdrvdp3_evaluation/audit_srgb_gpu_frontend.cjs <root>;
+checks binary convolution/crop oracles,24stage rows,visual/quality counts,
+score doubles,validation logs and optional recorded FFTW module sample.
+Reproduction runner validate_srgb_gpu_frontend.ps1 parameters Executable,
+CpuRoot,EncodedRoot,ChainRoot,BaseRoot,OutputDirectory(fresh),RawData(default
+C:/HDR-VDP-3_Ref/data). Parser syntax PASS;acceptance used equivalent direct
+commands. Positional executable: <native-oracles> <fresh-out> unaligned
+<raw-data> <encoded-inputs> <forwardfirst> <forwardsecond> <multiply>
+<inversefirst> <inversesecond> <crop> <base12>. 'unaligned' is reservedlegacy
+argument only;no CPU FFT plan exists in final version.
+
+lineage.json pins source dirs. Encoded stress/ramps from srgb_double_completed
+native_stress/native;identity from srgb_csf_completed/input_identity. Native
+oracles from srgb_csf native/native_ramps/native_identity_v2. Six convolution
+shaders from double192_chain_completed;GPU base from double_gpu/repro.
+Frozen copies7shaders,usedexe,sources/hashes underroot. Prior pre_base_snapshot
+and accepted_stress/final_stress/ramps/identity preserve provisional version
+which used CPU baseFFT;FINAL scope ONLY allfft_* runs. Provisional pipeline
+also passed but not added as independent coverage. Session47165/21399/67224
+COMPLETE0. Builds18807/72810complete0;one base refactor compile left staleFFTW
+block fixed;one link failed because old executable running. Separate output
+filename resolved lock;final buildcomplete0. No running jobs. An oldrunner
+rewrote lineage withoutbase;explicit string-based lineage restored afterward.
+
+CMake tests/hdrvdp3_double_gpu usesMSVC/fp:strict;escalated builds required
+FileTracker/compiler access. No commit/push/reset/clean/shaders_out changes.
+Dirty VkFFT preserved. Corrdn worktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6 andstaged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+EXACT NEXT STEP: productize this verified fixed96sq/30ppd/age24/defaultsp0
+hybrid path. Extract reusable calculation code from diagnostic comparisons
+into metric API with owned original inputs/raw model data and GPU FFT backend,
+no native capture directory requirement. Keep oracle reading solely tests.
+Expose supported profile/device requirements explicitly;wire public runtime/
+CLI srgb-display only after original-PFM end-to-end parity/negative tests.
+Then move remaining CPU visual/pyramid/masking/pooling calculations to GPU
+while preserving exact behavior. PublicDoubleCLI/fullGPU/general-size/viewing/
+otherprediction/device coverage remains incomplete. Do not call whole metric
+finished based on this9configuration diagnostic acceptance.
+
+## Latest checkpoint: Double192 GPU convolution + crop exact (2026-10-29)
+
+Root validation/double192_chain_639288802653025360; completed pointer
+validation/double192_chain_completed_path.txt. Report
+ tests/DOUBLE_GPU_CONVOLUTION192_VALIDATION.md. New standalone
+verify_double192_chain_gpu.cpp / CMake target double192-chain-gpu-test.
+Six dispatches: forward real axis -> forward complex axis -> spectral multiply
+-> inverse first axis -> normalized real inverse second axis ->96sq crop.
+No CPU intermediate, native FFT or filtered-spectrum injection. Input remains
+native padded Double spatial boundary; not original-image/full GPU metric.
+
+Source-generated CPU filter coefficients: existing generate_mtf_filter and
+Gaussian equation sigma=10^(-.781367)*30; native filters ONLY compared.
+New double192_filter_multiply.comp and double192_crop.comp; reproducible
+compile_double192_multiply.ps1 (optional -ShaderSource for crop), fresh packs,
+RTE64/SignedZeroInfNanPreserve64, spirv-val. Prior accepted forward/inverse
+SPIRV reused and frozen copies saved in dependency_shaders; lineage.json
+records source roots. Existing FFT harness and production code unchanged.
+
+Accepted_crop_native/native_ramps/native_identity_v2 each884736 inverse real
+Double words +221184 overlapping cropped words exact; total2654208 inverse
+and663552 cropped,72matrices. Source-generated filters zero bit errors.
+Two distorted pairs plus identity,3spectra,2sides,4convolutions;96sq/30ppd/
+age24/defaultsp0,192sq Double padded,symmetric optical/replicate adaptation,
+column-major interleaved/DCunchanged/inverse36864. Existing tested corrected
+Double division retained; NVIDIA RTX A500,denorm64 unavailable. No broader
+subnormal/general-size/viewing/device or complete GPU quality guarantee.
+All accepted logs validationON,noVUID/[ERROR]. Initial five-dispatch runs
+also exact, preserved under accepted_native etc; final crop version rerun all.
+
+Audit: node tests/hdrvdp3_evaluation/audit_double192_chain.cjs <root>;checks
+actual.f64 vs native convN_inverse.f64,cropped.f64 vs convN_output.f64,
+counts/filterchecks/PASS/logs. results.json and final_audit_PASS.txt saved.
+Initial audit failed only because PowerShell serialized extended Get-Content
+objects in lineage; fixed with explicit string casts, audit then PASS.
+Build sandbox couldn't access compiler/FileTracker; authorized escalated
+configure/build succeeded. Initial shader reserved identifier filter fixed
+to coeff before any GPU acceptance. Build complete0; sessions18514/80294
+complete0; no running jobs. Source/binary/shader hashes frozen under root.
+Corrdn worktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+and staged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged; dirtyVkFFT and
+all prior artifacts preserved. No commit/push/reset/clean/shaders_out edits.
+
+REPRODUCTION: cmake -S tests/hdrvdp3_double_gpu -B <fresh-build> -G
+'Visual Studio 18 2026' -A x64;build --config Release --target
+ double192-chain-gpu-test. Reproduce forward/inverse packs using prior scripts;
+compile_double192_multiply.ps1 -OutputDirectory <fresh-multiply> and
+-ShaderSource tests/double192_crop.comp -OutputDirectory <fresh-crop>.
+Executable args: <native> <forwardfirst> <forwardsecond> <multiply>
+<inversefirst> <inversesecond> <crop> <fresh-output>. See lineage.json.
+
+EXACT NEXT STEP: compose independent optical/adaptation preparation with GPU
+convolution. Existing CPU exact inspect_srgb_fft_double.cpp independent mode
+already generates encodedRGB->Double EOTF/raw/clamp/optical RGB and padding,
+then source-generated filters. Expose these independent inputs in a reusable
+diagnostic or standalone preparer, compare padded inputs to native only as
+oracle, then feed this GPU chain. Add spectral projection+1e-8..1e10 clamp,
+adaptation log and exp boundaries as appropriate preserving mixed precision
+and exact order. Keep padded-stage success distinct from original-image
+acceptance. Remaining Double GPU visual/pyramid/masking/pooling and public
+Double runtime/CLI integration are still open.
+
+## Latest checkpoint: Double192 normalized real inverse GPU exact (2026-10-29)
+
+Root validation/double192_inverse_639288260778105861; completed pointer
+validation/double192_inverse_completed_path.txt. Report:
+tests/DOUBLE_GPU_INVERSE192_VALIDATION.md. Both inverse axes GPU, native filtered
+complex spectrum input, transposed temporary, real(ifft2) output normalization.
+Not complete forward/filter/inverse GPU composition or full GPU quality.
+
+Added pinned FFTW3.3.10 inverse t1bv_12/t3bv_8 sources (existing archive SHA
+56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467), COPYING
+preserved. New generators generate_fft192_double_inverse_axis_shader.ps1 and
+generate_complex192_double_inverse_shader.ps1, second entry fragment
+complex192_double_inverse_main.glsl. First scalar16x12 ordinary graphs,
+second SIMD8x12x2 FMA graphs; source-generated96 inverse/188 complex twiddles.
+prepare_double192_twiddles.c adds inverse mode; prior modes retained.
+compile_inverse192_double.ps1 reproduces fresh helper/tables/shaders with
+RTE64/SignedZeroInfNanPreserve64 and spirv-val; no shaders_out mutations.
+
+GPU plain normalization division differed:591041/1769472 first-axis Double
+components and333196/884736 final REAL words on initial stress case.
+FMA remainder correction q=a/d;r=fma(-q,d,a);q+r/d, signed-zero shortcut,
+removed all observed errors. Not generic proof for arbitrary inputs/subnormals.
+Accepted inverse_pack first/inverse192_double_axis.spv and
+second/complex192_double_inverse.spv. NVIDIA RTX A500; denormPreserve64 false.
+
+capture_double192_inverse.m makes fresh native/native_ramps/native_identity
+packets from prior srgb_csf_completed_path native/native_ramps/native_identity_v2.
+Official FFTW threads3/estimate/dwisdom reset. Input=fft.*filter Double,
+axis oracle=normalized ifft(input,[],1).' (not raw reconstructed by scaling),
+final=real(ifft2(input)). 3spectra*2sides*4convs*3cases=72matrices.
+Original Single96sq/30ppd/age24/defaultsp0;192sq Double padded, symmetric
+optical/replicate adaptation, DC unchanged, final divisor36864. Layout
+column-major complex interleaved, first-axis transposed, final real-only.
+
+accepted_axis_native/native_ramps/native_identity: each1769472 component
+words exact;5308416 overlapping first-axis components total.
+accepted_inverse_native/native_ramps/native_identity: each884736 REAL words
+exact;2654208 total. Two distorted pairs plus identity control, not three
+independent photographs. Fresh final references byte-equal old actual native
+convN_inverse.f64 captures. Fullforward regression1769472 words exact with
+updated harness. All accepted logs no VUID/[ERROR]. Failed dirs preserved.
+No production app/runtime/CLI changes this checkpoint.
+
+Audit: node tests/hdrvdp3_evaluation/audit_double192_inverse.cjs <root>.
+results.json/final_audit_PASS.txt record counts and boundaries. Commands:
+powershell -NoProfile -ExecutionPolicy Bypass -File
+ tests/hdrvdp3_double_gpu/compile_inverse192_double.ps1 -OutputDirectory <fresh>;
+octave-cli --quiet tests/capture_double192_inverse.m <fresh-packet> <native>;
+<root>/build/Release/fft12-double-gpu-test.exe <packet> <pack>/first/inverse192_double_axis.spv
+ <fresh-out> --inverse192 <pack>/second/complex192_double_inverse.spv NVIDIA.
+Use --inverse-axis192 without second shader for normalized first-axis oracle.
+Session24388 complete0; old68032/90065 no longer available after context,
+old logs zero but final acceptance fully rerun on controlled package. No jobs
+remaining. Frozen source_snapshot_final/binary/hash inventories underroot.
+No commit/push/reset/clean. Dirty VkFFT and all preexisting work preserved.
+Corrdn worktree SHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6,
+staged blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+EXACT NEXT STEP: extend diagnostic harness with forward->Double spectral
+filter multiply->inverse dispatch chain using accepted full-forward and inverse
+packs; no CPU intermediate/native FFT injection. Capture original padded input,
+source-generated MTF/Gaussian filter coefficients and native inverse/cropped/
+clamped boundaries, preserving Double operation order and signed zero.
+First test existing 3spectra/2sides/4convs stress profile, then ramps/identity.
+After optical/adaptation composition, remaining Double visual/quality GPU and
+public runtime/CLI still required. Do not claim full metric completion.
+
+## Latest checkpoint: complete Double192x192 forward GPU exact (2026-10-29)
+
+Root validation/double192_full_639288255178837964 via double192_full_active_path;
+completed pointer double192_full_completed_path.txt. Report
+ tests/DOUBLE_GPU_FORWARD192_VALIDATION.md. PriorCPU/fullinitialGPUrootsfrozen.
+New generate_complex192_double_shader.ps1/compile_forward192_double.ps1:
+complexsecondaxis8x12x2,explicitDoubleSIMD arithmetic,source-generated188-word
+complex twiddles (24-pointpowers1..11,k0..1;192-pointpowers1,3,7,k0..23),
+RTE64/SignedZeroInfNanPreserve64. BothT1Graph0/T3Graph0 FMAbranchesrequired.
+Newt1fv_12.c infftw_reference/double192 withLFhashmanifest. Extractedonlyknown
+memberfromexistingverifiedofficial3.3.10archiveSHA56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467;
+oldrefs/archiveunchanged;GPLCOPYINGretained. prepare_double192_twiddles.c
+nowhasgeneralreduced_order andcomplexmode;old154-wordfirsttableSHAunchanged
+7EF01B870C0B899B56E13AC9F73675A21DEC9825FE1B7FC8827E6ACAC2A0849F.
+
+GPUharnessextended --complex192 isolatedpartialFFTinput and --forward192
+firstshader/out/secondshader coupledGPUdispatch. Coupledmode usesrealpadded
+Doubleinputs,firstGPUreal192->GPUtemporary->GPUcomplex192,NO CPUintermediate.
+Native capture_double192_full.m producesfreshpartial/fft2/paddedpackets,
+24matriceseach frompreviousactualofficialoptical/adaptationstageboundaries.
+3spectra*2sides*(3optical+1adaptation),Singleencoded96sq/30ppd/age24/defaultsp0
+upstream;Doublepostpadded192sq,FFTW3threads3/estimate/dwisdomcleared,
+columnmajor/interleavedcomplex,97halfrows->192fullrows,forwardunnormalized,
+DCunchanged;symmetricoptical/replicateadaptationpostpadding inherited.
+Auditfreshfullfft2expectations BYTE-EQUAL priorofficialvisualconvolution FFT
+captures,notjust anew standaloneFFTmodel. Allreferencesfresh/preserved.
+
+FirstgraphT1=1/T3=0 gave346634/1769472biterrors;0/1=289065;1/1=556260;
+0/0zero. Failedvariantsseparatekept. Accepted second-axis aloneandcoupled
+forward each3cases stress/ramps/identity:1769472Doublewordseach;total5308416
+completeforwardwords/72paddedmatrices. Isolatedsecond-axis samefinalvalues,
+OVERLAPPINGscope,notextraimagecoverage. Two distortedpairs+identityreuses
+stressreference;not3independentphotos. AllbothaxesGPU,NVIDIARTXA500/595.95,
+Float64optin;Intelunsupportedaspriorcheckpoint. AllVulkanlogsvalidationON,
+noVUID/[ERROR]. Default12andfirst-axisGPUregressions864/893952wordsexacton
+updatedhostharness. No productionapplication/shaders_out/runtime/CLIedits
+thissession;normalmainunchanged,priorpublicCLI16-filepasshistoricalscope.
+
+Audit tests/hdrvdp3_evaluation/audit_double192_forward.cjs verifiesactualbytes,
+freshvspriornativefft2,wordcounts/logs/regressions;results.json/final_audit_PASS.
+Freshforward_packsource/twiddles/shadersfullyregeneratable,no nativecoeff
+injection. All59511/45974/39802/90932/88918/27853/25895/11604/67849/42609/
+58076/83644/68276COMPLETE,norunningtasks. Frozenbinary/source/hashinventory
+underroot. README/reportupdated. No commit/push/reset/clean. Existingdirty
+VkFFTandbinvulkanfilesfrompriorcheckpointpreserved;corrdnworktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6 andstaged
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+EXACT NEXT STEP: Double192inverse. Existing
+ tests/generate_fft192_inverse_axis_shader.ps1 usespinnedfft256/t2_16.c and
+complex160/n1_12.c ordinarygraphs;portfirstaxis16x12 withDoublecoefficients.
+Nativeinverseplan prior srgb_optical_completed/fft_unaligned/inverse_plan.txt:
+firstaxis t2_16+n1_12,second t3bv_8_avx2_128+t1bv_12_avx2+n1_2.
+Validateisolatedaxes,thencoupledifft2 andnormalization1/36864,thenactualMTF/
+Gaussianfiltering. Do not use forwardasproofinverseorfullGPUscores.
+ProductionstrictDoubleRuntime/remainingvisualquality/CLI/GPUcoverage remain.
+
+## Latest checkpoint: initial Double GPU FFT stages exact (2026-10-28)
+
+Root validation/double_gpu_639288073941303759 via double_gpu_active_path.txt;
+completed pointer double_gpu_completed_path.txt. Report tests/DOUBLE_GPU_FFT_VALIDATION.md.
+Capabilityinventory vulkaninfo.log:IntelArcPro driver101.8831 shaderFloat64=false,
+shaderInt64true;NVIDIA RTX A500Laptop driver595.95 shaderFloat64true,
+RTE64/signedZeroInfNan64true,denormPreserve64false. No arbitraryFP64/subnormal
+coverage claim. DefaultmachineIntelcannotrunDoubleVulkan;NVexplicitlychosen.
+
+Changed Bin::VulkanInstance ctor optional preferredDevice substring/requireFloat64
+(defaults preservelegacyfirstdevice/noenabledfeatures). Devicefilter checks
+shaderFloat64 beforelogicaldevicecreation;explicitrequestenablesFloat64only.
+float64Enabled recordsoptin. Unsupported/missingmatches rejectdescriptively.
+No newCLIflags/sRGBroute. Deviceprobe confirmslegacyIntel/Float64disabled,
+explicitNVIDIA/Float64enabled and2negativecases Intel+nonexistentdevice.
+
+New hash-pinnedFFTWordinary scalar Double12GPUgenerator/buildscript and
+GPUharness tests/hdrvdp3_double_gpu. Base12realaxis+complexaxis+Hermitian+
+DCzero/realstoragecanonicalization,RTE64/SignedZeroInfNan64explicitSPIRV.
+Finalbase stress/ramps/identity each3spectra864Doublecomponentsbitwise,
+2592total onNVIDIA;capturednativebase-difference inputs,notfullimageGPU.
+
+Also ported real192 firstaxis ordinarygraph toDouble. Newgenerator requires
+explicit154-wordsourcegeneratedtwiddles; ChelperdefaultdirectDoubleoctant
+sin/cos,MinGWGCC15.2/library,ffp-contractoff;noFFTWplanmemory/tablecapture.
+PrimaryFFTW3.3.10trig.c/ifftw.h examined;directDoublegenerationmatched while
+higherprecisiondidnot. shadercompile_real192_double_axis.ps1 reproduces
+helper/table/shader withfreshoutandRTE64/signedzero64controls. TwiddleSHA
+7EF01B870C0B899B56E13AC9F73675A21DEC9825FE1B7FC8827E6ACAC2A0849F.
+HelperneedsOctavebinonPATH (gcc/cc1deps);initialsilentbuildfailurespreserved.
+Native capture_double192_axis.m readsDoublepostpadded192sq nativeoptical/
+adaptation,fft(X,[],1),DoubleFFTW3threads3/estimate/dwisdomcleared;97complex
+columnmajor/interleavedoutputspercolumn,DCunchanged/unnormalized.24matrices
+percase=3spectra*2sides*4convs,4608axisbatches. Sourceprofile96sq/30ppd/age24/
+defaultsp0;opticalsymmetric/adaptationreplicatepostpadding inherited. Isolated
+firstaxis reference,NOT full2D192transform or originalinputGPUacceptance.
+
+FailedaxisDecimal552987/893952biterrors,longdouble356995,splitSquareDouble
+370581;untwiddledfrequency0/12multiplesexact. DirectreducedDouble0. Const
+packDouble2x32GLSLinitializerfailed;roundtripDoubleliteralsfixed;oldoutputs
+preserved. LegacyPSscriptinitialexecutionpolicyerror resolvedusingordinary
+process-localExecutionPolicyBypass workflow,no globalsettingchanges. GPUtest
+firstbuildnonexistentcreateFence/createSubmitInfohelpersfixedtoexistingvk
+submit/fenceAPI beforeacceptedruns. No auto-reviewrejections/bypasses.
+
+FINALsixruns final_base_*864each,final_axis_*893952each (stress/ramps/identity),
+allbitwise0 including signedzero. Total2684448DoubleGPUwords=2592base+
+2681856real192firstaxis.72paddedmatrices across3cases;identityreusesstressref,
+notnewindependentphotographs. AllVulkanvalidationONlogscheckednoVUID/[ERROR].
+Sourcecompile12reproducesmanualshaderbyteidentical;firstaxisfinalcompiler
+packsource/tablepinned. Device-test0;normalmainbuild0;freshBT2020OLEDpublicCLI
+ondefaultIntel retainsall16priorfilesbyte-identical. OldFloat32routingpreserved.
+Finalharnessnowhandles --axis192 andrecordsseparatescope. All30708failedbuild/
+36305/16550/10050/73290/1865/15738/46506/63567 COMPLETE;nofinalpendingjobs.
+
+Audit tests/hdrvdp3_evaluation/audit_double_gpu.cjs checksactual.f64 bytewise
+againstnativeexpected,wordcounts/PASS/logs/legacy+devicechecks;results.json and
+final_audit_PASS. FrozenusedGPU/device/mainexe,source/shader/helperhashes under
+root;README/reportupdated. No commit/push/reset/clean,oldreferencespreserved.
+VkFFTdirty,corrdnworktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+andstaged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+EXACT NEXT STEP: Double192 complexsecondaxis. NativeCPUreferenceplan under
+srgb_optical_completed/fft_unaligned/forward_plan.txt:buffered192x97,
+t3fv_8_avx2_128 then t1fv_12_avx2 then n1_2,threadgroups33/33/31. Existing
+Float32 generate_fft160x192_forward_shader.ps1/mixedSIMDgraphs provide scaffold,
+but Doubletwiddles/arithmeticmustbeindependentlyverified. Port/compareactual
+complete192x192forward,theninverse firstaxis16x12ordinary andsecond8x12x2SIMD,
+normalization/filtering. KeepNVIDIAFloat64optin,Intelunsupportedreject. FullCPU
+Q/JODcheckpoint frozen;fullDoubleGPUFFT/runtime/visual/quality andCLIintegration
+remainopen. Do not countisolatedFFTpasses asfullGPUmetriccompletion.
+
+## Latest checkpoint: independent original-sRGB CPU Q/Q_JOD exact (2026-10-28)
+
+Root validation/srgb_csf_639288068563510612 via srgb_csf_active_path.txt;
+completed pointer srgb_csf_completed_path.txt. Report tests/SRGB_FULL_CPU_VALIDATION.md.
+New quality_log_adaptation_double,quality_comparison_double,quality_csf_double:
+ownDoublemean/clamp/logadapt,bicubicmaps,native-relativeRGBanychannel>.001,
+sourcegeneratedCSFLUT/interp1/reciprocal;compensatedbaselogmean/nCSF.
+ExistingFloat32API/routingunchanged. NativecapturenowincludesactualbaseFFT
+and[index1based,frequency,Lmean],aswellasallpreviousstageexpectations.
+
+FullCPUdiagnostic storesownRGB/adapt/pyramids forbothsides; computesownmutual/
+neighbor/noise/comparison/excitation/psychometric/errors/Q/JOD. Actual12sq
+DoublebaseFFT fromownpyramidbanddiff,DCzero,firstcolumnmajorhypotmaximum,
+frequencygridnativeorder;NO capturedindex/frequency/noise/comparison/matrix/
+LUT/filter/intermediatefeeds calculation. OriginalSingleimages+rawspectraonly.
+Allcaptures expectedcomparisons. ExplicitlocalOctaveDoubleFFTWDLL diagnostic
+backend;NOT production FFT/GPU fallback.96sq/30ppd/age24/defaultsp0,
+FFTW3threads3/estimate/dwisdomcleared/unaligned,nativepadding/DCnormalization.
+
+Nineconfigurations:twoDISTORTEDpairs stress/ramps plusidentitycontrolreusing
+stressreference,each3spectra;not3independentphotographs. Freshnative/native_ramps/
+native_identity_v2 goldens stock/tracednativeQ/JODbitsagree. Acceptedruns
+accepted_stress/accepted_ramps/accepted_identity all0. Eachownfrontend5106246
+Doublewords+fullquality712890(237630perdisplay)=5819136;total17457408bitwise,
+including18Q/JODscalars. Bothscoresandallintermediatearrays exactsignedbits,
+not tolerance. Identity Q=JOD10. Stage_native/stage_native_ramps/stage_identity_final
+all712020wordseach=2136060overlappingstagewords;12invalidcases repeated3=36
+checks,+infinite-neural-noise limits. Stagebasefreqstillcapturedasboundary;
+FULLdiagnosticbasefreqindependent. Do notaddstagecountstoindependentcoverage.
+
+Initialidentitycapturewasreal-only144wordsforbaseFFT;explicitcomplexfield
+serializationfixedandnewnative_identity_v2 retained288interleavedwords.
+Initialfull_identity shape-failed;full_identity_final had60signedzeroimaginary
+mismatches thoughscores10. OctavesimplifieswhollyrealFFTtorealstorage;captured
+imaginarycomponentthen+0. Diagnosticnowmatcheswhole-spectrumrealsimplification,
+withoutignoringbits. Finalall3acceptedruns usefinalrebuiltbinary,all0.
+Otherfailed/initialroots preserved. NativeconvolutionFFTfieldsnowalwayscomplex
+interleaved evenifnumericallyreal. No references overwritten.
+
+Audit tool tests/hdrvdp3_evaluation/audit_srgb_full.cjs verifiesallqualitymap
+TSVwords/counts,fullscore summaries,JND/pyramidlogs,frontendzero-errors,stage
+passes;results.json/final_audit_PASS record9configs/17457408words/hash/scores.
+NormalIQMReleasebuild0 (7428);allfinaltestbuilds0;20972/81989fullscores0,
+57605initialidentityshape1;18049/72788complete0;finalacceptedall0,nopendingjobs.
+Frozenmain/usedtools/source/hashinventory underroot. README/reportupdated.
+No commit/push/reset/clean,shader/runtime/CLI routingchanges. DirtyVkFFT,
+oldreferences,corrdnworktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+andstaged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 remainunchanged.
+
+EXACT NEXT STEP: productionDoubleFFT/runtimeintegration. KeepCPUfullscore
+checkpointfrozenanddoNOTrouteproductionthroughlocalOctaveDLL. Inventory
+VulkanshaderFloat64/native192sqforward/inverseand12sqbaseFFTcapability;
+portverifiedunalignedscalarFFTWgraph/controlrounding,validateagainstfresh
+CPU/nativecapturesbeforeDoublequalityAPI/strictsRGBCLIruntimeexposure.
+GPU/fullpublicCLIintegration,otherdimensions/viewing/predictiontasks/device
+coverage remainopen. NineCPUconfigsarenotwhole-metric100percentparity.
+
+## Latest checkpoint: Double masking/pooling stages exact (2026-10-28)
+
+Root validation/srgb_mask_639288059355029036 via srgb_mask_active_path.txt;
+completed pointer srgb_mask_completed_path.txt. Report tests/SRGB_MASKING_VALIDATION.md.
+New quality_double.h/.cpp: default quality/sp0 mutual masking, neighbor masks,
+masking parameters/noise, excitation, normalized/psychometric/masked differences,
+Minkowski error and Double Q/Q_JOD. Independent source-default parameters.
+Rowmajorstageinputs;explicitcolumnnativeconversion. Native-defaultselfmask
+is3x3box/zeroedges/masking_norm0;do_si_gauss=false. Nativeconv2same increases
+horizontal taps,decreasesvertical taps,FMAbasedonSOURCErow16blocks,separatetail.
+Neighbor uses existingDoublebicubic resize,symmetricextension,antialiasing,
+negativeclamp,correctband exclusions. ExistingFloat32code/math unchanged.
+
+Extendednativecapture exports actual qualityfields,CSFgrid/table/logadapt/noise,
+self/neighbor/maskingnoise/diff/excitation/D/psychometric/comparison/Dp,p/q/pf/k,
+errors/accumulated/finalscores. Freshnative andnative_ramps;stock/tracedQ/JOD
+bitsequal3spectraeach;originalSingleencoded96sq/30ppd/age24/defaultsp0,
+DoubleFFTW3threads3/estimate/dwisdomcleared,nativepadding/DC unchanged.
+
+Final api_stress_final/api_ramps_final each450705Doublewordsbitwise exact;
+901410totalfor2pairs/3spectra. Includes ownself/neighborfromcapturedbands,
+independentlysubtractedbanddifferences,all5numericalmapsperband,params/errors/
+accumulated/Q/JOD. NATIVE NEURAL NOISE andCOMPARISON maps remain injectedas
+explicitstageboundaries;these Q/JODmatches areNOT independentoriginal-image
+scores. Do not combine with prior10212492originalinput-through-pyramidwords
+as fullmetric acceptance. 8invalidcases eachrun,16repeatedchecks;positiveInf
+neuralnoise limit separatelypasseszeroerror/Q=JOD10 (not tolerance).
+
+Historicaldiagnostics preserved:api originalscalar321969wordsexact;api_self
+64368errors/386337 due incorrect optionalGaussian assumption (officialdefault
+false);api_box33111errors/386337, conv2samearithmeticdifferentfrompyramidvalid.
+Eight tap/FMAcandidates recorded,selfcandidate3 initialbest;source-rowmixed
+fixedallselfwords. api_mixed386337exact,api_neighbor450705exact;finalloops
+removed. Final tests independentlycompute banddiff fromtest/refbands rather
+thanloadingnativeband_diff. No failedrun countedexact. MainIQMRelease0;
+finalstrictMSVCtestbuilds0;51263/58583/80533/79209complete;no runningjobs.
+
+Frozenusedbinary/mainexe/source/hashinventory underroot;README/reportupdated.
+No shader/runtime/CLI routingchanges,commit/push/reset/clean. DirtyVkFFT,
+oldrefs,corrdnworktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+andstaged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+EXACT NEXT STEP: independently generate Double CSF/neural-noise and comparison
+maps:frombothadaptations compute mean/clamp/log10,bicubicperbandresize,
+sourcegeneratedCSFLUT/interp1/reciprocal. Baseband needs12x12DoubleFFTW
+spectrum/DCzero/nativefirstmaxindex/frequency/compensatedmeanadapt/nCSF.
+Comparison must use original converted/clampednativeDoubleRGB,anyrelative
+channel>0.001,thenDoublebicubicresize. Validate against currentfreshquality
+captures,connecttoexistingoriginalinputCPUchain+newmasking/pooling,then
+establishindependent Q/Q_JOD. ProductionDoubleFFT/runtime/GPU stillrequired;
+do not enable CLI srgb-display yet or claim full-reference completion.
+
+## Latest checkpoint: Double sp0 pyramid exact, two-pair CPU chain (2026-10-28)
+
+Root validation/srgb_pyr_639287914909862930 via srgb_pyr_active_path.txt;
+completed pointer srgb_pyr_completed_path.txt. Report tests/SRGB_PYRAMID_VALIDATION.md.
+Added sp0_double.h,sp0_double.cpp,sp0_model_double.cpp: CPU rowmajor Double
+96x96/30ppd/defaultsp0. Source decimal model literals retained as Double
+without oldFloat32rounding;380nativecoefficientsbitwise exact. reflect1,
+3lowpass/downsamplelevels,normalizedbands96sq/96sq/48sq/24sq/12sq,baseDC.
+Actual reference backend native/pyramid_backend.txt is corrDn.m/rconv2/conv2,
+NOT MEX. NativeDoubleconv2 reversecolumn/row taptraversal,16-row vectorregion
+FMA and separate scalar-tail rows. Compensatedbase mean matches Octave11.3
+mean sum(...,"extra"). APIs intentionally limited96sq/30ppd,notarbitrarydims.
+
+Fresh capture_srgb_optical.m exports actual bands/base_pre/base_mean and
+filters.f64;stressnative andnative_ramps use originalSingleinputsfromprevious
+srgb_doublecheckpoint. All3spectra stock/tracedQ/Q_JOD bitsequal forbothpairs.
+96sq/30ppd/age24/defaultsp0,DoubleFFTW3threads3/estimate/dwisdomcleared,native
+padding/DC/normalization;columnnative->rowAPIconversionexplicit.
+
+Historicalfailedvariants preserved:api separate120450/129986biterrors;
+candidate1 reverseFMA1945,candidate2 forwardseparate127631,candidate3
+forwardFMA126762,candidate4 mixed725. Mixed+compensatedmean api_compensated
+zero. Diagnostic compilemacros/targets removed afterselection;finalproduction
+mathfixed tovalidatedprofile. Failedapply_patch requests due duplicate target
+sections performed no writes;corrected patches applied without data loss.
+
+FINAL api_final/api_ramps:each129986Doublewordsbitwise,3invalidchecks;
+total259972words includes380modelcoeffs repeated perpair,6checks/3distinctcases.
+Independentoriginalinput CPUmode extendedthroughpyramid fromownJND P:
+independent_stress andindependent_ramps eachprevious4976640words+129606
+pyramid/DCwords=5106246;total10212492Doublewords exact. All6sidepyramidlogs
+perpair0/21601;no capturedintermediates/filters/matrix/LUT injected. Previous
+stagecounts overlap;2originalpairs/3spectra,not millionsofindependentcases.
+LocalOctaveFFTWDLL diagnostic isNOT productionFFT/GPU/fullscore acceptance.
+MainIQMReleasebuild0;allfinalisolatedbuilds0. Sessions6689/42690(failedtest2)/
+50429/57674/71259 COMPLETE;allfinalAPI/independent processes0,norunningjobs.
+No shader/runtime/CLI routingchanges. README/report updated;source/binaryhashes
+andfrozenusedtools underroot. No commit/push/reset/clean. DirtyVkFFT,
+oldrefs,corrdnworktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+andstaged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+EXACT NEXT STEP: capture actual Double per-band adaptation/CSF/masking/
+difference/psychometric maps using the sameoriginal2pairs in fresh exports;
+implementDoublemasking/pooling and independently validate toQ/Q_JOD.
+KeepnativebasebandDC/normalization and exact vs tolerance distinction.
+ProductionDoubleFFT/runtime/GPUcoverage remainrequired;do notenableCLI
+srgb-display using diagnostic DLL or existingFloat32pipeline.
+
+## Latest checkpoint: Double pupil/JND/P exact, two-pair independent CPU (2026-10-28)
+
+Root validation/srgb_jnd_639287910131942109 via srgb_jnd_active_path.txt;
+completed pointer srgb_jnd_completed_path.txt. Report tests/SRGB_JND_VALIDATION.md.
+Added RGBJNDResponseDouble/rgb_to_jnd_response_double in jnd.h and new
+jnd_double.cpp, production CMake strictFP. Rowmajor4LMSRplanes/adaptation,
+columnmajorsequentialgeomean,unifiedpupil,Doublepostpupil,nativegrid slope/
+offset interp1,4JNDplanes (L/M/R/zero),combinedP. SourcegeneratedLUT via
+existingcreate_jnd_lut;oldsample_jnd/Float32 APIs unchanged. Validatesdimensions,
+finitepositiveinputs,viewingparams,finite strictlyincreasing LUTgrid.
+
+capture_srgb_optical.m now exports actual post_pupil/pupil_reduction/geomean/
+correctedlut/jnd/P. Fresh native stress and native_ramps roots;originalencoded
+Singlefrom prior srgb_double native_stress/native, no oldrefs overwritten.
+All3spectra stock/traced nativeQ/Q_JOD bitwise same for eachpair.96x96/30ppd/
+age24/defaultsp0;DoubleFFTW3threads3/estimate/dwisdomcleared;nativepadding/DC/
+normalizationunchanged. Nativecolumnmajor explicitly converted to APIrowmajor.
+
+StrictMSVC stage test each534540Doublewordsbitwise exact, including repeated
+6144-wordLUT per side/display;total1069080 for2pairs,not distinctLUTcoverage.
+6invalidchecks eachrun (12checks,6distinctcases):dims/area/nonpositiveLMSR/
+adaptation/duplicatedgrid. api_final andapi_ramps/PASS.txt. Earlier api scope
+before negativechecks retained. IndependentCPU diagnostic extended through
+JND/P:ownoriginalinput,EOTF/color/MTF/padding/FFT/LMSR/adaptation/pupil/LUT/JND,
+no captured intermediates/matrices/filters/LUT injected. Explicit localOctave
+FFTWDLL diagnostic backend, NOT production FFT or GPU. Bothindependent_final
+andindependent_ramps PASS:each4478976optical/adaptation+497664post/JND/P words
+=4976640Doublewords;total9953280for2pairs/3spectra. All6side JND logs each
+0/82944. Isolatedstagecounts overlap and should not be added as imagecoverage.
+
+NormalmainRelease build0 (session5656),allisolatedbuilds0;8335/52394 complete0.
+Existing getenv deprecationwarnings only;no newcompilererrors. No runningjobs.
+README/report updated;frozenbinaries/source/hashinventory underroot.
+OriginalcorrdnSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+andstaged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 preserved;VkFFTdirty.
+No shader/runtime changes,commit/push/reset/cleanup. CLI sRGB stillunsupported.
+
+EXACT NEXT STEP: implement Double sp0 steerable pyramid. Existing sp0_model
+storesFloat32 literals,not appropriateDoublecoefficients. Use originalDouble
+sp0 literals,reflect1 boundaryhandling,corrDn summation order,bandnormalization
+andbasebandDC removal. Capture actual native Double bands/preDC/base mean in
+freshdirectory on same2pairs;test initially from capturedP then independent
+original-input P. After pyramid:Doublemasking/pooling;productionDoubleFFT/
+runtime stillrequired before CLI sRGB/full image-to-score exactness claims.
+
+## Latest checkpoint: Double optical/adaptation CPU stages and independent diagnostic (2026-10-28)
+
+Root validation/srgb_optical_639287901421812353 via srgb_optical_active_path;
+completed pointer srgb_optical_completed_path.txt. Report
+ tests/SRGB_OPTICAL_VALIDATION.md. Added project_optical_rgb_double and
+finish_local_adaptation_double in srgb_display.h/.cpp: independent LMSR
+calibration,forwardFMA,clamp,L+M/log and finalexp. Explicit stage boundaries,
+not production optical FFT/Gaussian implementation. Existing CLI unchanged.
+
+capture_srgb_optical.m uses prior native_stress ORIGINAL Single encoded input;
+local official3.0.7 instrumented visual/conv/gauss/adapt copies. All3spectra
+stock/traced Q/Q_JOD bits exact;96x96/30ppd/age24/defaultsp0,DoubleFFTW3threads3,
+estimate/dwisdom cleared,symmetric192sq post optical/replicate adaptation,
+columnmajorplanar/interleavedcomplex,DC/normalization preserved. native_v2
+adds actual FFTW wisdom, is accepted export. Firstnative preserved too.
+
+Projection diagnostic:independent72LMSR matrix coefficients exact (3matrices
+repeated2sides);forwardFMA221184responses exact,separateleft53998errors.
+log55296/exp55296 exact. Production stage API608256Doublewordsbitwise exact,
+20invalid checks;uses captured optical/Gaussian outputs,NOT fullindependence.
+Existing preprocessing regression497664Doublewords+18rejectionsPASS.
+All new isolated and normal main Release builds0; no shader/runtime changes.
+
+FFTW diagnostic first process12702 heapcorruption exit-1073740940 after wrong
+foreign plan-string deallocator. Corrected retaining few strings until exit.
+Failed artifacts preserved. Alignedplanv2 exit0 BUT1469452forward/498056inverse
+bit errors,NOT parity. Matching FFTW_UNALIGNED yielded zero bit/numericerrors:
+1769472forwardcomponents+884736inversevalues;native scalarcodelets,wisdomsaved.
+Same native DLL diagnostic is not a production fallback or GPU implementation.
+
+IndependentCPU mode computes originalSingleinput->DoubleEOTF/conversion->MTF
+ownfilter/symmetricpadding/forward/inverse/clamp->independentLMSR->log->own
+Gaussian/replicatepadding/FFT->exp. Captures ONLY expected comparison values,
+no injected intermediates/matrices/filters. Local OctaveFFTWDLL explicittest
+backend. independent_cpu_final/PASS:1769472FFTcomponents+884736inverse+
+884736padding+884736filters+55296adaptation=4478976Doublewordsbitwise.
+Three spectra/two sides of ONE priorstresspair,not multiple independentpairs.
+API stage totals overlap and must not be added as new independentimagecoverage.
+Production FFT/GPU/sRGBquality stillunimplemented. Normalmainbuild0.
+All12702failedthen73875/38995/95541/76473/38684/10562 COMPLETE;no runningtasks.
+No commit/push/reset/clean. DirtyVkFFT,oldrefs,corrdnworktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+andstaged1cf7baedb1d54be0ca8ad02d14485e510b0434e7 unchanged.
+
+EXACT NEXT STEP: extend native Double capture after pupil reduction and
+JND to export post_pupil/pupil_reduction/jnd/P for same originalstresspair;
+implement Double pupil/JND/combinedresponse and validate bitwise. Continue
+Doublepyramid/masking/pooling next;productionDoubleFFT/runtime also required.
+Do not enable CLI srgb-display using current Float32 backend or diagnostic DLL.
+
+## Latest checkpoint: sRGB display CPU preprocessing exact (2026-10-28)
+
+Root via validation/srgb_double_active_path.txt; completed pointer
+validation/srgb_double_completed_path.txt. Report tests/SRGB_DISPLAY_VALIDATION.md.
+Added include/IQM/hdrvdp3/srgb_display.h and src/hdrvdp3/srgb_display.cpp:
+prepare_srgb_display(span<const float>,XYZDisplaySamples), planar Single
+encoded [0,1], returns Double display_rgb/raw_native_rgb/native_rgb. Uses
+independently calibrated rgb709_transform(raw samples), no captured inputs
+except original encoded image. EOTF Single expressions stored into Double,
+then separate Double99*x+1; Double matrix forwardFMA;min1e-6 gamut clamp.
+Explicit finite/domain/nonempty/threeplane checks. Production CMake adds
+new translation unit with strict FP; no existing quality/routing changed.
+
+Extended probe_srgb_precision.m to export original Single inputs/matrix/raw
+alongside Double EOTF/clamped outputs and optional --stress fixture. Added
+inspect_srgb_double.cpp and verify_srgb_display.cpp plus isolated CMake targets.
+Native stock/instrumented Q/Q_JOD bits agree for both96x96pairs/3spectra.
+First pair ramp/threshold/local changes; second deterministic varied codes,
+0/1,primaries/black,adjacentSingle threshold codes. NativeDoubleFFTW3threads3,
+estimate/dwisdom cleared,30ppd/age24/defaultsp0,referencepadding/DC unchanged.
+Independent matrices54captured comparisons exact (3matrices repeated2sides).
+Characterization first pair: allDouble EOTF163680/165888bit errors; mixed
+Single EOTF0; matrix forwardFMA0/165888, separateleft31875errors.
+API independent from original input each497664Doublewords exact; total
+995328 across2pairs/3spectra, signed-zero-aware bit checks,not tolerance.
+Invalidinput18checks eachfixture,36total (6distinct cases repeated3spectra).
+
+Native exports3sec each; inspect0; API runs0 including session78889 COMPLETE0.
+Isolated MSVC strict build0, normal main IQM Release build0. Initial sandbox
+configure could not discover MSVC, preserved; approved escalation succeeded.
+No running tasks. Frozen binaries/sources/hash inventory underroot. No GPU
+sRGB acceptance and CLI srgb-display still intentionally unsupported. New
+Double preprocessing has NOT been connected to Float32 quality path.
+Old reference roots unchanged; corrdnSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+and stagedblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 preserved; VkFFTdirty.
+No reset/clean/commit/push. Previous 30linearcolorconfigurations remain
+historical acceptance; not rerun or counted as sRGB end-to-end acceptance.
+
+EXACT NEXT STEP: instrument native Double optical stage and local adaptation
+from native_stress original inputs; capture actual MTF output/LMSR/adaptation
+with type/layout/padding/DC metadata in fresh exportdir. Implement Double
+optical processing and validate before Double JND/spyr/masking/pooling.
+Do not expose sRGB in CLI until downstreamDouble image-to-score parity passes.
+
+## Current checkpoint: BT2020/XYZ content expansion and sRGB precision (2026-10-28)
+FINAL UPDATE: both CLI sessions 42743/80626 completed exit0. All ten
+pair/encoding PASS files present. audit_linear_content.cjs completed exit0:
+6082560 Float32 export words +240 quality scalars bitwise,30 configurations.
+All Vulkan logs clean. Native metadata encoding verified; historical native
+PASS wording still says linear709 but metadata correctly identifies2020/XYZ.
+results.json and final_audit_PASS.txt contain final totals/hash/scores.
+Completed pointer: validation/linear_content_completed_path.txt.
+No processes pending. Frozen source snapshot and SHA256 inventory recorded.
+EXACT NEXT STEP (supersedes pending-run instructions below): implement and
+validate Double srgb-display EOTF and color conversion against the preserved
+srgb_probe Float64 buffers; preserve Double through downstream native pathway.
+Do not route through existing Float32 quality API or claim whole-metric parity.
+
+Artifact root: validation/linear_content_639287888726015802.
+Report: tests/LINEAR_CONTENT_VALIDATION.md. Production code/runtime/shaders
+unchanged; frozen main binary copied from linear_color_completed_path.
+Ten fresh official native exports completed; all stock/instrumented score
+bits agree. Sixty original input buffers match prior BT709 content bytewise.
+CLI loops 42743 and 80626 are processing five pairs for BT2020/XYZ under
+three spectra. At this checkpoint identity/constant/primaries/impulse passed
+both encodings; real runs pending. Do not claim full totals until audit PASS.
+Full target: 6082560 Float32 export words and 240 quality scalars, 30
+configurations of five pairs,96x96/30ppd/age24/defaultsp0. Binary equality,
+not tolerance. Original reference padding/layout/DC and Single precision.
+
+Added tests/probe_srgb_precision.m: official srgb-display Single encoded
+96x96 input becomes Double after display EOTF, matrix and visual input;
+Q/Q_JOD Double. All three spectra stock/instrumented score bits exact.
+Float32 roundtrip changes 55296/55296 visual input values per spectrum.
+Native-only classification, NOT GPU/production sRGB acceptance. Outputs and
+metadata under srgb_probe. This blocks a mere gamma flag on Float32 pipeline.
+Added audit_linear_content.cjs, report, source snapshot and frozen executable.
+Original corrdn shader SHA256 03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+and staged blob 1cf7baedb1d54be0ca8ad02d14485e510b0434e7 preserved.
+No commit/push/reset/cleanup. Dirty VkFFT and old references preserved.
+
+EXACT NEXT STEP: complete both real CLI runs; run node
+ tests/hdrvdp3_evaluation/audit_linear_content.cjs <root>, inspect all logs,
+freeze source/hash inventory and write completed pointer only after PASS.
+Then investigate Double sRGB display/EOTF/matrix parity before downstream
+Double pathway work; no whole-metric exactness claim is justified yet.
+
+## Latest checkpoint: BT2020/XYZ production API + main CLI exact (2026-10-28)
+
+Root via validation/linear_color_active_path.txt;source root via
+validation/linear_color_source_active_path.txt;report tests/LINEAR_COLOR_VALIDATION.md.
+AddedLinearColorEncoding BT709/BT2020/XYZ,linear_color_transform withsame
+flags77mathandrgb709_transformwrapper. All3targets8901Doublevaluesbitwise
+each(sharedspectraldatarepeated);RGBspectral10296DoublebitsregressionPASS.
+Newevaluate_pathway_linear_color_quality/LinearColorQualityTrace alias;
+old709APIwrapperretained. GenericproductionAPI BT2020/XYZ each442392Float32
+wordsbitwise(raw/clamp/P/adaptation/5errors+Qerr/Q/JOD),total884784. Old709
+wrapper442374Float32regressionPASS. No capturedmatrix/intermediateinjection.
+
+Newstrictload_linear_color_pathway_runtime(expectedencoding),sharedoverlay
+parserwithold709wrapperpreservingitsformat. linear.runtime header
+IQM_HDRVDP3_LINEAR 1 rgb-bt.2020-30ppd-age24-sp0-square96 OR
+IQM_HDRVDP3_LINEAR 1 xyz-30ppd-age24-sp0-square96. SHA-boundnativeRGBmanifest
+andconversion,canonicalconfinement/nestedvalidation.23sharednumericpayloads
+sameasaccepted709converter/nativeprofile;manifestencodingdiffers. Package/
+generate_linear_color_runtimes.ps1 generatesbothfromsources,pinschecked,
+manual/sourcepayloads+manifestsidenticalandCPUloadersacceptboth. No native
+referenceinstallation/data/exportsusedforgeneration;rawspectraexplicitfor
+evaluation. MetadataVALIDATION.mdaddedaftergeneration,numericfilesunchanged.
+
+NormalmainIQM Release rebuilt,CLIrgb-bt.2020/xyz explicitrouting/rawCIEand
+emissiontables/genericAPI. Same96/30ppd/age24/defaultsp0,Float32original
+inputs,original709-style3x3FMA+1e-6gamutclamp,nativepadding/DC. Bothnew
+encodingCLI3spectraeachPASS:1216512Float32exports+48qualityvaluesbitwise.
+Theseare6encoding/spectrumconfigurationsofONEsyntheticpair,not6content
+pairs. Allcoefficientsindependentlycomputed. Legacy70916filesbyteidentical,
+nativeRGBrealCLI221184exports+8qualitybitsPASS,allpriorluminancev4exports
+byteidentical.24malformedpackages(12perprofile)CPUrejected;crossprofile
+CPUrejects;9actualCLIbadencoding/runtime/viewing/sRGBrejects/noexports.
+AllVulkanvalidationONlogscheckedwithoutreportederrors.
+
+Nativegenerator optional --encoding2020/xyz,default709unchanged42numeric
+filesverifiedfresh. Legacytoolfilenamesstillinclude709butacceptencoding;
+PASStextsnowcorrectlyrecordselectedencoding. Mainloaderintroducedmagic
+paramshadowwarningfixedbeforefinalbuild. Old709/profile/nativeformatsand
+numericpinsunchanged. Priorautomaticapprovalreviewquotarejection executed
+NO builds;retrySAMEreviewrouteaccepted,succeeded;noapprovalbypass.
+
+All93222/12798/20464/63386/25513/71453/36924/43306/14957/6000 COMPLETE0;
+nopendingprocesses. final_audit_PASS/results.jsonrecordtotals/scores.
+Frozenmainexe/APItools/sources/artifacts/hashes underroot;completedpointers
+validation/linear_color_completed_path.txt andlinear_color_source_completed_path.txt.
+APIacceptancebinarypredatesruntime/CLIintegrationbutmathunchanged;final
+mainbinarycorrespondstofullnewCLIruns. No commit/push/reset/cleanup;
+dirtyVkFFT/corrdnandoldreferencespreserved.
+
+EXACT NEXT STEP: broadenBT2020/XYZcontent,onepaircurrently. Reusefive
+originalRGBpairs fromrgb709_content input_* folders byteexact,generatefresh
+nativegoldens --encoding rgb-bt.2020 ORxyz --rgb-input <dir>. DoNOTreuse
+709/nativeRGBscores. RunfullmainCLI withmatchingpackets/spectra,compare
+conversion/P/adaptation/5banderrors/Qerr/Q/JOD. Atleastidentity/primaries/
+HDRimpulse/realcrop;keepfreshoutputs. ThenDoubleprecision sRGB-display
+investigation (cannotcastintoFloat32andclaimparity),broaderdimensions/
+viewing/modes/devicecoverage/GPUresidencyremainopen. Two-weekdeadline,
+autonomousTurkishupdates,no repeatedcontinuepermission.
+
+## Previous checkpoint: expanded709 content exact;2020/XYZ solve characterized (2026-10-28)
+
+Root via validation/rgb709_content_active_path.txt;report
+tests/RGB709_CONTENT_VALIDATION.md. Production/shaders/runtimepinsUNCHANGED.
+Frozenmainexe fromrgb709_cli_completed +23sourcegeneratedruntime reused.
+generate_rgb709_reference.m optional --rgb-input <dir> reads exactcolumnmajor
+reference_rgb.f32/test_rgb.f32;olddefaultpreserved42numericfilesbyteidentical.
+Reusedidentity/constant/primaries/impulse/real ORIGINALRGBbuffersfromprevious
+nativeRGBcontent root;all30bufferhashesequal. FRESHofficialBT709scores and
+goldens calculated;NO nativeRGBscoresreused. Same96/30ppd/age24/defaultsp0,
+native3.0.7/Octave11.3/FFTW3threads3estimateclearedsinglewisdom,padding/DC.
+
+FullnormalmainCLI5newpairsx3spectra15configurationsPASS:3041280Float32
+exports+120qualityscalarsbitwiseexact;original709/rawconversion/clamped
+nativeRGB/P/adaptation/5banderrors/Qerr/Q/JOD. All15validationONlogs
+noerrors. Theseare5contentpairs,not15independentimages;priorrampnotinnew
+count. realRGBEsourcecropvirtualunits/3channelsretained,nowinterpreted
+linear709;notrecoveredcamera/absolutecalibration. Sourcecredit/mapping
+sameRGB_CONTENT_VALIDATION,real_source.jsoncopiedwithcorrectinterpretation.
+results.json/final_audit_PASS.txt recordall15scores/counts.
+
+NEXTENCODINGPROBE(test-only): generate_xyz_matrix_reference.m optionally
+captures rgb-bt.2020 orxyz,default709unchanged6f64filesbyteidentical.
+inspect_color_solve.cpp nowacceptsencodingtarget;existingflags77matches
+27Doublecoefficientsfor2020and27forXYZ across3spectra. AllF32coefficients
+alsoexact. NOproduction2020/XYZfunctionorCLIflagyet. Initialshellaggregate
+nonzero despitebothoraclePASSfiles;fresh_v2exportsrecordedOctave_exit0
+each andallf64filesbyteidentical;accepteddiagnosticnumbersvalidatedagain.
+Candidate tables/firstandrepeatnativeexportsretained. No tolerancechange.
+
+All91182/53880 COMPLETE0;noactiveprocesses. Snapshot/hashes/completedpointer
+underroot. No commit/push/reset/cleanup;dirtyVkFFT/corrdnunchanged.
+
+EXACT NEXT STEP: generalize independent3x3transform helper toBT2020/XYZ
+whilepreservingrgb709_transformwrapperandexactflags77math. Constants
+native709 [.4124,.3576,.1805;.2126,.7152,.0722;.0193,.1192,.9505],
+2020[.6370,.1446,.1689;.2627,.6780,.0593;0,.0281,1.0610],XYZidentity.
+FirstverifyproductionFloat64coefficientsagainstnewmatrix_*_v2oracles
+(notjustFloat32),old7098901values/regressions. Thenextendfullnative
+transform/qualitycapture for2020/XYZ:linearSingleinputshouldremainSingle
+aftermixedBLAS;measureGPUFMAorder/clamp beforepublicsupport. Reusegeneric
+3x3projectionshaderonlyafterexactstagechecks;newruntimeprofilebindings
+mustpreventsilentlyaccepting709/nativepacketsforthewrongencoding.
+NextpublicAPI/CLI+sourcepins/end-to-endtests. sRGB-displayDoublepath,
+broaderdims/viewing/modes/devicecoverage/residencyopen. Two-weekdeadline,
+autonomousTurkishupdates,no repeatedcontinuequestion.
+
+## Previous checkpoint: linear709 main CLI + source runtime exact (2026-10-28)
+
+Root via validation/rgb709_cli_active_path.txt;source root via
+validation/rgb709_source_completed_path.txt. Report tests/RGB709_CLI_VALIDATION.md.
+NewRGB709Runtime/load_rgb709_pathway_runtime validatesdistinct2-entryoverlay:
+IQM_HDRVDP3_709 1 rgb-bt.709-30ppd-age24-sp0-square96 inrgb709.runtime;
+SHA-boundnative/rgb.runtime+conversionSPV,canonicalconfinement/requiredkeys/
+headers/digests,recursiveexistingnative/basechecks. Oldformatsunchanged.
+Newpackage/generate_rgb709_runtime.ps1 +REFERENCE_RGB709_HASHES.json binds
+acceptedshaderSHA8806e521f71f5834adf6be8627f1130c3837d5bc4338fe8113e28bf39dacb2e9.
+23sourcegeneratedpayloads(22native+1conversion)andmanifests matchmanual
+acceptedpackage;CPUloaderaccepts. Spectralfilesexplicit,notbundled.
+
+ActualmainIQM Release rebuiltwithnewCLIencodingrgb-bt.709. ExistingRGB
+branchchoosesstrict709overlay,loadsCIE1931+sameemission/LMSRtables,calls
+production709API. Emitsoriginal709RGB+rawconversion+clampednativeRGBand
+nativeoptical/LMSR/adaptation/P,quality/provenance. No capturedcoefficients.
+Mainthree-displayPF CLI cli_v2:608256Float32exports+24qualityscalars
+bitwiseexactofficial3.0.7/Octave11.3. One709syntheticpair/3spectra,notbroad
+content;96/30ppd/age24/defaultsp0,nativepadding/DCunchanged. Freshnative
+exportsaddfivebanderrors/accumulatederrorcheckedallstepsstock/tracedequal.
+GPUvalidationON,noerrors. NativeRGBrealPFregression221184exports+8quality
+bitsPASS;monov4competing_axes7exportsbyteidenticalfrozencohort.
+CPUcontractsvalid+12malformed709/nestedpackagesrejected. CLI7negative
+runtime/encoding/viewing/shape/missingCIEcasesexpectederrors/noexports.
+
+Harnesscorrections:initialcli numericchecksPASSbutLF-onlyprovenancecheck
+failedonWindowsCRLF;freshcli_v2normalizesnewlinesonlyPASS. Initialnegative
+no-CIEfixture/outputfoldernamescollided;freshrejections_v2separatesPASS.
+Firstsource_runtime deepnestedCMakeScratch link.exe taskfailedDirectoryNotFound
+tlogpath;freshshortvalidation/g709_* sourcebuildCOMPLETE0. Cause notproven
+aspathlength,shortpathworked,no systemsettingschanged. Failedartifactskept.
+NewCLI_VALIDATION.md addedtomanual/sourcepacketsaftergeneration asmetadata
+only;23numericalpayloads/manifestsunchanged. Readycommandusescompleted
+pointersandfrozenmainexe/PFfiles,source-generatedruntime. NativeRGBpackage
+v1andallpreviousreferencefilespreserved. No commit/push/reset/cleanup.
+
+All61887/93018/61292/30241/41132/73428/47559 COMPLETE,withinitialharness
+failuresabove;noactiveprocesses. Source/binary/artifacthashes/snapshots
+underbothroots,completedpointervalidation/rgb709_cli_completed_path.txt.
+DirtyVkFFT/corrdnunchanged.
+
+EXACT NEXT STEP: broaden709contentbeforeotherencodings. Extend
+generate_rgb709_reference.m explicitpattern/external inputs(defaultunchanged),
+reuseidentity/constant/primaries/impulse andreal3channelHDRcrop byteexact.
+RunfreshnativefullgoldensandnormalmainCLI/APIwith709runtime;doNOTreuse
+nativeRGBscoresfor709interpretedinputs. Keepmatricesindependentlycomputed.
+TheninspectDoubleprecision sRGB-display path separately;neverrouteencoded
+sRGBthroughFloat32nativeinput. Broadersizes/viewing/predictionmodes/device
+coverage/GPUresidencyopen. Two-weekdeadline,autonomousTurkishupdates.
+
+## Previous checkpoint: independent709 matrix + production API exact (2026-10-28)
+
+Root via validation/xyz_matrix_active_path.txt;report
+tests/XYZ709_CALIBRATION_VALIDATION.md. AddedXYZDisplaySamples/Calibration,
+load_xyz_display_samples,calibrate_display_xyz,rgb709_transform toexisting
+spectralheader/loader/cpp. RawCIE1931/displayCSV ->420nativegrid/PCHIP ->
+trapz(XYZ*E) THEN*683.002 ->Yrowsumnormalization ->3x3pivotedsolve.
+No nativeintermediatereads. XYZprep8874DoublebitsPASS,thenfullcalibration
+8901DoublebitsPASSincluding27solvedcoefficients across3displayprofiles.
+Productiontransformdumpbytesmatchbothactualfullmain-pathmatrixcaptures.
+
+Diagnostic32solvecandidatesallF32coeffsexactbutnoneDoubleexact(best3/27
+errors);NOTaccepted. Expanded128candidates:flags77ZERO Doubleerrors.
+Nativeordering:LUrecipscale,nonfusedtrailingupdate;forwarddotFMAaccumulate
+thenonesubtraction;upperrecipscaling/nonfuseddescendingrankoneupdates.
+Productionimplements77undstrictfp,validatessingular/nonfiniteconditions.
+ThisislocalnativeBLAS+3displaycalibrationparity,notallillconditionedmatrices.
+Searchoutputs solve/solve_v2 preserved;no tolerancepasssubstitution.
+
+Extendedfreshnative709capturesP/adaptationandQ/JOD. IndependentmatrixGPU
+conversion/clamp ->existingproductionnativeAPI original709->Q/JOD test
+full709PASS442374Float32words(331776raw/clamp+110592P/adapt+6scores).
+Then addedproductionevaluate_pathway_rgb709_quality inrgb_quality.h/cpp:
+explicitXYZ+LMSRmodels/sharedgrid+emissionconsistencychecks,nonnegative
+linear709RGB96/30ppd/age24,explicitconversionshader+nativedownstreamassets.
+Convertsandclampsoriginals,passCONVERTEDoriginalsforcomparisonmask.
+RGB709QualityTrace includesDoublematrix/raw/converted/nativequalitytrace.
+DirectnewAPI api709PASS442374Float32wordsbitwise. No capturedmatrixor
+intermediateinjected. SameONEsynthetic709pair/3spectra,notbroad709content.
+NativeQ/JOD sRGB8.5618896484375/9.17173957824707;
+WCG8.561656951904297/9.171567916870118;OLED8.551936149597168/9.164388656616211.
+
+REGRESSIONS afterfinalsources:RGBspectral9configs/10296DoublebitsPASS;
+mono13ages2520raw+16822intermediates zeroNUMERICmismatches(notsignedzero
+bitclaim);rebuiltrgb-nativeAPI93checks/949134Float32bitsPASS. Vulkan
+validationON,noerrorsinfull709/API709/nativeAPIlogs. All69501/39834/96606/
+70078/8511/51653/51124/2231/83357 COMPLETE0,nopendingprocesses.
+Source/binary/artifact snapshots/completedpointerunderroot. Initialfull709
+helperbinarypredatesproductionwrapperaddition,finalAPI709binaryusesfinal
+sources;arithmeticalgorithmunchanged. No commit/push/reset/cleanup;
+originaldirtyVkFFT/corrdn/oldreferencefilespreserved. CLI709stillrejected.
+
+EXACT NEXT STEP: expose709throughdistinctvalidatedruntime+CLI. Existing
+rgb.runtime v1isNATIVEprofile;doNOTsilentlyaccept709withunboundconversion.
+Useanew709overlaybindingnativeRGBmanifestandconversionSPIRVwithSHA/
+canonicalconfinement,source-onlygenerator/pinmatchingaccepted709shader.
+CLI --hdrvdp3-encoding rgb-bt.709 shouldloadCIE1931XYZ+sameemission/LMSR
+tables,callnewproductionAPI,exportoriginal709/raw/converted/nativeP/
+adaptation+quality/provenance. Keepnative/luminancepathsunchanged.
+RebuildnormalmainIQMandvalidate3spectraPF->scoresandoldnative/luminance
+regression. sRGB-displayDouble/broaderdims/viewing/modes/residencyremain
+open. Two-weekdeadline,periodicTurkishupdates,no repeatedcontinuequestion.
+
+## Previous checkpoint: linear709 projection/clamp exact (2026-10-27)
+
+Root via validation/rgb709_active_path.txt;report
+tests/RGB709_PROJECTION_VALIDATION.md. Newgenerate_rgb709_reference.m uses
+isolatedmain/transform/visualwrappers to captureactualofficial3x3matrix,
+originalSingleRGB,rawSingleconversion andpost1e-6clamp enteringvisual.
+ThreeRGB96pairs/3spectra,30ppd/age24/defaultsp0. Stock/tracedQ/JODbits
+equal;originalofficialsourcesuntouched. Reference/testorder correctly
+reversestransformcalls(testfirst)versusvisualcalls(referencefirst).
+NativecapturedmatrixDouble,projectionSingle. Clampedvaluecounts(twoimages):
+sRGB5210/WCG1488/OLED1520. NativeQ/JOD recordedmetadata,NOTGPUscoreclaim.
+
+inspect_rgb709_projection.cpp newCPUtarget:165888rawFloat32values,
+Float32coefficients forwardfma(B,b,fma(G,g,R*r))ZEROerrors. Separateleft
+26589/right45281,reverseFMA51866,Doubleaccum46801errors. Finalsource
+scopewordingfixed;arithmetic_final freshrepeat samecounts. Newshader
+hdrvdp3_rgb709_projection.comp emitsraw3planes+clamped3planes. GPUtest
+331776Float32wordsbitwisePASS;nativeMATRIXINJECTIONmeansprojectiononly,
+notindependent709preparation/fullquality. spirv-valPASS;NoContractionFMul+
+2Fma inspected;validationON,noerrors. NewCPU/GPUCMake diagnostic targets.
+All51815build/runCOMPLETE0;no pendingprocesses. Snapshots/hashes/completed
+pointerunderroot. Productionrgb-native files/pinsunchanged;CLI709still
+rejected. No commit/push/reset/cleanup;dirtyVkFFT/corrdnpreserved.
+
+EXACT NEXT STEP: independent709matrixgeneration fromraw ciexyz31.csv +
+displayemission. Add explicitXYZspectralloader withsame420grid/PCHIP;
+trapz(XYZ*E) THEN*683.002 (notLMSR'spersamplescale),normalizeYrowsum,
+solveA\ITU7093x3. Extendnativeoracle toexportactualraw/normalizednativeXYZ
+matrix inadditiontosolvedtransform;compareFloat64bitsandcoefficientF32.
+CharacterizenativeLAPACKpivot/reciprocal/division/FMA ifneeded,no tolerance
+passasexact. Afterindependentmatrixmatches,composeGPUconversionclamp->
+acceptednativeRGB96quality usingconvertedORIGINALSforcomparisonmask;
+onlythenexpose709API/CLI. sRGB-displaycreatesDouble andneedsseparatepath.
+Otherdimensions/viewing/modes/GPUresidencyopen;two-weekdeadlinepriority.
+
+## Previous checkpoint: normal main IQM RGB integration verified (2026-10-27)
+
+Root via validation/main_rgb_active_path.txt;report
+tests/MAIN_RGB_INTEGRATION_VALIDATION.md. NormalrootprojectIQM-HDRVDP3 and
+IQM targets Release/build-vs2026 buildCOMPLETE0 (VS18/MSVC19.51). Earlier
+isolation-onlyhostbuild limitationnowclosed. Fullconfiguredapp linksother
+metriclibraries,buttheirnumericoutputsnotchecked. Nonfatalwarningsinclude
+optionalglfw3configmissing,unusedlocals/shadowing/getenvdeprecated;nofixes
+needed. Finalup-to-dateconfirmationlogpreserved. No source/shaderchanges.
+
+Mainbuild-vs2026/bin/Release/IQM.exe realRGB PFtest:221184exportsFloat32words
++8qualityscalarsbitwiseexactnative3.0.7. All12files(10f32+quality/profiletext)
+byteidenticalacceptedisolatedCLIinrgb_content root cli_real/real/export.
+SameHDRderivedcolorstimulus/nativeunitsassignment,OLED/96/30ppd/age24;
+notnewcontentcohort. Mainmonov4competing_axes7exportsbyteidenticaloldfrozen
+CLI,Q.98083019256591797/QJOD1.2951202392578125. BothvalidationON,noerrors.
+Library/appcommandsinitiallyoverlappedwhilefirstfinishing;bothCOMPLETE0;
+finalsequentialtargetconfirmationalsopassed. Sessions13109/92472/84341/
+66338 COMPLETE0,nopendingprocesses. Frozenmainexe/library/sourceshashes
+andcompletedpointerunderroot. No commit/push/reset/cleanup;VkFFT/corrdn
+unchanged. MainexeisnowusableCLI,notonlyIQM-hdrvdp3isolatedtarget.
+
+EXACT NEXT STEP: encodingcoverage,startingLINEARrgb-bt.709. Readnative
+utils/hdrvdp_iturgb2native.m: loadciexyz31.csv420-grid;integrateXYZ*E using
+trapz THEN*683.002 (differsLMSRscalingsorder),normalizeYrowsum,3x3leftsolve.
+CaptureactualFloat64matrix,Singleinputpost-transform(pre/post1e-6gamut
+clamp),officialstock/tracedQbits;characterizemixedBLAS M*RGB' accumulation
+beforeGPUimplementation. DoNOTjustaddacceptedCLIflag. Native'sRGB-display'
+display_model_srgb createsDoubleRGB=zeros(size(sRGB)),99*EOTF+1,then709
+transform/gamutclamp;thatneedsaseparateprecisionpath,notFloat32castandclaim
+parity. CurrentCLIrejectsunsupportedencoding. Existingrgb-nativeprofile
+validatedonly96/30ppd/age24;broaderdimensions/viewing/modes/residencyopen.
+Two-weekdeadline;continuousautonomousworkwithTurkishprogressupdates.
+
+## Previous checkpoint: expanded RGB synthetic + real color acceptance (2026-10-27)
+
+Root via validation/rgb_content_active_path.txt;report
+tests/RGB_CONTENT_VALIDATION.md. Productioncode/shadersunchanged;frozen
+rgb_api_completed/rgb_cli_completed executables andsourcegeneratedRGB
+runtime reused. Generatoroptional --pattern identity|constant|primaries|
+impulse adds4newsyntheticpairs;external --rgb-input supports exactcolumn-
+majorreference_rgb.f32/test_rgb.f32. Defaultunchanged:102native numerical
+fixtures regeneratedfresh byte-identical toprecedingnative_bands cohort.
+
+APIPASS:fiveNEWpairs(identity,constant,primaries,impulse,real) x3spectra =
+15configurations,465checks/4745670Float32wordsbitwise exact. Four new
+syntheticcohorts372checks/3796536words;real93/949134. EachincludesGPU
+originalRGB->P/all5maskedbands/errors/Q/JOD. Identityanduniformconstant
+green1.01changeresultQ/JOD10inOFFICIALreference;preserved,not"fixed".
+CLI4syntheticPFpairs+1realPFpair:1105920exportsFloat32words+40quality
+scalarsbitwiseexact. CLIusesled-lcd-srgb foridentity/constant,oledforothers;
+APItestsall3spectra. Theseare5contentpairs,NOT15independentimages;
+CLI/APIcohortsoverlap. Previousrampcohortnotinnewcounts. 9wrongCLIprofile
+combosrejectedwithexpectedmessagesandnoexports(geometry/encoding/display/
+ppd/age60/60.001/luminancebase/missingspectra/display-on-luminance).
+
+REALRGB: newprepare_real_rgb.cpp/prepare-real-rgb target inhdr_inputs
+decodescachedMemorialHDRwithstbi_loadf,retains3channels,globalmaxchannel
+assigned1000virtualdisplayunits/oneFloat32cast;NOaverage/floor/gamma/
+resize. Source512x768,crop96atx208/y336,scale3.6496350364963503,min
+.00089102418860420585,max1.5967153310775757. LocalR*.85/B+.1distortions.
+Interpretednativeprimaries numericalstimulus,NOTrecoveredcaptureabsolute
+luminance/sourcecolorimetry. SourceSHA18376B9219927B363127817900B1C170A0F
+752F52A63F5949655B4150E35061D,creditPaulDebevec/JitendraMalik,URL/metadata
+copiedtoreal_source.json;rawphotoexcludedfromGitandnotcopied. Native input
+bytesassertedidenticalpreparedexternalRGBfiles. Originalgrayscale refs
+unchanged. RealQ/JOD sRGB9.874041557312012/9.963422775268555;
+WCG9.856755256652832/9.956871032714844;OLED9.773855209350586/9.922581672668457.
+
+Official3.0.7/Octave11.3/FFTW3threads3estimateclearedsinglewisdom,RGB96/
+30ppd/age24/defaultsp0,layouts/padding/DCsameacceptedprofile. GPUvalidation
+ON,noreportederrors. Fullsession96759/64778/59051/70867/76942 COMPLETE0,
+noactiveprocesses. final_audit_PASS.txt andapi_summary.json recordtotals.
+Snapshots/hashes/completedpointerfrozenunderroot. No commit/push/reset/
+cleanup;originaldirtyVkFFT/corrdnandalloldreferencespreserved.
+
+EXACT NEXT STEP: verify normal main-repository IQM-HDRVDP3 library andIQM
+application build include newRGB files/options (so faractualmain compiled
+viaHDRVDP3-only testproject). InspectmainCMakegenerationbeforebuild;never
+blindcompile_shaders.sh. rgfoundno compile_shaders/REMOVE_RECURSE hooks in
+top/src/binCMakeLists. Buildtargetonlyfirst,preserveunrelateddeps andvendor
+changes;comparemainappRGB PFresulttothisfrozenCLI. Theninspectnative
+color-encodingconversion (rgb-bt.709/srgb-display) asnextfunctionalcoverage;
+doNOTsilentlyacceptencodedRGBasnative. Broaderdimensions/viewing/modes/
+devicecoverage/GPUresidentstillopen. Two-weekdeadline;no universalparityclaim.
+
+## Previous checkpoint: RGB PF CLI and pinned source runtime complete (2026-10-27)
+
+Root via validation/rgb_cli_active_path.txt;report tests/RGB_CLI_VALIDATION.md.
+Userrequests periodicTurkishupdates andautonomouscontinuation,no repeated
+"continue?"questions. Maximum2weekspriority remainsvalidatedusablemetric.
+
+New rgb_image.h/cpp loadscolorPF,strict3lineheader,endiansign/onceFloat32
+scale,bottom-upinterleaved->top-down3row-majorplanes;finite nonnegative,
+no gamma/color/grayscaleconversion. OldPfloaderuntouched. NewCLIoptions
+--hdrvdp3-encoding rgb-native and--hdrvdp3-display(3knownspectra);requires
+explicit --hdrvdp3-spectral-data andRGBpackage,96square/30ppd/age24only.
+Defaultluminancepreserved;displaywithluminancerejected. RGBbranchinactual
+bin/shared/wrappers/hdrvdp3.cpp callsproductionAPI. Freshoutputonly,emits
+10canonicalLEf32input/optical/LMSR/adaptation/Pfiles,quality.txt/profile.txt.
+args.h/cpp/main.cpphelp,mainlibraryandevaluationCMakeupdatedstrictfp.
+
+ACTUALAPPLICATIONCLI tests:acceptance_v2 three spectralconfigurationsof
+ONEsyntheticRGB96pair,663552exportwords+24qualityscalarsbitwise exactnative
+3.0.7/Octave11.3. Includesoriginalinputbuffersand5banderrors/Qerr/Q/JOD.
+GPUvalidationON;all3numericalRGBlogs+oldmonolog noVUID/validation/errors.
+CPU PFchecks5valid(two96inputs+3x2LE/BE/scale1.25),10malformedrejected.
+6CLIargument/exportrejects. Existingargs5valid/22invalidregressionPASS.
+Oldmonov4competing_axes CLI7exportsbyteidenticaltooriginalfrozencohort.
+FirstacceptancefailedbeforeGPUbecauseTESTused--validate;correctedactual
+--enable-validationflag,newfreshacceptance_v2PASS,failedfilesretained.
+
+New generate_rgb_runtime.ps1 +REFERENCE_RGB_PATHWAY_HASHES.json produces
+18pinnedv2base+4pinnedRGBshaders. source_runtime_v3 PASS22pins;bothmanifests
+and22payloadsbyteidenticaltoacceptedmanualRGBpackage;CPUloaderaccepts.
+No nativeinstallation/data/referenceexports usedbygenerator. Liveworkspace
+sourcebuild,NOTnewisolatedclean-copyhostbuild. Raw spectraexplicitCLI
+inputs,NOTbundled. Firstsource_runtime attempt CMakecouldnotdiscoverCXX
+undersandbox;source_runtime_v2elevatedbuiltmodelsbutPowerShellStop treated
+glslangsource-filenamestderrasexceptionbeforeexitcodecheck. Fixedgenerator
+toinspectexitcode;freshv3elevatedPASS. Failedattemptspreserved,noreset/delete.
+MainrealapplicationentrycompiledinHDRVDP3-onlytarget,notallmetricdependencies.
+FrozenCLI/reader/argsbinaries,sources/hashes/completedpointerunderroot.
+Docsreadycommandusescompletedpointer/frozenCLI/acceptedPFpair/sourcev3runtime.
+All58870/97554/6131/23742/84049/16968 COMPLETE;failedsessions documented,
+no pendingprocesses. No commit/push/reset/cleanup;dirtyVkFFT/corrdnunchanged.
+
+EXACT NEXT STEP: expand independentRGBcontent,currentlyonlyONEpair tested
+across3spectra. Extendnativefixturegeneratorwith explicitpatternselector
+preservingcurrentdefault:identity,constant/primaries,impulse/HDR/color ramps,
+threshold/zero patches. Exportfreshfullbandgoldens;runproductionAPI/CLI
+strictbitswithnewsource-generatedruntime. ThenrealHDRcolor(noarithmeticgray)
+andbroaderprofile priorities beforeclaimingwholemetricdone. AddAPI/CLI
+negativecoverageforwronggeometry/encoding/nondefaultviewingwithoutimplicit
+fallback. Otherdimensions/viewing/modes/devicecoverage/GPUresidencyopen.
+
+## Previous checkpoint: production RGB API and runtime exact (2026-10-27)
+
+Root via validation/rgb_api_active_path.txt;report tests/RGB_API_VALIDATION.md.
+New include/IQM/hdrvdp3/rgb_quality.h andsrc/hdrvdp3/rgb_quality.cpp expose
+evaluate_pathway_rgb_quality(originalRGB,spectra,explicitassets,optionaltrace).
+Full preparation nowproduction,no diagnostic_float_kernel.h dependency.
+Three row-major planes,finite nonnegative RGB96,rgb-native,30ppd/age24/sp0.
+Strictfp registered inmainlibraryCMake. Production synchronous kernel runner
+uses accepted shader bindings;GPU projection/adaptation/JND/quality unchanged.
+Traceplanes row-major;matrix fromindependentC++calibration,samplesexplicit.
+No nativeintermediatereads. CPUmodels/LUT/doubleNCSF/hostcopiesremain.
+
+verify_rgb_quality_api.cpp directlycallsAPI:93checks/949134Float32words
+bitwise exact,three spectra ofONEsyntheticRGB96pair,same native_bands golden
+frompreviousqualityroot. No independentnewimagecohort. ProductionAPI
+newdownstream calls preserve exactQ/JOD/bandsandallcheckedprepvalues.
+MainHDRVDP3libraryhasnewsource registered;testscompile production source
+directly,notclaimfullappbuild.
+
+New separateRGBoverlaymanifest/load_rgb_pathway_runtime inpathway_runtime:
+IQM_HDRVDP3_RGB 1 rgb-native-30ppd-age24-sp0-square96. Exactly5SHA256entries:
+base(manifest),projection,adaptation,jnd,comparison. Nestedv2base18payloads
+unchanged;overlay4newshaderpayloads. Relative/canonicalconfinement,digests,
+SPIRVheaders,modelvalidation,nestedbasevalidation;ABI17checkedatMapGPU
+initialization. SpectralfilesNOTbundled;callerexplicit. Newpackage/contract
+scripts in tests/hdrvdp3_evaluation. Manualacceptedassets packagenowworks;
+SOURCE-ONLYRGBREPRODUCTION/PINSNOTYETDONE. Existingv1-v4unchanged.
+Contracts:valid+12malformedrejectedwithoutGPU,includingnestedmodel/profile
+withparentdigestsupdated. PackagedAPI93checks/949134wordsexactagain;
+samecohort,notadditionalvalidationimages. BothGPUvalidationON,noerrors.
+Finalmonov4competing_axes69checks/507149mixedvaluesbitwisePASS afterloader
+addition. Allbuilds/runs91905/16717/68822/81518/89479/62865 COMPLETE0;
+no activeprocesses. Snapshots/hashes/completedpointer frozenunderroot.
+Initialexplicit-assetAPIrun predatesloader/checkeroptionalpackagedarguments;
+finalfrozenbinarycorresponds packaged_acceptance;algorithmunchanged.
+
+EXACT NEXT STEP: implement PF RGB loading/explicitencoding and public
+applicationAPI/CLI branch usingnewRGB runtime andproduction API. Current
+EvaluationOptions/evaluate_quality andCLIstillluminance;DONOTfeedPFinto
+grayloaderorimplicitlyconvert/gamma. Firstsupport96/30ppd/age24/rgb-native,
+explicitdisplay spectra andRGBpackage. Then source-onlyruntimegeneration
+andpinning,independentRGB/realHDRcohort andoldluminanceregressions.
+Two-weekdeadline;notuniversalmetriccompletion. No commit/push/reset/clean.
+
+## Previous checkpoint: original RGB to Q/Q_JOD exact (2026-10-27)
+
+Root via validation/rgb_quality_active_path.txt;report
+tests/RGB_QUALITY_VALIDATION.md. Refactored pathway_quality.cpp downstream
+into shared finish_quality; oldmono entry keeps original input/profileguards.
+New evaluate_pathway_rgb_response_quality accepts computed row-major P/
+adaptation and original3planarRGB96images;checks96geometry/map13/nonnegative
+RGB,finiteP/positiveadaptation. Uses RGBcomparison API forfivebandmasks.
+SPYR/pool/masking/NCSF/quality implementationsharedwithmono,notduplicated.
+
+verify_rgb_optical_gpu argc10 composes ORIGINAL RGB -> optical -> independently
+calibratedmatrix -> GPU LMSR/adaptation/pupil/JND/P -> productiondownstream
+-> Q/Q_JOD. Nativeintermediates aregoldensONLY,notinjected. Same3spectra/
+RGB96 zero-patchcohort aslastcheckpoint,30ppdage24/defaultsp0,Float32;
+native3.0.7/Octave11.3/FFTW3threads3estimateclearedsinglewisdom. Fullpadding
+192square,MTFsymmetric/LAreplicate;SPYRbase12squareunpadded,DCnative rules;
+explicitcolumn/rowtransposes. PreparationstillorchestratedbyTESTchecker,
+notyetpublicRGBAPI/CLI. CPUmodels/LUT/doubleNCSF/hosttransfersremain.
+
+Firstacceptance884748Float32wordsexactincluding6finalscores. Enhanced
+native_bands exportsactualnativeD_p/5Minkowskierrors/accumulatedQ_err and
+assertsindependentaccumulationaftereachband. acceptance_bands949134words
+bitwiseexact:previous884748 +64368maskedbandvalues +18errorscalars.
+Theseareoverlappingcohorts,notnewimages. THREEspectralconfigurationsof
+ONEsyntheticpair,notbroadrealRGBvalidation. No tolerancechanges/failures.
+NativeQ/JOD: sRGB8.650890350341797/9.236832618713379;
+WCG8.56220817565918/9.171975135803223;OLED8.668749809265137/9.249752044677735.
+Oldmonov4competing_axes regression69checks/507149valuesbitwisePASS.
+VulkanvalidationON,noerrorsreported. Allruns/builds37890/53412/29384/
+54899/61696 COMPLETE0;donotpoll. Finalbinarycorrespondstoexpanded949134
+test;initial884748predatesadditionalbandassertionsonly,samearithmetic.
+Frozen snapshots/hashes/completedpointer underroot. No commit/push/reset/
+cleanup;oldreferencesanddirtyVkFFT/corrdnpreserved.
+
+EXACT NEXT STEP: promote RGBpreparation outoftestchecker intoproduction
+RGB API usingexplicitprojection/adaptation/JND/comparisonassets;reuse
+acceptedshadercontracts,doNOTdependontest diagnostic_float_kernel.h.
+ProductionentrymustacceptoriginalRGBandrawspectralfiles/calibration,
+supportvalidated96x96/30ppd/age24/rgb-nativeonlyinitially,clearlyseparate
+ABI17JNDfromABI13downstream. Then design distinctsource-reproducibleRGB
+runtimeprofile andPF color loading/explicitencoding throughAPI/CLI;run
+these3exactcohortsandoldluminanceregressions. AddmoreindependentRGBpairs
+andrealHDRcolorbeforebroadclaim. Two-weekdeadline;no universalcompletion.
+
+## Previous checkpoint: RGB quality comparison masks exact (2026-10-27)
+
+Root via validation/rgb_comparison_active_path.txt; report
+tests/RGB_COMPARISON_VALIDATION.md. Added run_pathway_comparison_rgb,
+96x96 planar row-major finite nonnegative primaries only. Shared internal
+comparison_impl retains mono guards/arithmetic. RGB-capable generated shader
+mode3 ORs native three-channel relative differences; r0/t0 false,r0/tpositive
+true. Old default shader generation bit-identical topublicv2 comparison:
+548a5a77b4df909e29cb67476f02191b882d7450796d3bf76c36b94c77d45016.
+New -RGB flag generates freshshader only; priorassets/referencespreserved.
+
+Fresh native --jnd fixture nowincludesblue.25patch5:8/5:8insidezeroarea;
+oldercohortsunchanged. Actualofficialdiff_maskcapturedbyisolatedmaincopy,
+independentexpressionequal;changedzeroandunchangedzeroasserted. Stock/
+instrumentedQ/JODbitsequal. OriginalRGBFloat32,30ppd/age24/three spectra,
+FFTW3threads3estimate,layouts/padding/DCunchanged. NativeFloat64imresize
+goldensscales1/2/4/8. verify_rgb_comparison.cpp newCMake target.
+acceptance andacceptance_final:110592binarywords/36720Float64values
+bitwise exact12cases. Repeatedmaskcountsnotindependentimages. Vulkan
+validationON,noerrors. Newshaderindividualcompile/spirv-valPASS.
+Rebuiltmonov4competing_axes regression69checks/507149valuesbitwisePASS.
+AllprocessesCOMPLETE0,including35955/40361/53671/25893/36340;donotpoll.
+Source/binary/artifact snapshots andcompletedpointer recordedunderroot.
+No commit/push/reset/cleanup; originaldirtyVkFFT/corrdnpreserved.
+
+EXACT NEXT STEP: RGBfullQ/JOD remainsUNFINISHED. Factor shared downstream
+frompathway_quality.cpp afterP/adaptation preparation,accept explicitfive
+PathwayComparisonResult masks generatedbynewRGBAPI. Keepoldmono entry
+andguards unchanged andrunoldregression. Then computeRGB P/adaptation
+fromoriginalinputs usingacceptedchain,convert column/rowcorrectly,run
+SPYR/pool/masking/qualitywithRGBmasks;capturefreshnativebanderrors and
+scores forNEWzero-patchcohort. Do NOT compareoldcohortscoresafterchanged
+fixture. Nativefullquality defaultsp0;newRGBmapABI17 isJND-only scope so
+useoldmapABI13 downstreamunlessseparatelyvalidated. Deadline2weeks.
+
+## Previous checkpoint: RGB pupil/JND/P exact (2026-10-27)
+
+USER DEADLINE: maximum TWO WEEKS, supersedes earlier3-6week planning.
+Prioritize exact RGB full-score/public integration at validated dimensions;
+broader sizes/viewing/modes follow as time permits. Never label restricted
+scope universal100%parity. Continue autonomously; no commit/push authorization.
+
+Root validation/rgb_response_639287164909180665,activepointer
+validation/rgb_response_active_path.txt. Report tests/RGB_JND_VALIDATION.md.
+MapGPUProfile::RGBResponse=17,jnd_response_lmsr accepts4planarFloat32 LMSR
+pre-clamp,requiresABI17. New isolated generate_rgb_jnd_shader.ps1 adds37mode
+to existinggeneratedmap while retaining mode15. Same exactlog/product/LUT
+interpolation,selectL/M/rod,clamp,pupil;noD65matrix multiplication. Float32
+preserve/RTE controls,spirv-valPASS;oldshaderpackets/pinsuntouched.
+
+verify_rgb_optical_gpu optional8thargv newmap enables actualGPUadaptation
+pupil_trace + LMSRJND. Fresh acceptance passes884742Float32wordsbitwise:
+previous497664 +6pupilscalars +387072post-pupil3planes/JND3planes/P.
+ThreeRGB96pairs,sameage24/30ppd/displays,stock/tracednative goldensunchanged.
+GPUinputoriginalRGB,independentC++spectralcalibration;nativeintermediates
+notinjected. Pupilscalar nativecastFloat32 exact. Existingmonov4regression
+69checks/507149valuesbitwisePASS. VulkanvalidationON,noerrorsreported.
+Initialscript executionpolicyrejectedbeforework;process-local Bypassresolved.
+InitialacceptancePASStextstale("notJND") despiteactualJNDchecks;finalchecker
+onlycorrectstext,acceptance_final repeatsarithmetic withaccuratescope.
+All builds/runs COMPLETE0,including74760/56501/7040/19810/56825;noactive
+processes. acceptance_final confirms884742bitwise;both runs retained.
+
+EXACT NEXT STEP: compose acceptedRGB P/adaptation withSPYR/quality.
+Currentevaluate_pathway_quality hardcodesmono preparation andcomparison;
+factor a shared downstream entry receiving P/adaptation and explicit full
+comparison mask, preserving existing mono guards/results. Nativehdrvdp3.m531:
+diff_mask=any((abs(test-reference)./reference)>0.001,3). MustORall3RGBchannels;
+zerosrequire nativeNaN/Infcomparison behavior,not grayscale mask. Current
+run_pathway_comparison computesmono mask so needs explicitprecomputedmask
+resizeentry. Capturefreshnativebanderrors/comparison/SPYR/quality forRGB
+pairs andvalidateactualoriginalRGBtoQ/JODbeforepublicpromotion. Broader
+size/viewing/modes/GPUresidentstillopen. Sources/binaries/artifacts frozen
+underroot,completedpointervalidation/rgb_response_completed_path.txt.
+
+## Previous checkpoint: original RGB through local adaptation exact (2026-10-27)
+
+Root via validation/rgb_jnd_active_path.txt. Fresh native export adds optional
+--jnd to generate_rgb_projection_reference.m; default projection captures
+unchanged. Three RGB96 nonidentity pairs/three spectra,age24/30ppd;stock/
+instrumented native score bits still agree. Adds clamped LMSR, L+M input,
+local adaptation,post-pupil LMSR,4-plane JND(unused plane4 zero),P and
+lum_reduction text. Official inputs/padding/layout/precision as preceding
+checkpoint. Native original sources untouched. Captures alone are NOT GPU
+pupil/JND validation.
+
+New hdrvdp3_rgb_adaptation.comp clamps L/M separately to native1e-8..1e10,
+then adds. verify_rgb_optical_gpu optional trailing adaptation shader runs
+actual GPU LMSR through L+M and existing local-adaptation FFT path, with
+explicit column/row boundary transposes. Native intermediates are only
+goldens; inputs and independently calibrated matrix drive the calculation.
+adaptation_acceptance PASS:497664 Float32 words bitwise (previous387072
+optical/LMSR plus55296 L+M plus55296 localadaptation). All six images pass;
+same publicv2 FFT192/IO,localadapt replicate padding/log-exp,DC retained.
+Vulkan validationON,no reported errors. Shader individually compiled and
+spirv-val passed. Build and run49772 COMPLETE0, no pending processes.
+Previous frozen source/binaries preserved;new snapshot/hashes under root,
+completed pointer validation/rgb_jnd_completed_path.txt. No commit/push.
+
+EXACT NEXT STEP: use actual GPU-derived adaptation with existing pupil_trace,
+compare lum_reduction to new native pupil text. Add separate LMSR-to-JND
+entry reusing accepted LUT/log/interpolation arithmetic, not mono D65
+multiplication. Compare post-pupil LMSR,cone/rod JND,P bits before composing
+SPYR/quality. Public RGB and broader metric scope still open.
+
+Planning estimate communicated to user:5-10 active full working days for
+first complete RGB-inclusive version at validated dimensions;3-6weeks for
+broader dimensions/viewing/modes validation. Conditional estimates,not
+guarantees or evidence of completion; no autonomous background work claim.
+
+## Previous checkpoint: original RGB through optical/LMSR exact (2026-10-27)
+
+Root via validation/rgb_optical_active_path.txt. Report:
+tests/RGB_OPTICAL_VALIDATION.md. New MixedFilterMode::OpticalRGB accepts
+finite nonnegative primary values; old OpticalMTF/LocalAdaptation retain
+strict-positive input. No pre-MTF clamp; same optical GPU shader/FFT path.
+New verify_rgb_optical_gpu.cpp and residual144 rgb-optical-gpu-test target.
+Original input planes -> GPU MTF -> independently calibrated RGB matrix ->
+GPU FMA projection. No native optical/matrix intermediate injection.
+Public v2 runtime/assets reused; FFT192, symmetric padding, DC retained,
+native post-MTF clamp. Native captured input column-major explicitly
+transposed to row-major filter interface and back for projection/comparison.
+
+Fresh acceptance_v2: 3display spectra x2RGB96 images,387072 Float32 words
+bitwise exact (165888 optical +221184 LMSR),age24/30ppd. GPU validationON,
+no reported errors. Old v4 competing_axes luminance regression69checks/
+507149values bitwise exact. Domain guard checks zero rejection in old2modes
+and negative rejection inRGB pass. Initial acceptance retained:7459 errors
+infirstchannel due TEST layout conversion missing; fixed test boundary,
+not shader arithmetic/tolerance. Build54176 and12319,regression17538 all
+COMPLETE0. All worklocal; originaldirtyVkFFT/corrdn preserved.
+Sources/binaries/artifacts frozen under root; completed pointer written.
+
+EXACT NEXT STEP: extend MapGPU with LMSR response clamp + L+M adaptation
+input and separate LMSR-to-JND entry. Capture official adaptation/pupil/
+post-pupil LMSR/JND/P for these same nonidentity RGB96 pairs in FRESH export
+directories. Validate actual GPU-derived LMSR through local adaptation,
+pupil and JND without reducing RGB to grayscale. Then compose existing
+SPYR/quality and compare full RGB scores before public interface promotion.
+Full RGB image-to-score, encodings, general dimensions/viewing/modes and
+GPU residency remain open. No full metric parity/completion claim.
+
+## Previous checkpoint: RGB GPU LMSR projection exact (2026-10-27)
+
+Root `validation/rgb_projection_639287155801831764`; active pointer
+`validation/rgb_projection_active_path.txt`; report
+`tests/RGB_PROJECTION_VALIDATION.md`. New native generator captures real
+optical RGB and pre-clamp LMSR from isolated official3.0.7 visual copies.
+Three nonidentity RGB96 pairs (led-lcd-srgb/led-lcd-wcg/oled), age24/30ppd,
+FFTW3 threads3/estimate/clearedsinglewisdom. R/G/B ramps with zero patch,
+pure-primary patch and local red/blue changes. No pre-FFT clamp/gamma/resize.
+Stock/traced Q/Q_JOD bits agree; scores metadata only, NOT GPU quality.
+Native optical clamp is after symmetric MTF; response capture before clamp.
+Input/optical/response Single, matrix Double; column-major planar layout.
+
+Arithmetic characterization (inspect_rgb_projection.cpp): 221184 words,
+Float32 coefficient forward fma(B,b,fma(G,g,R*r)) has ZERO bit mismatches.
+Separate left/right sums:46608/66247;reverseFMA67204;Doubleaccum66989.
+This establishes local native BLAS behavior, not all BLAS implementations.
+New shader hdrvdp3_rgb_projection.comp implements exactly that order;
+SPIR-V has NoContraction OpFMul plus two explicit Fma instructions.
+New verify_rgb_projection_gpu.cpp uses diagnostic_float_kernel.h and new
+residual144 CMake target rgb-projection-gpu-test. IntelArcPro validationON:
+six image captures/221184 Float32 words bitwise PASS, no reported Vulkan
+errors. Native optical input injection means PROJECTION ONLY, not full RGB.
+RGB CPU CMake target rgb-projection-inspect also added. No old shader edited.
+
+All processes COMPLETE0 (build64250,inspect36665); no active work remains.
+Commands in report; native.log/arithmetic/candidates.tsv/gpu_acceptance.log
+and actual outputs preserved. Snapshot and hashes under root, completed
+pointer validation/rgb_projection_completed_path.txt. Original dirty VkFFT
+and staged/worktree corrdn preserved. No commit/push/reset/cleanup.
+
+EXACT NEXT STEP: add explicit nonnegative RGB optical input domain to
+mixed_filter without weakening mono strict-positive contract; do not clamp
+zeros before MTF. Run three independent GPU channel filters on captured
+input planes and compare all native optical outputs, then use independently
+calibrated matrix and accepted projection. Connect response clamp, L+M
+adaptation/pupil, and separate LMSR-to-JND entry afterward. Public RGB PF
+loading/encodings/runtime/full quality and broader metric scope remain open.
+
+## Previous checkpoint: RGB spectral calibration exact (2026-10-27)
+
+Root: `validation/rgb_spectral_639287141118400654`; active pointer
+`validation/rgb_spectral_active_path.txt`. Report:
+`tests/RGB_SPECTRAL_VALIDATION.md`. This advances RGB calibration only;
+the complete RGB image-to-score path remains unfinished. Previous v4 scope
+and frozen artifacts below remain valid and unchanged.
+
+Implemented RGBSpectralSamples/RGBSpectralCalibration, explicit raw-data RGB
+loader, and age calibration in spectral.h/spectral.cpp/spectral_loader.cpp.
+Shared 420-point native grid/sensors, three display emission spectra, raw
+3x4 integrals, ONE global normalization with native L-column then M-column
+sum order. Mono calibration shares an internal helper but preserves its
+original normalization and calculations. No per-primary normalization.
+
+NEW TESTS: generate_rgb_spectral_reference.m, verify_rgb_spectral.cpp,
+tests/hdrvdp3_rgb/CMakeLists.txt. Native v3.0.7/Octave11.3 captures actual
+matrices from isolated instrumented copies (original sources untouched).
+Displays led-lcd-srgb/led-lcd-wcg/oled, ages24/60/60.001: nine configurations,
+18 actual native matrices match the independent oracle bitwise. C++ raw
+loader/calibration passes 10,296 Float64 bit comparisons (10,080 samples +
+216 integral/matrix values). Native 32x32 white identity Q/Q_JOD10 verifies
+instrumentation ONLY, not nonidentity RGB quality or GPU processing.
+
+REGRESSIONS: mono_native + mono_regression.log:13 ages,2520 raw samples +
+16822 intermediates,zero numeric mismatches (old checker not signed-zero
+bitwise). Rebuilt public v4 contrast checker on competing_axes128 pair:
+public_v4_regression/log:69 checks/507149 mixed values bitwise exact.
+Session46837 COMPLETE0; no process remains from this checkpoint.
+Non-escalated MSBuild FileTracker E_ACCESSDENIED was resolved by approved
+escalated build; rebuild completed0. No numerical failure/tolerance change.
+
+First native/ capture failed due relocated base_dir; retained. Corrected
+native_v2/ explicitly binds official data root and passed. Native stderr
+execution_exception at exit accompanies0. raw_source_hashes.json records
+six original spectral files. Build commands and fresh-output reproduction
+are in the report. Source/binary/artifact snapshots frozen in this root,
+completed pointer validation/rgb_spectral_completed_path.txt. No commit,
+push, reset, cleanup, shader compilation or modification of old references.
+Dirty VkFFT and original staged/unstaged corrdn shader preserved.
+
+EXACT NEXT STEP: generate fresh nonidentity true-RGB96 rgb-native pairs,
+capture each optical channel before/after clamp and native LMSR matrix
+projection. Measure Single/Double BLAS coefficient conversion, accumulation
+and FMA order before choosing GPU arithmetic. Then implement RGB GPU
+projection and separate LMSR-to-JND entry (current mono jnd_response is not
+equivalent). Official RGB clamp follows MTF; current mono filter rejects
+zero inputs. Add an explicit nonnegative RGB domain without pre-FFT clamp
+or changing the mono contract. Public PF RGB loading, encoding/EOTF,
+RGB runtime integration and nonidentity quality acceptance still remain;
+viewing/general dimensions/prediction modes/device coverage/GPU residency
+are also open. No full metric completion claim.
+
+## Previous checkpoint: square128 modern public runtime complete (2026-10-27)
+
+Supersedes the128 next step below. Root:
+`validation/base256_639286962762078797`;activepointer
+`validation/base256_active_path.txt`. Report:tests/SQUARE128_PUBLIC_RUNTIME_VALIDATION.md.
+V4fixed128luminanceprofileclosed;RGB/general-size/viewing/modes remainopen.
+Allv4numerical/buildsessionsCOMPLETE;do notpolloldIDs.
+
+NEW V4 HEADER:
+IQM_HDRVDP3_PATHWAY 4 luminance-30ppd-age24-D65-sp0-map14-square128
+18payloadfiles=14SPV+4models;forward/inverse reuse SAMEacceptedFFT256module.
+New MixedFilterAssets.reference256Graph(defaultfalse),
+PathwayMaskingAssets.mapABI(default13). V4loader setsFFT256/map14 andboth
+variable-countflags. V1-v3retainoldflags/layout/payloads. Consumersrebuild;
+notbinarystructABIcompatible. PublicqualityguardscheckFFT/map/countbinding;
+factorybindsprofile/geometry. Defaultforwardgraph3/4;FFT2568/9,inverse3/4.
+Library/core andCLIacceptmodern128explicitv4;legacy128separatepathretained.
+Provenance v4;128x128;30ppd;age24;D65;sp0;map14. Help/READMEupdated.
+
+STRICTBITS,FRESH6PAIRCOHORT:
+- Native128fivepatterns asymmetric/impulse/hdr_ramp/constant/identity plus
+  competing_axes exacthistoricalPFMsfromquality128_stress_639282594471943896.
+  New --transform pair readsBOTHexplicitreference/testfilesunchanged;old
+  externalreference+localized/uniform behavior retained. SourcePFMhashes in
+  pair_input;freshstock/traced Q/Q_JOD identical. Historicalpairscoreexact.
+- acceptance_six:mean/DC->pairedpack->16FFT/hypot/index,10770F32words exact,
+  12inputbands/6pairs. residual256 usesoriginalpinnedFFTWreal16/complex16,
+  columnmajorcomplexinput,rowmajoroutput,nativewhole-realnarrowing,DCzero
+  onlyformagnitude,firstcolumnmajormaximum. No newFloat64shaderrequirement.
+- spyr_acceptance_six:nativeP->allSPYR/base,66checks/726546F32words exact.
+- limit_acceptance_six:12F32logmean/power10+12F64frequency/noise exact;
+  actualGPUindex,CPUfrequency/doubleNCSF remain. Identityfreq0/+Infnoise/Q10.
+- native_stress_audit reproduceshistoricalindex33one-based,twotiedmaxima,
+  5018.5791015625 vs5018.57861328125,ONEULP. GPUzerobased32;freq.46875;
+  noisenative2.6324985310538325. AuditchecksactualGPUrankgap/inputPFMbytes.
+- visual43_all:originalimages->model/FFT/prep/filtered/inverse/retinal/L+M/
+  adaptation/pupil/P/log/SPYR/base,258checks/15865410F32words exact.
+- quality_acceptance:privatefullmodernchain414checks/3042894F32/F64exact;
+  public_api_v4:SAME414/3042894exact includingQ/Q_JOD/errors/baseNoise.
+  Six originalpairs69checks/507149values each. No nativeintermediateinjection
+  intheseimage-to-scorepaths. Initial5pairbase/SPYR/limitscohortseparate,
+  frozenbase256-five-*-used.exe binaries;cohortsoverlap,notnewindependentdata.
+- public_cli_v4:6PFMpairs,7exportseach exactoriginal/native/publicAPI,
+  qualitytext+PFMreadbackexact. AllsamefinalCLIbinary;v4help/map14checked.
+  Near-tieQ=.98083019256591797,Q_JOD=1.2951202392578125.
+- Afterpromotion:public_regression_v4 207checks/721123values exact across
+  v1rectangle,v2real96,v3asymmetric80. cli_old_regression preservesv1/v2
+  7exports andv2+128profile rejection. Earlierpublic_regressionpredatesv4,
+  keepbinarycohort distinction. old_base_regression17kwords and
+  old_spyr_regression220checks/1144720words exact on4earliergeometries.
+- contracts_v1..v4 EACHvalidpacket+12malformedrejections withoutGPU.
+  profile_viewing_contract_PASS rejectswrongv1-v4geometrypairings,
+  v4ppd60/age60/spectraloverride andunsupported160 beforeexports.
+- No reportedVulkanerrorsinpasses;no numericalmismatch/tolerancerelaxation.
+
+PRECISION:official3.0.7,Octave11.3,FFTW3threads3/estimate/freshsinglewisdom,
+Float32positiveluminance,30ppd/age24/D65/sp0. Fullpadding256square;MTF
+symmetricpost,LAreplicatepost. FFTforward8/9,inverse3/4once/65536. Filter
+coefficientsdoubleexpressionsnarrowonce. Prepared/filteredcolumnmajor;
+forward/inversetracesrowmajor. ResidualUNPADDED16square;meanexponentdomain
+[-90,100],span16;hypotdomain[-90,100]. Allsignedzerosassertedwherechecked.
+Thisdoesnotretroacceptoldlegacy128numeric-onlycomparisonsasbitwise.
+
+SOURCE PACKAGE: package_square128_runtime.ps1/generate_square128_runtime.ps1,
+REFERENCE_SQUARE128_PATHWAY_HASHES.json. Rebuildscommon20models/shaders,
+old6pinnedlegacy128assets,IO/generalmean/pack/residual256/baseadaptation.
+src andisolated iso reproduceall18payloads+manifestexactly:
+f687079b87cbe3818bc9c80d033234c5063f007d5b73f6b09e4e6f010fd172e0.
+660source/dependencyfilesisolatedincloriginalAMDASM/inc,nopriorvalidation/
+images/compiledbinariescopied. Provesassetregen,notisolatedhostAPIbuild.
+runtime_documented_v4hasfinalreport,samepayloads/manifest. Alllegacyv1-v3pins
+unchanged. FirstcompilewrapperexpectedLocalSize64insteadpreserved32;failed
+beforeGPUwork. fft_shader_v2isacceptedcorrectedoutput;firstfolderpreserved.
+No shaderpin changedtomakeafailurepass.
+
+COMMANDS: sourcebuildfromrepo root,usefreshshortoutput:
+powershell -NoProfile -ExecutionPolicy Bypass -File
+tests/hdrvdp3_evaluation/generate_square128_runtime.ps1
+-OutputDirectory validation/my_square128_runtime
+-VulkanBin C:/VulkanSDK/1.4.363.0/Bin
+Ready=<output>/runtime. Sharedtesttargetsbase256-pipeline-test,
+base256-spyr-test in tests/hdrvdp3_residual144;optionaltrailingcasecount6
+forstressmanifests(default5). IQM-base256-limit-test inevaluationproject,
+sameoptional6. square128-filter-chain-test(43stages) andsquare128-quality-test
+(69stages) separateprivateflags. PubliccheckerIQM-pathway-contrast-test,
+CLI IQM-hdrvdp3. Saved-outputaudit:
+node tests/hdrvdp3_evaluation/audit_square128.cjs <root>.
+Snapshots/source_hashes_final/binary_hashes_final/artifact_hashes_final inroot;
+validation/square128_completed_path.txt marksTHISboundedprofileonly.
+
+NEXT WORK: RGB inputcontract/spectralprojection. Officialnative RGB isNOT
+arithmeticgrayscale. hdrvdp3 supportsrgb-native(defaultled-lcd-srgb),
+rgb-bt.709/srgb-display(transformtonativedisplay),rgb-bt.2020/XYZ(defaultoled).
+Spectralemission3channels;M_img_lmsr is3x4 normalized ONCE by
+sum(sum(M(:,1:2))) acrossRGB,then R_LMSR=reshape(L_O,N,3)*M (nativeBLAS
+single/doubleprecision/accumulationneedsmeasurement). MTFperRGBchannel,
+R_LMSRclamp[1e-8,1e10],adaptationfromL+M,pupil,JND separateL/M/rod channels.
+CurrentSpectralSamples/loader isMONO;existingcalibrate_spectral_age exposes
+rawintegralsbutnormalizeseachsingleemissionseparately. ForRGBreuseRAW3x4
+integrals,normalizegloballyincolumn-sumorder;doNOTnormalizeseachcolorrow.
+FirstaddRGBspectralloader/calibration andverifyexactlyagainstfreshactual
+native3x4matrices. ThenimplementRGBretinal->LMSR/JND withmeasurednativeBLAS
+order,keepingfixedluminanceprofilesclosed. Additionalviewing/size/device/
+predictionmodes andCPUmodel/LUT/NCSF/hostcopies remainopen. No fullmetricclaim.
+
+PRESERVED: stagedcorrdnblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,
+worktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6,
+dirtyVkFFT,allunrelatededits/oldrefs. No commit/push/reset/cleanup.
+
+## Latest checkpoint: square80 public API/CLI complete (2026-10-27)
+
+This supersedes the160square optical next step below. Root:
+`validation/square80_visual_639286716205199707`; active pointer
+`validation/square80_visual_active_path.txt`. All numerical/build sessions
+COMPLETE. Report: tests/SQUARE80_PUBLIC_RUNTIME_VALIDATION.md. This completes
+FIXED80square luminance quality,not the full RGB/arbitrary/viewing/device scope.
+
+IMPLEMENTED: new forward/inverse160square generator reuses accepted scalar
+real160 and scalar/SIMD complex160 codelets from192x160. Native unaligned,
+out-of-place FFTW plans reproduce32candidate inspections with8exactforward/
+inverse combinations (3or1thread). Sourceplanutility adds160x160 andrawinverse
+exports. Allnativeplans/goldensfresh;originalreferencesunmodified.
+New160normalization usesonce-rounded /25600=25*1024,notreciprocalmultiply.
+PureintegerRTE includingnormal/subnormal/signedzero domains.
+
+Public runtime version3 header:
+IQM_HDRVDP3_PATHWAY 3 luminance-30ppd-age24-D65-sp0-map13-square80
+18payloads=14SPV+4models. SHA256/path/model/SPIRV contracts retained. New
+PathwaySPYRAssets.variableMeanCount and PathwayMaskingAssets.variableBaseCount
+defaultfalse;loaderv3 setsbothtrue. Version1/2stayfalse,payloadsunchanged.
+These appendedstructfields requireconsumerrebuild;notabinaryABIcompatclaim.
+Productionmixed_filter/SPYR/pool/comparison/masking/quality andpublicevaluation
+nowaccept80square withcorrect160FFT/count100assets. Directquality80requires
+thetwo ABIflags. Fixed30ppd/age24/D65/sp0,no spectraloverride. Provenancev3.
+CLIhelp andREADME/sourcegenerationcommand updated. Priorpublic3shapesremain.
+
+MEASURED,STRICTBITS:
+- spyr43_acceptance:5original80squarepairs,215checks/5164555Float32words,
+  fromimage ->model/prep/forward/filter/inverse/retinal/L+M/adaptation/pupil/
+  P/log/SPYR/base. Each43checks/1032911words. No nativeintermediateinjection.
+- privatequality:5samepairs,345checks/990565Float32/Float64values. Frozen
+  square80-private-quality-used.exe identifiescohortbeforepublicpromotion.
+- public_api_final:5samepairs,69checks/198113values each=345/990565 exact,
+  includingQ/Q_JOD,allbandD/errors,base selection/noise/adaptation.
+- public_cli:5originalPFMpairs,7exports each exact vsnative/original/publicAPI;
+  PFMheader/orientationreadback andqualitytextchecked,allprofilelabels v3.
+- normalization_acceptance:1054696finiteIEEE probes +204800 actualnativeFFTW
+  rawinversecomponents bitwise. Plans160_raw retains raw/div/mul candidates.
+- contracts_v1/v2/v3:validpackageaccepted +12malformedpacketrejections EACH.
+  geometry_contract_PASS:v3rejects96square/rectangle,v1/v2reject80square.
+  viewing_contract_PASS:v3ppd60/age60/spectraloverriderejectbeforeexports.
+  Age60 suppliedspectralargtoreachAPIguard;missingargseparatelyparserrejects.
+- api_regression:oldv1asymmetric_tiny80x96and96x80,69checks/237733values each;
+  v2real96,69checks/285277values;allbitwiseafterv3promotion.
+- production_regression_v3:oldv1/v2sevenexports exact,correctlabels,modern128
+  rejected. This predatesfinalhelp/header-comment-onlyrelink;numeric source
+  afterfinaldispatchfixsame. public_suite_cli/api/runtime.exe freezeacceptance
+  cohort. Final_cli.exe +final_cli_smoke checks7asymmetric80exports byte-for-
+  byteandv3label/help AFTERlasthelp/headerrebuild. Do notretroattributebroad
+  historicalsuites tofinalbinary. No reportedVulkanvalidationerrorsinpasses.
+Allcohortsoverlap;notindependentphotographic/RGBacceptance. Fivecontents
+asymmetric/impulse/hdr_ramp/constant/identity;identityInfnoiselimitretained.
+
+SOURCE REPRODUCTION: package_square80_runtime.ps1,
+generate_square80_runtime.ps1,REFERENCE_SQUARE80_PATHWAY_HASHES.json. Source
+generator rebuildscommon20oldpayloads/models,160forward/inverse,squareIO,
+generalmean/difference/residual/baseadaptation;then18payloadv3package.
+source_build andisolated iso reproduce18pinsandmanifestbytesexactly:
+9f0176cf7c9e62718c22e6a214a641d53ba1b13836ead8a84dd26b7b2e7dd388.
+No numericexports/nativeinstallation neededforgeneration. Isolatedtree has
+646initialsourcefiles+6originalAMDASM/includesources;nogeneratedbinaries/
+validation/imagescopied. Firstisolated_source_build failedfrommissingexpf.asm;
+isolated_source_complete thenhitMSBuildlong-pathlink.tlogfailure. Bothlogs
+retained. Shortfreshoutput iso succeeds. This provesassetgeneration,notan
+isolatedbuildofthefullhostAPI. Laterhostdispatchfixdoesnotaffectgenerators.
+runtime_documented packagesfinalreport;18pins/manifestunchanged.
+Commandfromrepo root(usefresh,shortdirectory):
+powershell -NoProfile -ExecutionPolicy Bypass -File
+tests/hdrvdp3_evaluation/generate_square80_runtime.ps1
+-OutputDirectory validation/my_square80_runtime
+-VulkanBin C:/VulkanSDK/1.4.363.0/Bin
+Readypackage=<output>/runtime.
+
+FAILURES PRESERVED/RESOLVED:
+- Initialinverse160candidate retainedold192outputstride;asymmetric_filter
+  adapt_input6320mismatches. Fixedgeneratorf*160stride,inverse_shader_v2 is
+  accepted;oldinverse_shader/failedoutputsretained. No tolerancechange.
+- Initialpublic_apicohort failedbasebandD100values:genericmeancountwasalso
+  sentasFFTstageheight. FixedsecondpushwordONLYforj==lowStages;subsequent
+  stageskeeph/8. public_api_final passesallfive. Pinsunchanged;hostdispatchfix.
+- First filterlaunch happenedbeforeasyncbuildfinished;noexe/noGPUrun/output.
+  Subsequentbuildpolledcompletebeforelaunch. Nativeguard/argumenttypos and
+  contractharnessargumenttypos werefixedbeforevalidnumericruns. Neverassume
+  exec_command sessionIDmeansbuildcomplete;pollbeforedependentcommands.
+
+AUDIT: node tests/hdrvdp3_evaluation/audit_square80.cjs <root>
+rechecksallpublic69stageactual/expectedbytes,visualrows,CLI/native/APIbuffers,
+v3provenance,18pins/manifests acrossaccepted/live/isolated/documentedpackets,
+andregression/contractsmarkers. LogreaderhandlesUTF8andPowerShellUTF16.
+Finalsource/binary/artifactinventories andsnapshots underroot;oldfrozensources
+preserved. Completedpointervalidation/square80_completed_path.txt isforTHIS
+boundedprofile only. No remainingprocesses;do notpolloldIDs.
+
+EXACT NEXT STEP forlargercompletion: keepthis80profileclosed. Fornextmodern
+geometryprefer128square,whoselegacy256FFT/base16quality alreadyhasaccepted
+referenceassets,overanotherunrelatedsmallgeometry. Firstinspectexisting
+128nativefixturesandFFTWgraphs;extendgeneralmean/difference/residual16x16
+underseparatediagnosticABI,preserveactualDC/bin/frequency/adaptation parity;
+thenjoinmodernSPYR/pool/masking withappropriatevalidatedmap/resizeprofile.
+DoNOTsimplyadd128toloaderguards oruse10/12codeletsfor16. Independentremaining
+fullmetricrequirements:RGB/spectralinputcontract andnativecoloracceptance,
+generalviewingconditions,arbitrarysizes andbroaderdevicecoverage,additional
+predictionmodes;CPUmodel/LUT/doubleNCSF/hosttransfers stillremain. No generic
+fullmetric/GPUresidentclaim. Continueimplementationwithoutaskingpermission.
+
+PRESERVED: corrdnstagedblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 and
+worktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6,
+dirtyVkFFT/allunrelatededits/oldreferences. No commit/push/reset/cleanup.
+
+## Latest checkpoint: general base/SPYR including80square (2026-10-27)
+
+Supersedes the difference/residual next step below. Root:
+`validation/base_general_639286707604688716`, pointer
+`validation/base_general_active_path.txt`. All processes COMPLETE.
+Report: `tests/GENERAL_BASE_PIPELINE_VALIDATION.md`.
+
+IMPLEMENTED (separate diagnostics, not public dimensions):
+- General paired mean+centered test-reference pack; row-major bands to
+  column-major complex input; no second DC subtraction. Source
+  tests/mean_general_difference_pack.comp; dimension guard up to64x64,
+  numerical acceptance only10/12axis combinations below.
+- generate_residual_general_extended_shader.ps1 reuses accepted real10/12
+  andcomplex10/12FFTWgraphs. Supports10x10,10x12,12x10,12x12 ONLY;dynamic
+  offsets/counts,whole-real narrowing,DC-excluded nativehypot,first columnmajor
+  maximum. Newshader/scratchmax144,notarbitrary FFT. Oldbinaries unchanged.
+- generate_base_general_shader.ps1:general logmean andnative-style10^mean,
+  push groups,count,reserved,reserved;independent GPUtailtest.
+- src/pathway_spyr.cpp IQM_HDRVDP3_GENERAL_SPYR_DIAGNOSTIC permits80/96 on
+  each axis onlyinprivate diagnostic,using oldprivatealias+genericmeanpush.
+  Default public80x96/96x80/96x96 andprivate96 guards preserved.
+- New general-base-pipeline-test/general-spyr-test targets;new
+  IQM-general-base-limit-test inbounded evaluation;test-only
+  diagnostic_float_kernel.h. Nativehelpers accept new80x80 capture/optional
+  SPYRshape. Default exportshapes remainoldtwo rectangles/defaultSPYR96.
+
+EQUIVALENCE: official3.0.7,Octave11.3,CPUFFTW3threads3/estimate/freshsingle
+wisdom,Float32positive luminance,30ppd/age24/D65/sp0. Fullnativevisualpads2H,
+2W;isolatedbaseFFT UNPADDED. Fivepatterns asymmetric/impulse/hdr_ramp/
+constant/identity;localizedgain1.4offset.25 exceptidentity. Freshnative80x80
+andrectangles assertstock/traced Q/Q_JOD identical. Reuseold96nativecopies.
+Packingcolumnmajorcomplex;FFTrowmajorcomplex;indexzerobasedcolumnmajor;
+DCignoredforselection;whole-matrix signedzero narrowing assertedexactly.
+
+RESULTS (no tolerances):
+- acceptance:20pairs,4geometries80x80/80x96/96x80/96x96 (5patternseach),
+  17000Float32 mean/DC+pack+FFT/magnitude/index words bitwise exact.
+- spyr_acceptance:20samepairs,220stagechecks/1144720Float32words exact.
+  StartsfromNATIVE Pmaps,not GPUopticalpipeline. New80squarenowaccepted
+  fromPthroughSPYR/base. Shape-specificchecksums47303/56763/56763/68115
+  wordsperpair;dynamiccount100/120/120/144.
+- limit_acceptance:40Float32logmean/power10words+40Float64frequency/noise
+  values exact againstnative. GPUselectedbin fromactualacceptance stage3,
+  GPUadaptation+CSFparams,CPUfrequencyanddoubleNCSF. Inputlogband isNATIVE
+  resized/clamped logadaptation,notnew80GPUresize acceptance. New80nonidentity
+  index10/frequency.37499999999999989;identityindex0/freq0/+Infnoise inall4
+  shapes. NativeInfinity encodednull+flag inJSON;binarytwoFloat64limits
+  retainexactbits. NaNinvalid;4positiveInfidentitylimitsverified.
+- quality_acceptance:6OLD96pairs,414checks/1711662Float32/Float64 exact
+  with3replacedshaders(mean/difference/residual),notjustmean. Fullqualityexe
+  FROZENfrommean_general_639286695977843465/build/Release/
+  general-mean-quality-test.exe;newadaptationshaderNOTusedinthiscaller.
+- v2_pipeline_regression:rebuiltoldbase144checker+original3acceptedshaders,
+  5old96pairs exact includingzero-signbits.
+- production_regression:latestdefaultproductionCLI rebuilt afterinactive
+  diagnosticguard addition;real96+oldasymmetric96x80 sevenexports exact,
+  v2/v1labels correct;v2unsupported128 rejected beforeexport. Prior broad
+  suites remainseparatebinarycohorts,notretroactivelyattributedtolatest.
+- No reportedVulkanerrors. Cohortsoverlap;donotsumasindependentimages.
+- audit_base_general.cjs rechecksallactualpipeline/SPYRbytes,qualityrows,
+  actualadaptation/frequency/noise andnativefixturelineagewithoutGPUwork.
+
+ARTIFACTS: fixtures isfirst20pipelineexport;fixtures_limits reproducesallits
+mean/pack/FFTgoldensbitwiseandaddslog/adaptation/Float64limits. spyr_goldens
+capturesall11officialstagesperpairusingoriginalcorrDn/decompose;allbands
+assertedagainstfullreference trace. Native80/rectanglecaptures retained.
+Compilecommands four scripts in tests/hdrvdp3_dimensions:
+compile_mean_general,compile_mean_general_difference_pack,
+compile_residual_general_extended,compile_base_general (all.ps1),freshoutputs,
+-VulkanBin C:/VulkanSDK/1.4.363.0/Bin. CMake targets above in
+tests/hdrvdp3_residual144 exceptlimit in tests/hdrvdp3_evaluation.
+Pipeline exe args:mean.spv pack.spv fft.spv fixtures/manifest.txt fresh-output
+--pathway-difference. SPYRexe args:spyr_goldens/manifest.txt quality_assets
+fresh-output. Limitexe args:base_general.spv oldmap.spv
+fixtures_limits/limits_manifest.txt acceptance fresh-output.
+Audit: node tests/hdrvdp3_evaluation/audit_base_general.cjs <root>.
+
+Twoinitiallimit-callerbuildfailures were missingbin/shared include andwrong
+abstractVulkanInstance;fixednewtarget/callerbeforeanynumericrun. Failure
+notesinbuild_limit_first_failure.txt. No numericalfailures/tolerancerelaxation.
+Updatedpackage_square_runtime documentationlinks only;documented_v2_runtime
+18payloads+manifestmatchacceptedv2,package_PASS.txt. Productionpinsunchanged.
+
+EXACT NEXT STEP: new80x80 opticalMTF/localadaptation needs160x160paddedFFT.
+Recordnativeforward/inverseFFTWplans,precision/layout/padding/DC first;
+compose/translate160-axiscodelets andonce-rounded normalizationwithout
+changingaccepted160x192/192squaregraphs. Validateforward/filter/inverse
+buffersandretinal/P/logoutputs againstfresh native80visualcaptures. Thenjoin
+acceptedgeneralSPYR/baseandvalidatefullGPUQ/Q_JOD BEFOREnewpublicprofile.
+DoNOTrelaxpublicdimensionsnow:80square nativeP->SPYR acceptanceisnotfull
+image-to-score. Generaldimensions/RGB/viewing/device/GPUresidentremainopen;
+CPUmodel/LUT/doubleNCSF/hostcopiesremain. Continuewithoutpermissionquestions.
+
+PRESERVED: stagedcorrdnblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,
+worktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6,
+dirtyVkFFT,allunrelatededits andoldreferences. No commit/push/reset/cleanup.
+Finalsource/binary/artifact snapshots undernewroot;oldfrozensnapshotsuntouched.
+
+## Latest checkpoint: routing complete and variable-size mean (2026-10-27)
+
+This entry supersedes the earlier usage-limit BLOCKER and pending routing
+step below. Approval review worked on retry in this user-authorized session.
+No approval bypass. No active build/numerical processes remain.
+
+PRODUCTION ROUTING root: `validation/square_routing_639286693989771436`;
+pointer `validation/square_routing_active_path.txt`.
+- Wrapper now routes ANY explicit pathway.runtime manifest to modern API,
+  retaining old rectangular clauses. v2+128square fails geometry before export.
+- evaluation.cpp profile provenance now v2 for96square, v1 foroldrectangles.
+- Initial before/after routing executable cohort preserved. Later production
+  build also includes provenance fix and inactive generic-mean diagnostic
+  branch. `final_acceptance/PASS.txt` / runs.json / binary_sha256.txt identify
+  this latest cohort: real96 andoldasymmetric96x80 each preserve7numerical/
+  quality exports byte-for-byte; profilelabels v2/v1 correct; unsupported128
+  rejection PASS, no reported Vulkan errors. Earlier broad-suite hashes stay
+  distinct; do not attribute all old runs to latest binary.
+- Reusable tests/hdrvdp3_evaluation/validate_pathway_routing.cjs arguments:
+  executable old-square-public-root v1-runtime fresh-output.
+- package_square_runtime.ps1 now bundles public validation report and linked
+  private/general-mean docs. runtime_documented:18payloads+manifest match
+  original accepted v2 bits; package_PASS.txt. No pin updates.
+- README and SQUARE_PUBLIC_RUNTIME_VALIDATION.md updated. Prior498/501source
+  and broad-suite artifacts remain historical and unmodified.
+
+NEW COMPONENT root: `validation/mean_general_639286695977843465`;
+pointer `validation/mean_general_active_path.txt`.
+Source: tests/mean_general.comp, compile_mean_general.ps1,
+export_native_mean_general.m, validate_mean_general.cjs. Extended shared
+verify_mean120.cpp via IQM_MEAN_DYNAMIC_COUNT; fixed120/144 branches retained.
+New standalone CMake targets mean-general-test and general-mean-quality-test.
+Report: tests/GENERAL_BASE_MEAN_VALIDATION.md.
+
+CONTRACT: mean/DC forcount1..4096, finite normal Float32/signedzero,
+unbiased exponents[-90,100], within-group span<=16. Host validates domain;
+shader validates count. Exact signed two-uint32 accumulator<=52magnitudebits,
+integer division/RTE; normalize tiny cancellation sums before division.
+No shader Float64 required. Do not claim support forsubnormal inputs or wider
+spans. Push:groups,count,reserved,reserved. Input/output: contiguous input
+groups,count+1 output words pergroup, mean first then centered originals.
+
+MEASUREMENTS:
+- First acceptance/native:12counts x1024synthetic+8Octave probes/count,
+  6278688 Float32 words bitwise. Historical testbinary hash retained.
+- FINAL acceptance_bounds/native_bounds:counts1,2,3,7,64,100,120,144,255,256,
+  1024,4096;12288synthetic+144independentOctave mean/DC probes;
+  6303024Float32 words bitwise including signedzero. Four extra native probes
+  stress maximum accumulation, span16 and near-total cancellation atlowbound.
+  This tests12lengths, NOTall4096lengths exhaustively.
+- official_spyr144:general shader with mean144-test againstoriginal official
+  SPYR bands;1187840synthetic+1450nativewords bitwise (10nativebands).
+- quality_acceptance:general-mean-quality-test alternate ABI inexisting
+  private96fullchain,6samepairs,69checks/285277values each=414/1711662
+  Float32/Float64 exact, Q/Q_JOD/base selection/noise/alltraces included.
+  No new independent images. No reported Vulkan errors in recorded cohorts.
+- General fullchain assets copied fromaccepted square_quality_.../assets;
+  ONLYmean.spv replaced. source/pathway_spyr.cpp passesbaseCount only under
+  IQM_HDRVDP3_GENERAL_MEAN_DIAGNOSTIC. Productionv1/v2 originalpushABI/payloads
+  unchanged. Generic mean is NOTyet a public runtime asset/profile upgrade.
+
+REPRODUCTION: cmake -S tests/hdrvdp3_residual144 -B <fresh-build>
+-G "Visual Studio18 2026" -A x64; buildtargets mean-general-test,
+general-mean-quality-test,mean144-test --config Release -j4. Compile shader:
+powershell -NoProfile -ExecutionPolicy Bypass -File
+tests/hdrvdp3_dimensions/compile_mean_general.ps1 -OutputDirectory <fresh>
+-VulkanBin C:/VulkanSDK/1.4.363.0/Bin.
+Octave11.3 --quiet tests/export_native_mean_general.m <fresh-native>.
+node tests/hdrvdp3_evaluation/validate_mean_general.cjs <exe> <spv>
+<native> <fresh-results>. Fullchain usevalidate_square_quality.ps1 with
+alternateexe/copied14assets/native square_quality_639286340181932107.
+
+EXACT NEXT STEP: generalize difference-pack and residualFFT/magnitude/
+selection underdistinct diagnostic ABI, starting with fresh native base bands
+forone newgeometry; preserve120/144 reference binaries and productionpins.
+Check inputprecision/layout/padding/DC, signedzero narrowings, actualbin/
+frequency/adaptation againstofficial3.0.7 beforepublicpromotion. Prefer
+reusing validated FFT codelets; do not claim arbitrary dimensions frommean
+alone. Overall RGB/viewing/general-size/device/GPU-resident scope STILLopen.
+No user permission needed to continue implementation within this task.
+
+PRESERVATION: corrdn stagedblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,
+worktreeSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+unchanged. DirtyVkFFT andallunrelatededits preserved. No commit/push/cleanup.
+Each newroot has source_snapshot_final/source_hashes_final.json and frozen
+binary_hashes_final.json/artifact_hashes_final.json; earlier roots untouched.
+
+## Latest checkpoint: public square96 (2026-10-27)
+
+This checkpoint supersedes the private-only square96 next steps below.
+Root: `validation/square_public_639286351443539038`; active pointer:
+`validation/square_public_active_path.txt`. No completed pointer: final CLI
+routing tightening remains pending. Report: `tests/SQUARE_PUBLIC_RUNTIME_VALIDATION.md`.
+
+IMPLEMENTED: production mixed_filter/SPYR/pool/comparison/masking/quality
+supports 96x96 in addition to existing80x96/96x80. Square uses192x192 FFT,
+whole-real filter narrowing and144 base samples; old rectangular120 operations
+remain. Narrowing kernels are constructed only for square. Private diagnostic
+aliases remain for historical tests. Loader supports distinct version2
+`luminance-30ppd-age24-D65-sp0-map13-square96` (18 payloads=14SPV+4models),
+and unchanged version1 rectangular profile (20 payloads). Geometry/profile
+coupling, SHA256, confined paths and model/SPIRV validation retained. Public
+evaluation and CLI accept square96 with explicit modern package. Same30ppd,
+age24,D65,no spectral overrides; seven-export schema unchanged.
+
+MEASURED (exact bits, not tolerance):
+- api_acceptance:6 public96 pairs,69checks/285277 Float32/Float64 values
+  each=414checks/1711662 total,including Q/Q_JOD/base noise/band errors.
+  Reused validator PASS text still says private diagnostic; that wording is
+  historical, not the actual public-linked executable identity. Preserve it;
+  use executable hashes, CMake linkage and this checkpoint for attribution.
+- public_visual:6 same pairs,43checks each=258checks/8924322 Float32words,
+  model/filter/preparation/FFT/retinal/L+M/adaptation/pupil/P/log/SPYR/base.
+  Overlaps the six quality pairs, not new independent images.
+- cli_acceptance:6 PFM pairs,7exports each bitwise original/native/API;
+  PFM orientation/header readback exact; quality text8Float32 values exact;
+  no reported Vulkan validation errors.
+- v1_api_h80_w96 and v1_api_h96_w80:69checks/237733values each bitwise.
+  v1_cli:6pairs exact;3wrong viewing/spectral settings rejected.
+- contracts_v1/contracts_v2:valid load+12malformed package rejections EACH.
+  profile_geometry_PASS.txt rejects v1square/v2rectangle/v2unsupported128.
+  viewing_rejection_PASS.txt rejects v2ppd60/age60/spectral before exports.
+- legacy_cli:11older CLI PFM pairs,1166numeric exports+quality exact,
+  squares32/64/128 and64x128/128x64. These are legacy-profile regressions,
+  NOT modern profile support for those geometries.
+
+SOURCE REPRODUCTION: new generate_square_runtime.ps1/package_square_runtime.ps1
+and REFERENCE_SQUARE_PATHWAY_HASHES.json. Generator rebuilds old common model/
+shader source,192forward/inverse,squareIO,mean144,difference144,residual144,
+base144. source_build and isolated_verified reproduce18accepted SHA256pins.
+Isolated source_only_tree has598sourcefiles,no validation/binaries/images
+before generation. First two isolated attempts failed from omitted GLSL and
+mtf_multiply.comp source dependencies; logs remain under isolated_build and
+isolated_complete. Final isolated_verified/PASS.txt succeeds. Accepted/live/
+isolated manifests all SHA256
+14517088BBAE266EDB71A249CDF393B3DE6F7A91BDF2F3C6714DB336FC692042.
+Source generation does not need native installation or prior numeric exports.
+Command from repo root:
+powershell -NoProfile -ExecutionPolicy Bypass -File
+tests/hdrvdp3_evaluation/generate_square_runtime.ps1
+-OutputDirectory <fresh-output> -VulkanBin C:/VulkanSDK/1.4.363.0/Bin
+Ready runtime=<fresh-output>/runtime.
+
+BINARY LINEAGE: full_suite_binaries freezes full-suite cohort. Subsequent
+header-comment-only rebuild relinked build/Release/IQM-hdrvdp3.exe;
+final_cli_smoke verifies this latest executable plus live source-generated
+runtime against7accepted real-case exports byte-for-byte. Do not claim all
+prior suite runs used the latest binary hash. No numeric edits after smoke.
+
+BLOCKER: final command combined a Node wrapper edit, executable copy and
+cmake --build with require_escalated. Automatic approval review failed with
+"You've hit your usage limit" BEFORE EXECUTION. NONE of that command ran;
+header_relinked_cli.exe was NOT created. This was review unavailability,
+not an unsafe-action determination. Do not bypass the approval check.
+Read-only checks/docs/snapshots were completed afterward without escalation.
+
+EXACT NEXT STEP once approval review is available: in
+bin/shared/wrappers/hdrvdp3.cpp replace the condition
+`(reference.width==96&&reference.height==96&&std::filesystem::exists(runtime/"pathway.runtime"))`
+with `std::filesystem::exists(runtime/"pathway.runtime")`, retaining the two
+existing rectangular clauses. This routes any modern manifest to the loader
+so unsupported dimensions fail explicitly instead of entering legacy fallback.
+First freeze current final executable, then build:
+cmake --build validation/square_public_639286351443539038/build
+--config Release --target IQM-hdrvdp3 -j4
+Use approved escalation as required; do not retry around a review failure.
+Verify modern v2+128square fails before exports; repeat real96 seven-export
+smoke in a FRESH output directory. Broader suites need repeat only if new
+changes/failed checks justify them. Old --reject-square filter test retired
+to --reject-unvalidated (128x128); changed helper target not yet rebuilt.
+
+Current wrapper/source remains the TESTED version: explicit96square modern
+manifest branch plus old rectangular routes. No unapplied-edit claim.
+All numerical sessions are complete; do not poll old session IDs.
+Full metric RGB/general dimensions/viewing conditions/device coverage/GPU-only
+scope remains open. CPU model/LUT,double NCSF,stage-boundary copies remain.
+Memorial-derived grayscale is mapped relative luminance, not RGB acceptance
+or measured physical scene luminance. Historical references untouched.
+Staged corrdn blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 and worktree SHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6 unchanged.
+Dirty VkFFT and unrelated edits preserved. No commit/push/reset/cleanup.
+
+FREEZE: source_reproduction_PASS.txt independently rechecks all18payloads
+and manifest equality across accepted/live/isolated runtime packages.
+source_snapshot_final and source_hashes_final.json preserve501source files;
+binary_hashes_final.json records7executables including full-suite cohort
+and latest relink. Current source/document updates preserved locally.
 
 ## Current checkpoint (2026-10-25, Europe/Prague)
 
@@ -4102,3 +7587,718 @@ path list so unrelated original staging is retained. Push is a normal branch
 push,no force. Final commit/remote verification is recorded in that local root.
 Next implementation step remains explicit runtime-manifest packaging and CLI
 routing,then sixpairCLI +existing11pairregression before opening geometryguards.
+
+## Active continuation: pathway public API/CLI integration (2026-10-25)
+
+New pathway_runtime.h/.cpp loader:version1manifest,fixedprofile,20mandatory
+SHA256-checked assets,package-confined canonical relativepaths,SPIRV magic/
+structure,sp0word geometry/finite checks. Portable SHA256 implementation checked
+against independently generated package hashes in forthcoming loader tests.
+package_pathway_runtime.ps1 copies explicit accepted shader/model assets into
+fresh package with bothorientation FFTs,licenses/provenance;no compilation.
+Runtime package root validation/pathway_cli_639285285317479567/runtime (~1MB).
+EvaluationOptions.pathwayRuntimeDirectory activates isolated80x96/96x80 route;
+only30ppd/age24/fixedD65,no spectral overrides. Legacy route untouched whenempty.
+CLI sets thisoption onlyfornewdimensions. Exports originalpixels,scores,P/log,
+quality/provenance. Newpublicgeometry dispatch must stillpassCLI acceptance.
+Freshbuild81614 running targetIQM-hdrvdp3 +IQM-pathway-runtime-test. Initial
+CMake substring substitution touched verify_pathway_quality.cpp path;fixed
+before successfulconfigure. No GPU numerical runyet. Added loader contract
+script(valid20assetpackage,bothorientations +11mutations). Nextpollbuild,run
+loadercontract,then6PFMCLI nativebits/originalinputchecks +legacy11pairregression.
+Allworkspace/submodule/stagedshader preserved. Currentnewchanges notpushed.
+
+CLI integration progress:build81614 COMPLETED(application+loader). Runtime
+contract PASS:validpackage bothorientations20SHA256assets;11malformed packages
+rejected noGPU. SHA256 agrees with independentPowerShell digests over real
+payloads andmutations. SixPFM CLI session69010 running:firstfourasym/impulse
+pairs PASS(native scorebits,original inputbits,P/logbits). Legacy11pair
+regression67275 running:first32/64/128squarecases PASS. Sessionsindependent,
+fresh exports/processes;no shared buffers. NewCLI fixedD65 intentionallyrejects
+spectral overrides;legacy spectraloptions unchanged. Negativeppd60/age60/
+spectraloverride checks run after sixvalidpairs. Nextpollboth to completion,
+inspect exactexport/scorecounts,freeze sources/binaries/package;update public
+usage/docs only after acceptance. No numerical changes while runsactive.
+
+NewCLI69010 COMPLETED:sixPFMpairs nativeQ/Q_JOD/input/P/log bits match. Three
+negative ppd60/age60/spectraloverride settings reject with expectedprofileerror
+and noexportdirectory. Loader11mutationcontracts alreadyPASS. Legacy67275
+stillrunning,6/11pairs completed. NewCLI docs PATHWAY_CLI_VALIDATION.md written;
+legacyfinal outcome not yetclaimed. Testsuse sourcefrombeforehelpupdate (none
+made yet). Nextpoll67275,then updatehelp/README profileusage,verifyhelp and
+preserve testedbinary/provenance ifrelinking;finishhashes/handoff.
+
+CLI69010 andlegacy67275 COMPLETED. New6PFM nativebit/input/P/log checks +3negative
+settings PASS;legacy11pairs/1166exports andqualityfiles exact. Final loader
+contract12cases PASS (addednonfinite modelword,matchingvaliddigest,correctshape).
+Help-onlymain.cpp update build23960 finishing. Testedprehelp executable frozen
+root/pre_help/IQM-hdrvdp3.exe;earlierhashpaths mustmap tothat file,not relinked
+buildexe. Allnumericalfunctions/shaders unchanged. Nextpoll23960,--helpcheck,
+oneposthelpsmoke againstfrozenscores,recordlineage/sourcehashes/finalhandoff.
+
+## Latest completed checkpoint (2026-10-25): public pathway API/CLI accepted
+
+All sessions81614/69010/67275/23960/45238 COMPLETED;do notpollagain.
+Root validation/pathway_cli_639285285317479567;completed pointer saved.
+- Version1 pathway.runtime package with20explicit shader/model assets,bothFFT
+ orientations,SHA256 integrity,confinedrelativepaths,SPIRV/model structure.
+ Native images/intermediates not included. Packagecopytool usesaccepted assets;
+ no blindshaderbuild. Licenses/provenance included. runtime_contract_final:
+ 12malformedpackage cases rejected,noGPU;validpackage loads bothorientations.
+- EvaluationOptions.pathwayRuntimeDirectory routes onlymatching80x96/96x80 at
+ 30ppd/age24/fixedD65;no spectral overrides. CLI setsoption foronlynewshapes.
+ Existingothergeometry/settings route untouched. AbsolutepositiveFloat32PFM.
+- NewCLI6pairs PASS:independentnative Q/Q_JOD bits,originalpixelbytes,P/log all
+ match. Negativeppd60/age60/spectraloverride failwithprofileerror,noexports.
+- Legacy11pairs PASS:1166numerical exports andexactquality files unchanged.
+ NoVulkanvalidationerrors. Finalhelp-onlybuild --help +extraasym80x96smoke
+ matches earlier input/P/log/quality/scorefiles byte-for-byte. Repeatedsmoke
+ notnewuniquecontent. pre_help/IQM-hdrvdp3.exe preserves fullsuites' executable;
+ binary_lineage.json mapsoldrecordedpaths/hashes andfinalbuild SHA. Common
+ numericalsources unchanged after fullsuites;onlymain helptext relinked.
+- README,PATHWAY_CLI_VALIDATION,API/composition docsupdated. Ready localcommand
+ withretainedimages/package is inCLI doc. Fresh outputdirectory eachtime.
+- Currentintegrationchanges are localafterpublishedffb54a0;no newcommit/push.
+ Existingstagedcorrdn/dirtyVkFFT/binexperiments/oldrefs preserved. Finalsource
+ snapshots separate frominitialsuite snapshots,sohistorical hashes stayclear.
+
+Exact next work: source-only reproducible runtime generation driver. Current
+package_pathway_runtime.ps1 copiesexistingvalidated-assets manifest (~1MB20files),
+which is enoughlocally butnotfreshclone bootstrap. Combine tracked mixedFFT/
+IO/SPYR/mean/difference/residual/pool/comparison/map/base generators withfixed
+sp0wordmodel generation. Verify regenerated20payloads againstaccepted package
+hashes before claimingreproduction;preserve alloldbinaries andfreshdirs. Prefer
+independentCPUsp0wordfactory checkedagainstnative ratherthanpackaging image-
+dependentgoldens. Then broaden actual image/identity/luminance stress under
+currentprofile before newdimensions/age/PPD/RGB/device/output claims. No
+performanceoptimization over exactnative3.0.7 parity;noautopublication.
+
+## Active continuation: source-only runtime reproduction (2026-10-25)
+
+New create_sp0_model C++ factory uses existing production decimal coefficients,
+transposes andbitcasts380 Float32words. Standalone CPU exporter,noGPU/native
+reads. New generate_pathway_runtime.ps1 composes tracked generators,correct
+forward160glslangValidator path andallother Float32-control compilers,CPUmodel
+build andpackage.20pinned digests in REFERENCE_PATHWAY_HASHES.json.
+Root validation/source_runtime_639285297000073643. Firstsource_build stopped on
+normal compilerstderr misclassified byErrorActionStop (no numerical failure);
+Nativewrapperfixed uses exitcode. source_build_verified COMPLETEDPASS:all20
+payloads bytehash identical toaccepted runtime,including all4modeltextfiles.
+No priorvalidation binaries/nativeinstall read asinput. Driver logsources/tool
+versions. Loader12mutationtests PASS with sourcegenerated package. CLI smoke
+session55561 running fromunrelatedCWD using generatedruntime;nextcompare raw
+input/P/log/score/quality againstprioracceptedHDR96x80 case.
+Factory added toproduction/boundedlibrary source lists withstrictFP;existing
+runtime numericalfunctions notchanged. Standalonefactory nowstrict aswell;
+next reproduce inisolatedsourcecopy withNOvalidationtree/binaries toverify
+fresh-source dependencyclosure,thenfreeze hashes/docs/handoff. Noautopush.
+
+Source regeneration follow-up:source_build_verified all20pins PASS,loader12
+mutations PASS;unrelatedCWD HDR96x80 CLI rawinput/P/log/quality/scores7files
+identical toacceptednative-bit-verified run,noVulkanerrors(CLI_PASS.txt).
+Initialisolatedcopy omitted AMD.asm sources alreadytrackedinrepo;failure is
+sourcecopysetup,notnative/validationdependency. Retainedfailedisolated_build.
+Completed sourcecopy includes trackedtests sources +AMDtables;assertedNO
+validationfolder andNO.spv/.exe/.dll/.obj/.lib payloads. Session23973 runs
+source-onlygeneration there withstrictCPUfactory. Generator subprocesserror
+handling improved to use exitcodes,preservewarnings/logs. Session80237 builds
+boundedlibrary withnewfactory source;runtime algorithmsunchanged. Nextpollboth,
+compare20payloads+manifest,freeze sources/toolversions/docs andcompletedpointer.
+
+Source-only reproduction COMPLETED:23973 and80237 complete. Both workingtree
+andisolatedsource-complete build produce20identical payloadSHA256 +identical
+manifest. 421initialsourcecopy files +trackedtest/source entries (including
+missingAMD.asm) copied;finaltreeassert NOvalidation folder andNOcompiled
+payloads. Failureininitialisolatedcopy retained. Source-only docs added. Loader
+12contracts +unrelatedCWD generatedpackage HDR96x80 sevenexports exact,noVulkan
+errors. Completed source pointer saved. No runtimealgorithm changes/newparity
+claims from reproduction alone;all20identity isstrict,nottolerance.
+
+Continued with identity acceptance: new--identity nativegenerator option keeps
+localizeddefault;allows +Inf ONLYforidentity base neural/export limit,requires
+frequency0 andotherwisefinite fields. Officialstock/traced scores asserted.
+Native3patterns x2orientations generatedfreshroot
+validation/pathway_identity_639285453875965132. CLI22412 COMPLETED:all6selfpairs
+match native input/P/log/scorebits,Q=Q_JOD=10,allfiveerrors/totalerror0,noVulkan
+errors. Nativebasefreq0 implies+Infnoise;specialsqrt/divideguards alreadyhandle
+this,not arbitrarynonfiniteuserpixels. ActualAPItrace test94982built;session
+89354 running6cases toMEASURE GPUselection0,freq0,+Infnoise andzeroD/psych/masked.
+Defaultlocalizedgenerator regression runningseparately;nextcheck result,then
+finish identity/API aggregate,docs,snapshots/completed pointer. Noautopush.
+
+Identity follow-up:CLI22412 complete all6PASS. Defaultgenerator control
+206textfiles bytehash identical topriorlocalized nativeexports. No default
+numericalfixture changes. APItrace89354:firstfourPASS;lastHDRtwo pending.
+Tracehelper verifies ACTUAL index0/freq0/+Infnoise andzeroD/psych/masked,not
+justQ. Durable traceauditor checks+0/+Inf binary64words explicitly. Nextpoll,
+run -ResultsOnly onidentityroot,aggregate all6CLI/API/defaultcontrol,freeze
+native/source/binary/runtimehashes anddocs. No numericalGPUcode edits needed.
+
+## Latest completed checkpoint (2026-10-25): source reproduction +identity
+
+All new sessions82079/21076/23973/80237/55561/98444/22412/94982/89354 COMPLETED;
+do notpollagain. Completed pointers source_runtime_completed_path.txt and
+pathway_identity_completed_path.txt. Roots source_runtime_639285297000073643
+andpathway_identity_639285453875965132.
+- Source-only driver emits16SPIRV +4C++model tables,20payloadSHA256 +complete
+ manifest byte-identical toaccepted package. Workingtree +isolatedcopy PASS.
+ Isolatedcopy hasno validationfolder/compiledpayloads;required trackedAMD.asm
+ tables included (firstcopy omitted them andfailed;retained). No nativeinstall,
+ priorvalidationdata,DLL orbinary inputs. Compiler/MSVC/SDK prerequisites only.
+- create_sp0_model generates380wordcoefficients fromproductionliteralvalues,
+ nofixture reads. StandalonefactorystrictFP;production/boundedlibcompilesPASS.
+ Original evaluation algorithms/FP schedules unchanged. Source/helper table
+ license/provenance kept. 12loadercontracts pass generatedpackage;unrelatedCWD
+ HDR96x80CLI sevenexports matchpriornative-bit-acceptedrun,noVulkanerrors.
+- Identitynative3patterns x2orientations freshstock/traced parity. CLI sixpairs
+ nativeinput/P/log/scorebits exact,Q=Q_JOD10,allband/totalerrors0. Independent
+ APItrace sixpairs measureACTUALselectedindex0,freq+0 andnoise+Inf binary64bits,
+ allD/psych/maskederrors0,nativeP/log/scores exact,noVulkanerrors. Signedzero
+ ofzeroDmaps notseparatelyasserted. API/CLI reuseSAMEsixpairs,not12newpairs.
+- Defaultlocalizedgenerator206textoutputs hash-identical after--identity flag.
+ PositiveInf export allowedONLYexplicitidentity base limit withfreq0;NaN and
+ unrelatednonfinitefields stillreject. No productionnumericfix required:
+ existing shaderexact_sqrt/divide alreadyhandle positiveInfdenominator limit.
+ Nonfiniteuserpixels remaininvalid. No tolerance relaxation.
+- SOURCE_RUNTIME_REPRODUCTION.md/PATHWAY_IDENTITY_VALIDATION.md +README/CLI
+ docsupdated. Snapshots/source/payload/native/binaryhashes saved separately;
+ failedattempts/oldreferences retained. Stagedcorrdn/dirtyVkFFT unchanged.
+ Latestchangesremainlocalafterffb54a0;no newcommit/push/reset/clean.
+
+Next concrete work: deterministic near-identity/smallcontrast anduniformgain/
+constant-luminance controls withincurrentprofile,then realpositivegrayscaleHDR
+content. Extend nativegenerator with explicittransformparameters,keepdefault
+fixtures unchanged. If testingnonidentity zero-frequency cases,base neural+
+Inf export guard should follow MEASUREDfreq0/+Inf limit,not assume identity is
+itsonlycause;do not allowNaN/unrelatedInf or readnativeimage intermediates as
+runtimevalues. Compareactualresidualselection/baseNoise,D/P/log andnativefinal
+scorebits,notjust score10. Existingexactsourcepackagepins mean no needrerun
+all17CLI cases merelyforreproduction;rerunaffected numericalchecks ifcode/math
+changes. Widergeometry/age/PPD/RGB/device/output/performance work staysseparate.
+
+## Active continuation: near-identity/uniform/constant controls (2026-10-25)
+
+Nativegenerator now supports explicit--transform localized|uniform,--gain,
+--offset,--level andconstantpattern;oldlocalized defaults unchanged. Positive
+Inf export guard now follows MEASUREDzero frequency+positiveInfNCSF,not identity
+flag;othernonfinite/NaN rejected. Root validation/pathway_contrast_639285467553162992;activepointer saved.
+Fivecases/cases.json:asym localized1.0001,HDR localized1.001,asym uniform1.01,
+constant10uniform1.01,andconstant10uniform1.4;offset0,bothorientations =10pairs.
+Native35635 COMPLETED;stock/traced Q/JOD agree all. Default control206export
+hashes identical tooldreference. export_native_band_errors.m uses EXACTofficial
+local Minkowski expression onnativeD_p andasserts everyaccumulatedQerror;also
+exports native psychometric maps. No GPU/nativeintermediates usedasruntimeinputs.
+New69stage contrastchecker includesactual P/log,normalizedbands,pool/comparison,
+neighbor/denominator/difference/CSF/D/masked/psychometric,banderrors/Qerror/Q,
+basefrequency/noise (including legitimate+Inf),baselog/adaptation. Strictbits.
+Build44053 COMPLETED. API24060 runs10pairs:early3PASS;newscript strictauditor
+validate_pathway_contrast.ps1 added. Nextpoll24060,diagnoseanystrictfailure
+withouttolerance;then -ResultsOnlyaudit,freeze snapshots/nativehashes/docs.
+Currentruntime numericalfunctions unchanged;generatedsourcepackage reused.
+No commit/push/reset/clean;stagedcorrdn/dirtyVkFFT preserved.
+
+## Latest completed checkpoint (2026-10-25): small contrast controls accepted
+
+Sessions35635/44053/24060 COMPLETED,do notpollagain. Root
+validation/pathway_contrast_639285467553162992;completedpointer saved.
+- Fivecasecontrols x2orientations (cases.json):asymROI1.0001,HDRROI1.001,
+ asymuniform1.01,constant10uniform1.01 and1.4;offset0. Native stock/traced
+ quality identity asserted. All inputs Float32positive luminance,30ppd age24
+ D65,FFTW3threads estimate withfreshsinglewisdom;row-major exports,official
+ 2H2Wpadding/nativeDC. Runtime is previously sourcegenerated identicalpackage.
+- API strict69stages/pair,690checks/2377330values passbitwise,noVulkanerrors.
+ ChecksincludeP/log,bands,allmask/CSF/D/psychometric/error maps,baseindex/
+ frequency/noise/log/adaptation andfinalQ/Q_JOD. Every actual/expectedmap dumped
+ forreview. Score10uniformcases reproduce native;not assumed monotonicity and
+ notscore-onlyacceptance. Alltennonidentitybase noises arefinite;prioridentity
+ tests retainzero/+Inflimit scope.
+- Nativegenerator gains explicittransform/gain/offset/constantlevel;default
+ localized206textexports bytehash identical. +Inf exportpermission generalized
+ toMEASUREDzero-frequency/+Infnoise,NaN/unrelatedInf stillreject. No GPU/
+ productionnumericalalgorithm edits/tolerance relaxation needed.
+- Nativebanderrors helper uses exactofficialMinkowskiexpression onnativeD_p,
+ assertsALL captured accumulatederrors. Psychometricgoldens nativeD+pf only.
+ Goldens read AFTER API completes;no runtimeimage-dependentgoldens used.
+- Durable validate_pathway_contrast.ps1 -ResultsOnly aggregate PASS. Source/
+ binary/native hashes andsnapshotstobecompleted below. Docs
+ PATHWAY_CONTRAST_VALIDATION.md andREADME updated. Currentchangeslocal,notpushed.
+ Stagedcorrdn/dirtyVkFFT/oldrefs preserved. No commit/reset/clean.
+
+Exact next work: deterministic low/high luminance controls withincurrent
+geometry (e.g.constant1e-4 and1e4,smallpositive gain),plusnear-negativecontrast
+controls tochecksymmetry WITHOUTassuming scores symmetric. Keepbaseline+
+trace/Qerror sourcevalidation,allFloat32/Float64 bitchecks andactualbaseNoise.
+Then select realpositivegrayscaleHDR inputs withdocumented luminance units and
+reference/distortion provenance;do notlabel synthetic controls realdataset.
+NewCLI alreadyverified previous6localized+6identitypairs;these10latest cases
+areAPI/internaltrace acceptance,NOT tenextraCLI runs. No needrepeat17oldCLI
+checks forunchangedGPUcode;runaffectedtests ifmath/runtimechanges. Source-only
+runtimepins andolderreproduction scope stayunchanged. Noautopublication.
+
+Finalcontrast artifacts complete:source_snapshot/source_hashes.json,
+binary_runtime_hashes.json,native_hashes.json,results.json/hashes.json and
+base_limit_scope.txt saved. Allten actual measured base noises verifiedfinite.
+AggregatePASS,default206hashregressionPASS,completedpointer saved. No running
+contrast processes remain. Nextstep controls/realHDR asabove.
+
+## Continuation 2026-10-25: luminance controls and real HDR-derived grayscale
+
+Read this alongside earlier scope; no production numerical changes this session.
+Luminance root `validation/pathway_luminance_639285490131386436`: all twelve
+cases (six controls x two orientations) COMPLETE, 828 checks / 2,852,796 values
+bitwise exact; no Vulkan errors. Constant levels 1e-4/1e4 gain1.01, asymmetric
+localized .9999, HDR ramp localized .999, asymmetric/constant uniform .99,
+all offsets zero. Stock/traced native scores equal. Generalized contrast
+validator now audits dynamic case count and records level. Completed pointer,
+source snapshots/hashes and artifact hashes retained. Session68651 is finished.
+
+Real source root `validation/real_hdr_639285493148770692`, source.json records
+https://www.pauldebevec.com/Research/HDR/memorial.hdr, SHA256
+18376B9219927B363127817900B1C170A0F752F52A63F5949655B4150E35061D.
+Raw photograph is ignored local data, not published. New standalone helper
+tests/prepare_real_hdr.cpp and tests/hdrvdp3_hdr_inputs/CMakeLists.txt decode
+vendored stb linear RGBE, arithmetic RGB mean in double, whole-source peak
+assigned1000cd/m2, floor1e-4, one Float32 cast, center crops without resizing.
+Source512x768; crops80x96/96x80, min .0103879/.00877256, max1.29148,
+zero floor-clamped pixels. This is assigned grayscale display luminance,
+NOT recovered physical capture calibration, CIE Y or RGB/spectral validation.
+Native generator accepts --pattern external --input-directory <prepared>;
+positive finite/shape guards and stock-vs-traced equality remain required.
+Default regression: 206 numerical text exports byte-identical, 207 including
+the existing PASS marker. Official source remains unmodified.
+
+Real localized gain1.01, offset0: native/ and api/ both orientations COMPLETE,
+138 checks / 475,466 values bitwise exact, no Vulkan errors. Q/QJOD:
+80x96 9.9999561309814453 / 9.9999990463256836;
+96x80 9.9999427795410156 / 9.9999980926513672.
+Source-generated isolated runtime and existing IQM-pathway-contrast-test reused.
+All goldens loaded only AFTER in-memory API; same69stage contract as earlier.
+Docs tests/PATHWAY_LUMINANCE_AND_HDR_VALIDATION.md and README explain scope.
+Reusable validate_pathway_hdr.ps1 supports execution and -ResultsOnly audit.
+
+Stronger localized gain1.4 native_stronger/ reference and band-error exports
+COMPLETE. api_stronger/ is running session81158 at time of this note; first
+orientation passed69checks/237733values, second pending. Exact next step:
+poll81158, audit both api/ and api_stronger/ with validate_pathway_hdr.ps1
+-ResultsOnly; preserve failure if any, no tolerance relaxation. Freeze final
+source/binary/native/artifact hashes after the run, append measured results.
+No commit/push/reset/clean. Original staged shader blob and worktree hash
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+verified unchanged; dirty VkFFT and other pre-existing edits preserved.
+
+### Final measured outcome for this continuation
+
+Stronger gain1.4 both orientations COMPLETE; api_stronger/ PASS:
+138checks /475466values exact, no Vulkan errors. Q/QJOD respectively
+9.8423233032226562/9.9512262344360352 and
+9.7935428619384766/9.9311084747314453. Four real-derived pairs TOTAL
+276checks/950932values exact. Durable validate_pathway_hdr.ps1 -ResultsOnly
+passed BOTH api/ and api_stronger/; hashes/results/PASS retained.
+Session81158 wrapper returned1 although both native checker logs/PASS and
+all69 numeric/bit rows passed. PowerShell stderr handling in the one-off
+launcher was not isolated; durable validator handles native stderr/exitcodes.
+An initial direct .ps1 audit was rejected by local execution policy; rerun
+through powershell -NoProfile -ExecutionPolicy Bypass -File succeeded0.
+No numerical failure was observed or hidden. All sessions now finished.
+
+Exact next step: validate these four photograph-derived pairs through the
+public CLI with fresh Float32 PFM inputs (independently verify text-to-PFM
+bits), compare the seven CLI outputs to accepted API/native values and check
+Vulkan logs. Current new real acceptance is API-only. Then investigate next
+unsupported geometry using official goldens, without widening fixed-profile
+claims prematurely. Full RGB/spectral/viewing/device scope remains open.
+Latest docs: tests/PATHWAY_LUMINANCE_AND_HDR_VALIDATION.md. Do not rerun broad
+old suites unless numerical/runtime code changes. Current work local only.
+
+## Continuation: public CLI photograph-derived tests (2026-10-25)
+
+New tests/hdrvdp3_evaluation/validate_pathway_hdr_cli.cjs writes fresh PFM from
+native reference/test Float32, independently reads back headers/row inversion,
+invokes public CLI with --enable-validation, absolute inputs/runtime, cwd set
+to fresh output directory. It compares six binary outputs against original
+inputs/native goldens and accepted API binary data, plus quality.txt's eight
+finite Float32 values (five band errors,total error,Q,QJOD). Nonzero exits,
+Vulkan errors, incomplete output or bit mismatches fail; final PASS only after
+all four pairs. Native/API data never supplied to runtime as intermediate input.
+Active root validation/real_hdr_cli_639285498027629037; pointer saved.
+Session89228 currently running; first three pairs passed all seven exports,
+fourth gain1.4_h96_w80 pending. Exact next step: poll89228 and inspect final
+PASS/results, snapshot source and hash artifacts, then record final outcome.
+Reproduction command:
+node tests/hdrvdp3_evaluation/validate_pathway_hdr_cli.cjs
+ validation/pathway_cli_639285285317479567/build/Release/IQM-hdrvdp3.exe
+ validation/source_runtime_639285297000073643/isolated_build_complete/runtime
+ validation/real_hdr_639285493148770692 <fresh-output>
+
+Investigated next geometry: fixed guards are not sole obstacle. Quality stage
+has base offsets122/size242 and residual361, SPYR uses base120 and related
+buffer/mean/reduction counts, runtime manifest selects fixed forward/inverse
+80/96 assets, comparison guards require validated resize plans. Do not merely
+relax geometry guard. Next geometry candidate96x96 requires fresh native
+goldens/base144 investigation and its own FFT asset/parity proof. Current
+80x96/96x80 profile remains unchanged. Existing broad git diff check reports
+pre-existing whitespace in bin/IQM-test/mtf_gpu_test.cpp; do not modify it for
+this task. No production/shader change, commit, push, reset or cleanup.
+
+CLI final result: session89228 COMPLETE0; all four pairs/seven outputs each
+PASS, exact native/API bits, all quality band/total errors and scores match;
+PFM readback exact, no Vulkan errors. Root above has final PASS/results/hashes,
+validator_snapshot.cjs (hash identical to running source), artifact_hashes.json
+and completed pointer. A one-off PowerShell coverage audit initially wrapped
+ConvertFrom-Json's array as one object and falsely reported incomplete count;
+assigning the decoded array directly then iterating its four records passed.
+No underlying numerical failure. Original staged shader/worktree hash and
+dirtyVkFFT unchanged. Next active work is native96x96 references, not CLI.
+
+## Latest checkpoint 2026-10-26: 96x96 native seeds and isolated GPU base FFT
+
+Root validation/geometry96_639286130307808713; active/completed pointers.
+Generator now accepts --shape 96x96|80x96|96x80; default remains both old
+orientations. Base shape asserted h/8,w/8 and five bands, not hardcoded120.
+Band-error helper discovers orientations from metadata; exact official
+five-band Minkowski expression and accumulated-error assertions unchanged.
+Native five seeds COMPLETE: asymmetric (--visual), impulse,HDR ramp,constant
+andidentity. Default distortion1.4gain+.25offset localized, positiveFloat32,
+30ppd age24 D65/sp0,192x192padding,FFTW3threads estimate/fresh singlewisdom,
+officialDC. Stock/tracedQ/JOD identical. Base12x12=144; native baseFFT replay
+1440real/imagwords bitwise, selectedindex13/freq.3125000000000001 forfour
+nonidentity cases; identity index1/freq0/+Infnoise,Q/JOD10. Documented in
+tests/GEOMETRY96_REFERENCE_VALIDATION.md, including exactscores and scope.
+
+Default regression207text files includingPASS (206numerical) unchanged against
+priorreference. New metadata-discovered banderrors/psychometric exports match
+previoushelper222text files. Initial previoushelper path pointed atmissing
+contrast snapshot; successful retry used real_hdr_.../source_snapshot helper.
+No oldreferences overwritten.
+
+New tests/generate_residual144_shader.ps1, compile_residual144.ps1 under
+tests/hdrvdp3_dimensions, tests/hdrvdp3_residual144/CMakeLists.txt build an
+isolated 12x12 diagnostic using existing FFTW-derived scalar real12/complex12
+graphs. Float32DenormPreserve/RTE modes, SPIR-V validation. Shared diagnostic
+verify_residual120.cpp adds --square144, one matrix/manifestrow, transposes
+rowmajorfixtures tocolumnmajorinput, STRICTnumeric ANDbit checks. Existing
+120route retained. No production runtime/geometry guards changed.
+
+Failures retained, not relaxed:
+- gpu_first: Windows backslash manifest was consumed bystd::quoted; useforward
+ slashes. gpu_portable: four realbasecases passed,identity60signedzerobitsfail.
+- Octave narrows entirelyreal FFT outputs toreal matrices. Confirmed installed
+ typeinfo and https://docs.octave.org/doxygen/11/de/d87/ov-flt-cx-mat_8cc_source.html
+ try_narrowing_conversion. Newshader applies same whole-matrix representation
+ rule; shader144_narrowed/ is candidate withthisfix. Fourrealbase+identitypass.
+- Additional shiftedimpulse initially20zero-sign failures exposed NEWexporter
+ bug: imag(a(y,x)) narrows acomplexscalar. Extractwhole ar=real(a),ai=imag(a)
+ BEFOREindexing. Fixed BOTHnewhelpers validate_native_geometry96.m and
+ generate_native_residual144_probes.m. Oldexports retained; correctedgoldens
+ base_replay_v2/ and fft_probes_v2/. Existing production/nativeexporter uses
+ wholeimagarray andisNOTaffected. Do notuse oldprobeexpectedtext forbitclaims.
+
+Final GPU runs gpu_base_final/ andgpu_probes_final/ COMPLETE0, five matrices
+each,288words each =2880 Float32words exact INCLUDINGsignedzeros. Zero,
+constant,originimpulse,Nyquist checkerboard andshiftedimpulse supplementfive
+nativepathwaybaseinputs. No Vulkanerrors. NOT complete96x96image-to-score
+acceptance. Legacy120_final samehistorical18240numericpass/490signedzero
+differences asoriginal gpu.log; explicitly NOTanexactbitpass. Finalshared
+caller one-matrixguard rebuilt; priorbinary retainedasresidual144-test_before_guard.exe.
+All sessions96303/87727/75295/19026/48403/3757/87400 COMPLETED; do notpoll.
+
+Reproduce GPU: cmake -S tests/hdrvdp3_residual144 -B <fresh-build> -G
+"Visual Studio 18 2026" -A x64; cmake --build <build> --config Release;
+powershell -NoProfile -ExecutionPolicy Bypass -File
+tests/hdrvdp3_dimensions/compile_residual144.ps1 -OutputDirectory <fresh-shader>;
+residual144-test.exe <shader>/residual144.spv <base_manifest_v2.txt or
+probes_manifest_v2.txt> <fresh-output> --square144. Bothretainedmanifests use
+absolute forwardslashpaths tocorrectedgoldens. Inputrowmajorinterleaved;
+kernelinputcolumnmajor;outputrowmajor;rawFFTbeforeDC. Currentprogram stdout
+label saysresidual120 historically; newmodePASS/results assert144strictbits.
+
+Exact next step: implement isolated144-element mean/difference/selection
+layouts fromnative12x12 goldens, preservingdouble-accumulation thenFloat32
+rounding andcolumn-major first-max tie rule. Separatelyprove192x192 optical/
+adaptation forward/inverse FFT arithmetic before96x96 fullpathwayintegration.
+Do NOTrelax publicfixedprofileguards orclaim96x96ready. Oldsource-runtimepins,
+stagedcorrdnshader anddirtyVkFFT preserved. No commit/push/reset/cleanup.
+
+## Latest continuation 2026-10-26: native144 mean/DC and connected GPU base chain
+
+Root validation/mean144_639286139772659192; active/completed pointers retained.
+Read tests/BASE144_PIPELINE_VALIDATION.md for math/domain/scope/reproduction.
+Production runtime, publicgeometryguards andaccepted120shaderbinaries unchanged.
+Newtracecapture --visual only: visual_stage.base_raw=BB beforeofficialDC,
+base_mean=mean(BB(:));officialsource untouched. Fivefresh96x96visual traces
+asymmetric/impulse/HDRramp/constant/identity,stock/tracedQ/JODequal. All515
+pre-existing numericstagefiles identical topriorgeometry96nativeoutputs.
+
+New tests/mean144.comp exactsignedfixedpoint accumulator(sumwithin48bits),
+divide144=9*16,RTEusingintegerremainder,normalFloat32/zero inputs exponent
+[-90,100],spread<=16 guardedbycaller. Mean120threshold15/8 changes to9/8,
+exponentoffsets7/8,denominator9<<(...-19). NoGPUFloat64/CPUmeanfallback.
+Sharedverify_mean120.cpp defaults120; IQM_MEAN_COUNT=144 enablesnewcaller.
+8192bounded syntheticgroups=1187840 mean/DCoutputwords; tenofficialbasebands
+=1450words. Allbitwise includingzero signs,CPUdoublecontract independently
+checkedagainstnative goldens. Reporttext fixed tostate10officialfixtures,
+notlegacy12;pre-report-fixbinaries retained. Finalmean144binary audited below.
+
+New mean144_difference_pack.comp packscenteredtest-reference once into
+columnmajorcomplex data (+0imag), no additionalmean removal. Newextended144
+FFT shader usesacceptedreal12/complex12 +Octaverealnarrowing, exportsrawFFT,
+nativefinitehypot(DCmagnitudezero),firstcolumnmajormaximum,zero-basedindex.
+New generators/compile scripts onlywritefreshdirs;oldsource-runtimepins intact.
+Shared verify_residual120_pipeline.cpp defaults120;IQM_BASE_COUNT=144 selects
+144/145/288/433layouts andSTRICTrawFFTbits includingzero signs;legacy120
+FFTzero-signexclusion retained. ThreeGPUdispatches,sharedbuffers/barriers,
+nohostintermediate recomputation/readback. Nativegoldens areonlytestfixtures,
+notfullimage-to-score inputs orclaimedproductionintegration.
+
+Finalacceptance root/acceptance_final/: fivepairs,290mean/DC+288pack+
+433FFT/magnitude/indexwords each=5055words bitwise,noVulkanerrors. Identity
+included. Durable tests/hdrvdp3_evaluation/validate_base144.ps1 run AND
+-ResultsOnlyauditPASS. FinalMeanrun1187840synthetic+1450nativewordspass.
+NOTE1450nativewords overlapmeanportionof5055chain;don'tcountasuniqueinputs.
+Nativefixtureexporters:export_native_mean144.m and
+export_native_base144_pipeline.m. Completefixturesundermean_fixtures_complete/
+andpipeline_fixtures/. RawinputsareofficialnormalizedbasebeforeDC,notrawimage.
+
+Setupfailurespreserved: firstidentitysingle-stringPowerShellsplat caused
+unknownoption;explicit--identityretry succeeded. Initialmean_fixtures/partial
+export stoppedatmissingidentity;freshmean_fixtures_complete/acceptance only.
+No mean/pipeline numericalfailure/tolerance relaxation occurred.
+
+tests/hdrvdp3_residual144/CMakeLists.txt nowaddsmean144-test andbase144-pipeline-test;
+helperfunctionpreservesstrictFPsettings. OptionIQM_BASE144_LEGACY_REGRESSION=ON
+buildsmean120-regression-test/base120-pipeline-regression-test. BothPASS using
+oldnativefixtures ANDoldshaders. mean120_final:991232synthetic+1452nativebits
+exact. legacy_pipeline120/:twoorientations,fourbands,mean/pack/magnitudes/
+selection pass;originalFFT signed-zero exclusion preserved. Previous12x12FFT
+rawbitacceptance remainsfromearliercheckpoint. Allrunningprocesses finished:
+5969/64532/92869/64023/66210/52794 etc COMPLETED,do notpollagain.
+
+Reproduction: cmake -S tests/hdrvdp3_residual144 -B <fresh> -G
+"Visual Studio 18 2026" -A x64;buildmean144-test/base144-pipeline-test;
+compile_mean144.ps1,compile_mean144_difference_pack.ps1,
+compile_residual144_extended.ps1 under tests/hdrvdp3_dimensions;allfreshdirs.
+Run validate_base144.ps1 -ExecutableDirectory <build>/Release -MeanShader
+<mean>/mean144.spv -DifferenceShader <diff>/mean144_difference_pack.spv
+-FFTShader <fft>/residual144_extended.spv -NativeDirectory <root>
+-OutputDirectory <fresh-results>;powershell -NoProfile -ExecutionPolicy Bypass.
+
+Exact next step: fresh192x192 optical/adaptation FFTnative exports/plan
+inspection,thenbuild/proveforwardandnormalizedinverse GPUgraphs fromexisting
+192axiscodelets. SeparatelyextendSPYRfixed120layoutsto144withnewvalidated
+mean/difference/FFTassets. Keep96x96publicguardsclosed untilfullpathwayP/log/
+allbands/masks/errors/scores bitwiseagreement. FullRGB/viewing/device/general
+dimensionacceptance stillopen. No commit/push/reset/cleanup;stagedshader/dirty
+VkFFT/pre-existingchangespreserved. Allnewresults local.
+
+## Latest checkpoint 2026-10-26: isolated192x192 optical/adaptation FFTs
+
+Root validation/fft192square_639286146863661089; active/completed pointers.
+Read tests/FFT192_SQUARE_VALIDATION.md for precise stage scope/reproduction.
+Native generator generate_rectangular_filter_reference.m allows96x96under
+--mixed. Newpathway_stage MATfallback only96x96, oldstagefiletreeunchanged.
+Fullvisualsource frommean144root/asymmetric,impulse,hdr_ramp;originalref/test
+readfromnativeimages. Retinal/L+M input/adaptation allassertagainstfullvisual
+MATtrace. PositiveFloat32,30ppd age24 D65,192x192padding,MTFsymmetricpost,
+LAreplicatepost afterlog,FFTW3threads estimate/freshsinglewisdom, native
+mixedFloat32transform/doublefilterpromotion. NoDCremoval, inverseonce1/36864.
+stage0/2columnmajorcomplex;forward/inverserowmajorcomplexexports preserve
+signedzeros bywholearrayextraction. Stagedrefs for3patterns complete.
+
+inspect_fftw_plan.cpp mixed-plan allows192x192; newtargetsquare-native-plan-test
+in standalone diagnosticsCMake. plans_asymmetric/32candidatecensus:8numeric
+matches, unalignedoutplace3/1threads. Wisdomforward/inverseflags0 for those
+matchingcases (freshestimate fallback);don'tclaimwisdomplanidentity orbitpass
+fromcensus. NativeinverseDIVmatches whilefloatreciprocalMULhas7706..8239
+mismatchesperasymmetricchain. Censusexit0iscompletion,notparitymarker.
+
+New generate_fft192square_shader.ps1 composesexistingreal192/scalarinverse192
+firstaxis withcomplex192SIMDsecondaxis from160x192graphs. Twiddles/FMAorder,
+Hermitianexpansion/transposelayout preserved. compile_fft192square.ps1 under
+tests/hdrvdp3_fft256 compilesfreshdirs,addsFloat32DenormPreserve/RTE,validates
+SPIR-V. New square192_normalization.comp /36864=9*4096 integerquotient/remainder
+RTE handlesnormal/subnormal/signedzero; threshold9*2^20,exponentoffsets15/16.
+OptionalIQM_NORMALIZATION_STANDALONE entry onlyforisolatedtest. Current source
+rebuildinverse_source_reproduction/ reproducesACCEPTEDinverseSPVbytehashexactly.
+
+Sharedverify_fft256_inverse.cpp adds--forward192x192|--inverse192x192 [mtf|la],
+full73728wordstrictbitchecks ANDnumericchecks perrun,actualbinary+firstaxis
+dumps andstrict_results.txt. Oldflags/geometrynumericalbehaviorpreserved.
+Newdurable validate_fft192square.ps1 run AND-ResultsOnlyaudit PASS gpu_matrix/:
+3patterns*2images*2chains*2directions=24runs/1769472 Float32words BITWISEexact,
+includingzero signs,allprocessesexit0/noVulkanerrors. Notfull96x96pipeline:
+forwardreceivesnativepreparedinput,inversereceivesnativefilteredspectrum.
+Runtimeisnotfedthesegoldens;theseareisolateddiagnostics only.
+
+Sharedverify_mixed_normalization.cpp adds--square192;newtarget
+square192-normalization-test. gpu_normalization/:1054696 syntheticfiniteIEEE
+probes+294912nativeinversecomponents bitwiseexact. Native4pairs fromunaligned
+outplace3threadrawC++inverseoutputs andnativeOctavenormalizedoutput. Added
+boundaryfractionsaroundnewthreshold/subnormalties. Noexhaustiveallbitsclaim;
+nativeinversewordsoverlapFFTmatrixandarenotnewuniqueimages. Allsignedzero
+checksstrict. NaN/Infnotpartofmeasuredfiniteprobeclaim.
+
+Regressions:27original80x96nativetextexports byte-identical
+(legacy_native_regression_PASS.txt). Existing160x192forward/inverse shared
+caller numerical61440eachpass withacceptedsource-runtimeforward80/inverse80.
+Oldnormalization30720shader defaultcaller1054696synthetic+1474560nativewords
+bitwiseexact (legacy_normalization30720/). Noexistingproductioncode/runtime
+manifestorSPIRVchanged. Nativeimpulse/HDRloopPowerShellshellreported1due
+normalOctavecleanupstderr althoughbothnativeexecutionsfinished andmetadata/
+nativefullpathwayassertionspassed. FullGPUmatrixsubsequentlyexit0forboth.
+Freshwrappersshouldexplicitexit0afterloopandcaptureLASTEXITCODEpernativecall.
+
+Allsessions33216andotherscompleted;noactiveGPUprocesses. Source/binary/native
+andartifacthashes frozenunderroot;oldexports/binarieskept. Stagedcorrdnblob
+andworktreehash03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+unchanged,dirtyVkFFTpreserved. No commit/push/reset/cleanup.
+
+EXACTNEXTSTEP: buildisolated96x96 connectedMTF/LA chain using192squareassets:
+originalimages ->GPUprepare ->forward ->native-equivalentfilterproduct ->
+normalizedinverse ->crop/exp. NeednewIOstride/layoutsupport andverifyactual
+GPUretinal/adaptationstagebuffers againstnativewithoutintermediategoldeninput.
+Includeidentity/constantandreal-derivedcontentbeforeclaimingwidecontent.
+ThenextendSPYRbase120layoutsto144andfullqualitygraph,P/log/allbands/masks/
+errors/Q/JOD. Keeppublicgeometryguardsfixeduntilallpass. 96x96fullmetric,
+RGB/otherconditions/devices/general sizes remainUNFINISHED. Currentworklocal.
+
+## Active continuation 2026-10-26: connected96x96 visual stages accepted
+
+Root validation/square_filter_639286168390035328. Read
+tests/SQUARE_VISUAL_CHAIN_VALIDATION.md. Separate diagnostic symbol in
+mixed_filter.cpp onlyunderIQM_HDRVDP3_SQUARE_FILTER_DIAGNOSTIC; production
+run_mixed_filter guard remains80x96/96x80 andnegative96x96guardtestPASS.
+NewIOmode5entirely-real narrowing afterforward/product/inverse fixesmeasured
+constantreference18240signedzerobitfailure;oldIOpayload/generatorunchanged.
+TenGPUdispatches perfilter,existingGPUMapLMbetweenMTFandLA;hoststage-boundary
+copies,nohostimage-dependent intermediatearithmetic. Originalinputsonly.
+Allsixpairs asymmetric/impulse/HDRramp/constant/identity/real-derivedgraypass
+26stages/1382400wordseach(acceptance/),156/8294400totalbitwise,noVulkanerrors.
+Accepted26-stagebinaryfrozenassquare-filter-chain-MTF-LA-accepted.exe.
+
+Optionalvisualextensioncurrentbinary computesactualGPUadaptation->pupil/JND,
+actualretinal->P,mean/logadaptation.GoldensonlyloadafterGPUcalls;staticJNDLUT
+isCPUimage-independentmodelpreparation. NativevisualgoldensrequireFloat32.
+visual_acceptance/ sixpairs32stages/1419272words each=192checks/8515632words
+BITWISE,zero signs included,noVulkanerrors,session12971COMPLETE0. Same6pairs,
+not12newpairs;26stagecohortoverlaps32stagecohort. CurrentworkcontinuesSPYR
+fromactualGPU Pmaps. Remainingexactcommand/artifactdetails toappendatend.
+
+Further SPYR outcome: sourcepathway_spyr.cpp diagnostic-onlysymbol/profile144,
+productiondefault120unchanged. Mean/difference/residual buffer290/288/433,
+actualbase rangeguard retained; difference dispatch3groups(144) vsold2(120).
+Sourcecreate_sp0_model filters,existinggenericFMA/separatekernels andaccepted
+newbase144assets. export_square_spyr_reference.m independentlyassertsallraw/
+orientation/high/centeredbands andFFT/DC/indexagainstfullnativeTrace.
+spyr_acceptance/ sixsamepairs43stages/1487387wordseach=258/8924322 BITWISE
+includingzero signs,session60426COMPLETE0/noVulkanerrors. SharedoldSPYR
+regression3contents*2orientationsPASS(session16546COMPLETE0).
+Fullquality downstream integration is NOW active; frozen32-stagebinary
+square-visual32-accepted.exe and26-stagebinary hashes matchtheiroriginal
+acceptance hashes (accepted_binary_lineage_PASS.txt). Do notcountcohortsas
+independentimages. Partiallatereditsmustnotbeclaimedfullscoreacceptance.
+
+## Latest final checkpoint 2026-10-26: private96x96 quality end-to-end PASS
+
+ROOTS:
+- visual/SPYR validation/square_filter_639286168390035328 (completed pointer)
+- fullquality validation/square_quality_639286340181932107 (completed pointer)
+Read tests/SQUARE_VISUAL_CHAIN_VALIDATION.md andSQUARE_QUALITY_VALIDATION.md.
+
+Allsixoriginal96x96pairs asymmetric/impulse/HDRramp/constant/identity/real
+COMPLETE end-to-end:414checks/1711662Float32/Float64values BITWISEexact,
+69checks/285277values perpair. Q/JOD respectively:
+3.9916315078735352/4.8269548416137695;
+2.771334171295166/3.444155216217041;
+7.395176887512207/8.2270421981811523;
+2.7713377475738525/3.4441585540771484;
+10/10;
+9.9999465942382812/9.9999980926513672.
+AllGPUlogsnoVulkanerrors. validate_square_quality.ps1 run AND-ResultsOnly
+auditPASS. Privatein-memoryAPI evaluate_square_quality_diagnostic accepts
+originalvectors+explicitassets,neverreadsimage/intermediatefiles. Checker
+loadsallimage-dependentgoldensAFTERAPIreturns. Same6pairsasvisual43cohort,
+notextraindependentimages. Original43visual/SPYR258checks/8924322words
+additionallyvalidatefilters/rawbands/FFTbuffers. Allfourcohortsoverlap.
+
+Source profile changes are gated underIQM_HDRVDP3_SQUARE_QUALITY_DIAGNOSTIC
+andseparatefilter/SPYRdiagnosticflags in standaloneCMake ONLY. Private
+run_square_pool/comparison/masking_diagnostic symbols;normalnames/geometry
+guards remainunchanged80x96/96x80. Poolallows96/48/24/12square innewprofile;
+comparison96source and1/2/4/8ratios; qualitybaseCount144,offset146,size290,
+residual433/index432,selected<144. ProductiondefaultCount120 ispreserved.
+Qualityfiltercalls trace=falseexplicitly inbothbuilds. Firstcompilefailed
+becauseonecallomittedbooldefault inprivateprototype;fixedBEFOREnumericrun.
+Noqualitynumericmismatch/tolerancerelaxation. Source core modules share
+algorithm,diagnosticentryaliasesrouteonlytheseparateprofile.
+
+Newbase144shader usesmean144 exactboundedintegerlogmean andexisting
+native-stylepower10. Oldbase120generatorunchanged. Newprivateassets/ has14
+SPIRVfilescopiedfromaccepted squareFFT/squareIO/mean144/difference144/residual
+andpinnedsource-runtimemap/SPYR/pool/comparison/product,newbase144. Fullpaths
+andSHA256inasset_sources.json. Factorycreate_sp0_model coefficientsfromsource.
+Noimage-dependentgoldens inassets. NOnewpublicmanifestformat/loaderacceptance.
+CPUmodel/filter/LUTpreparationandimage-dependentdoubleNCSF fromactualGPU
+frequency/adaptationremain;hoststage-boundarycopiesremain. NOTfullyGPU/
+device-residentclaim. Base_limit_scope.json:nonidentityindex12,freq
+.3125000000000001,allnoise finite;identityindex0/freq0/positiveInfnoise,
+nativeQ/JOD10. Infexactlimitvalid,NaNnotaccepted.
+
+NativefullqualitygoldensareFRESHcopies native_<case>/h96_w96 frommean144
+fivevisualsourcesandnewreal_visual source;oldreferencesunmodified.
+export_native_band_errors.m runonfreshcopies,allaccumulatednativeerrors
+asserted. Real96cropfromsameignoredMemorialHDR,arithmeticRGBmeanrelative,
+whole-sourcepeakassigned1000cd/m2/floor1e-4/oneFloat32cast,noresize/gamma;
+cropx208/y336,96x96,min.008772561326622963/max1.2914800643920898,nofloored.
+OldphotographSHA18376B9219927B363127817900B1C170A0F752F52A63F5949655B4150E35061D,
+credit/URLcopiedtovisualrootreal_source.json;rawphotoNOTGit. Newhelper
+--square96 flag;default4HDRpreparationfiles byte-identical toprevious ones.
+NoRGB/capturecd/m2claim. Allsource/profileprecisionparametersnativeunchanged.
+
+REGRESSIONS:
+- RebuiltDEFAULTquality-production-regression-test usesunchangedversion1
+source-runtimepackage,oldasymmetric_tiny pairsBOTH80x96and96x80:69checks/
+237733values eachbitwise Q/JOD+alltraces. Session60312COMPLETE0.
+- DefaultSPYR 3contents*2orientations PASS,oldhistoricalacceptancepreserved.
+- Defaultfilter bothorientationsMTF/LA stagebitspass,80x96repeat/nontracepass;
+negative96x96productionfilterguardPASS beforeloadingassets.
+- Stagedcorrdnblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7/worktreeSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6unchanged;
+dirtyVkFFTandunrelatedchangespreserved. No commit/push/reset/cleanup.
+
+REPRODUCTION: cmake -S tests/hdrvdp3_residual144 -B <fresh> -G
+"Visual Studio18 2026" -A x64;buildsquare-quality-test. Privateassetfilenames
+arelistedbyverify_square_quality.cpp/load_assets andasset_sources.json.
+powershell -NoProfile -ExecutionPolicy Bypass -File
+tests/hdrvdp3_evaluation/validate_square_quality.ps1 -Executable
+<build>/Release/square-quality-test.exe -AssetsDirectory <assets>
+-NativeDirectory <native-root> -OutputDirectory <fresh-output>.
+Add -ResultsOnlytoauditsavedoutputs. LegacyregressionCMakeoption
+IQM_BASE144_LEGACY_REGRESSION=ON; targetquality-production-regression-test
+usesexistingcontrastchecker/version1loader. Files/artifacthashessnapshots
+frozenunderbothroots. Old26/32binarylineageverifiedagainstoriginalrunhashes;
+43binarysavedassquare-spyr43-accepted.exe. Originalvalidatorprogressname
+interpolationbugfixedwithoutnumericalchange;executionSnapshot/hasheskept.
+Allprocessesincluding22308/70868/60312etcCOMPLETE;donotpollagain.
+
+EXACTNEXTSTEP: public96x96 promotion remainsUNFINISHED. Firstdesignadistinct
+square96runtimeprofile/packageandbackwardcompatibleloadercontracts,source-
+onlyreproduction/pins;thenexportproduction96profilewhilepreservingold80/96
+functions/20payloadversion1package. Currentprivate14assetslackpublicmanifest.
+DoNOTsimplyrelaxpublicgeometryguards orfeedold120mean/residualassetsto96.
+Publicintegrationneedsnew192FFT/IOwhole-real-narrowing+144mean/diff/residual/
+baseassets. Privatecompile-timealiasesmustbeconvertedcarefullytoavailable
+productionentrywithoutduplicateglobals(symbolpathway_masking_model),oruse
+onegenericvalidatedprofileimplementation. OnlyafterpublicAPIbuild,publish
+sixPFMCLIacceptancecasesandcompareinput/P/log/qualityexports againstaccepted
+native/privateAPIbits,plusoldversion1regressionandwrongprofilefailures.
+FullmetricRGB/viewing/general-size/device/GPU-onlyscopeSTILLopen. Current
+worklocalonly;nextusercontinuecanproceedwithoutaskingforconfirmation.
+
+FinalfreezeCOMPLETE: square_filter_completed_path.txt and
+square_quality_completed_path.txt saved; nestedsource_snapshot_final/,
+source_hashes_final.json,binary_hashes_final.json,artifact_hashes_final.json
+underbothroots. Final43-stage-ResultsOnlyaudit usesfrozen43binaryPASS;
+itsupdatedmetadatahashes refreshed inartifactinventory. Full69-stageauditPASS.
+An audit attempted toreadcompletedpointerbeforebackgroundhashingfinished;
+itfailedonlypathresolution,ran noGPUwork,thenpassedafterfreezecompleted.
+No remainingprocesses. Nextworkispublicprofile/packageintegration asabove.

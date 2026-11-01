@@ -47,3 +47,9 @@ pixels or extra image pairs. Final Q/Q_JOD matches independent native results
 for asymmetric,impulse,HDR ramp in both orientations. This is now a validated
 single in-memory API,not merely the earlier file-composed experimental replay.
 Public application/CLI runtime packaging and broader support remain unfinished.
+
+Subsequent public integration: evaluate_quality andCLI now route the validated
+80x96/96x80 profile through an explicit version1 package. SixPFM CLI nativebit
+checks,three unsupported settings,12 malformed packages andlegacy11pair/1166
+export regression pass. See PATHWAY_CLI_VALIDATION.md. Earlier acceptance above
+remains the independent81stage in-memory API scope;do not merge these counts.

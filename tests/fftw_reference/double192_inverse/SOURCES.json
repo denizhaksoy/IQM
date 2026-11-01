@@ -1,0 +1,17 @@
+{
+    "license":  "GPL-2.0-or-later;../COPYING",
+    "archive_sha256":  "56C932549852CDDCFAFDAB3820B0200C7742675BE92179E59E6215B340E26467",
+    "source":  "https://www.fftw.org/fftw-3.3.10.tar.gz",
+    "files":  [
+                  {
+                      "sha256_lf":  "430248C0F24ACD12FC51127DBBB9DBF5DED9004B33CDC10C59B0B59B334268FA",
+                      "member":  "dft/simd/common/t1bv_12.c",
+                      "file":  "t1bv_12.c"
+                  },
+                  {
+                      "sha256_lf":  "26C9E3B9BDC2236926B781D66675C490DA06CE23AB668CD28FF40C0CCC9D2C57",
+                      "member":  "dft/simd/common/t3bv_8.c",
+                      "file":  "t3bv_8.c"
+                  }
+              ]
+}

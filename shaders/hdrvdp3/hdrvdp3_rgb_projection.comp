@@ -1,0 +1,14 @@
+#version 450
+// Input: three column-major optical planes followed by 3x4 Float32 matrix.
+// Output: four column-major LMSR planes BEFORE the native response clamp.
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input { float data[]; } src;
+layout(set=0,binding=1,std430) writeonly buffer Output { float data[]; } dst;
+layout(push_constant) uniform Push { uint count; uint pixels; uint reserved0; uint reserved1; } pc;
+void main(){
+ uint i=gl_GlobalInvocationID.x;if(i>=pc.count)return;
+ uint channel=i/pc.pixels,pixel=i%pc.pixels,base=3*pc.pixels+3*channel;
+ precise float first=src.data[pixel]*src.data[base];
+ precise float second=fma(src.data[pc.pixels+pixel],src.data[base+1],first);
+ dst.data[i]=fma(src.data[2*pc.pixels+pixel],src.data[base+2],second);
+}

@@ -321,8 +321,22 @@ int main() {
     
     // Read SPIR-V binary
     std::ifstream spvFile("shaders/hdrvdp3/mtf_multiply.spv", std::ios::binary);
+    if (!spvFile.is_open()) {
+        std::cerr << "ERROR: Failed to open SPIR-V file: shaders/hdrvdp3/mtf_multiply.spv" << std::endl;
+        return 1;
+    }
     std::vector<char> spvData((std::istreambuf_iterator<char>(spvFile)), std::istreambuf_iterator<char>());
     spvFile.close();
+    
+    if (spvData.empty()) {
+        std::cerr << "ERROR: SPIR-V file is empty: shaders/hdrvdp3/mtf_multiply.spv" << std::endl;
+        return 1;
+    }
+    
+    if (spvData.size() % 4 != 0) {
+        std::cerr << "ERROR: SPIR-V file size is not a multiple of 4: " << spvData.size() << " bytes" << std::endl;
+        return 1;
+    }
     
     // Use raw Vulkan API for pipeline creation (RAII wrappers have different signatures)
     VkShaderModuleCreateInfo shaderCreateInfo{};
@@ -330,7 +344,11 @@ int main() {
     shaderCreateInfo.codeSize = spvData.size();
     shaderCreateInfo.pCode = reinterpret_cast<const uint32_t*>(spvData.data());
     VkShaderModule shaderModule;
-    vkCreateShaderModule(vkDev, &shaderCreateInfo, nullptr, &shaderModule);
+    VkResult res = vkCreateShaderModule(vkDev, &shaderCreateInfo, nullptr, &shaderModule);
+    if (res != VK_SUCCESS) {
+        std::cerr << "ERROR: vkCreateShaderModule failed: " << res << std::endl;
+        return 1;
+    }
     
     // Descriptor set layout
     VkDescriptorSetLayoutBinding bindings[3] = {

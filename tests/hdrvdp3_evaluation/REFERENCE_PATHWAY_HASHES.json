@@ -1,0 +1,102 @@
+[
+    {
+        "key":  "forward80",
+        "file":  "assets/forward80.spv",
+        "sha256":  "cb07ae3e1adeef636a0b24445512ecdd97a3479eddde8d32942949fe7b0df90b"
+    },
+    {
+        "key":  "inverse80",
+        "file":  "assets/inverse80.spv",
+        "sha256":  "029078529abe4101cf36a0fdba5b6541272198244de1e2919b9497cf92405b18"
+    },
+    {
+        "key":  "forward96",
+        "file":  "assets/forward96.spv",
+        "sha256":  "4f3d35501c1943cbcf72e4883493c8932a2949506fdb7485db732ef8b32a55a8"
+    },
+    {
+        "key":  "inverse96",
+        "file":  "assets/inverse96.spv",
+        "sha256":  "a548c5646a2ed6cef59016bf3be361957ad2fc884d9f470dc96a72ad1254b70e"
+    },
+    {
+        "key":  "io",
+        "file":  "assets/io.spv",
+        "sha256":  "8d83587e9bd0fd06c20497d3ab1846a6b59e3514750d82e34a859499155f7cb9"
+    },
+    {
+        "key":  "spyr_fma",
+        "file":  "assets/spyr_fma.spv",
+        "sha256":  "19c8bf5d45ace20518c81049337850537d0919a58276563cc7d193e4226b9bdd"
+    },
+    {
+        "key":  "spyr_separate",
+        "file":  "assets/spyr_separate.spv",
+        "sha256":  "ba13ab67c97f1d8a603d7c4416bed086d66dc3ca36db29da40588f44bb097768"
+    },
+    {
+        "key":  "mean",
+        "file":  "assets/mean.spv",
+        "sha256":  "d2948aabd48def4c25679946b3087584cf19f48ac1454b827b5c28d04d211f81"
+    },
+    {
+        "key":  "difference",
+        "file":  "assets/difference.spv",
+        "sha256":  "06f57e745e581da33584d85723998c4f3222cb2859af4a8afbc09d77968dc377"
+    },
+    {
+        "key":  "residual",
+        "file":  "assets/residual.spv",
+        "sha256":  "fd9ecaa4a8c3e193894d45227fe5ababe67d6efde91c66dc93a3288f4426fe28"
+    },
+    {
+        "key":  "pool_fma",
+        "file":  "assets/pool_fma.spv",
+        "sha256":  "96c6c45454d064744b991c2edde2c829d46205d9396d454559be524ac8c11a04"
+    },
+    {
+        "key":  "pool_separate",
+        "file":  "assets/pool_separate.spv",
+        "sha256":  "48e69c390f0f63cd043d16d94af6fa7d71a3fc360507be061b779ac09414a87c"
+    },
+    {
+        "key":  "comparison",
+        "file":  "assets/comparison.spv",
+        "sha256":  "548a5a77b4df909e29cb67476f02191b882d7450796d3bf76c36b94c77d45016"
+    },
+    {
+        "key":  "map",
+        "file":  "assets/map.spv",
+        "sha256":  "0b023987b9a2c9267b8979a072574dcc04ad8f56ea56cb1b7aacf164ea041bff"
+    },
+    {
+        "key":  "product",
+        "file":  "assets/product.spv",
+        "sha256":  "87b7ff668196157e62335daea390a4959076a08bd92532ac2f62a990d4b11ef3"
+    },
+    {
+        "key":  "base",
+        "file":  "assets/base.spv",
+        "sha256":  "94bb5d7ed3209f04926160150661bb69ba9f223820d5e4f42d160b01a5a52142"
+    },
+    {
+        "key":  "lo0",
+        "file":  "assets/lo0.txt",
+        "sha256":  "fa47014e3b2672bba039458115b0c5b4e0dfcecfdb655d111308f67f239a6fb4"
+    },
+    {
+        "key":  "lo",
+        "file":  "assets/lo.txt",
+        "sha256":  "224accae7abfa04eaa1fe9615718af51c9185c55115d81f379503b915d09c8a8"
+    },
+    {
+        "key":  "high",
+        "file":  "assets/high.txt",
+        "sha256":  "67650f519b8724c6d8571def124ce1410c89854f8854944ed7cac63200aa27d9"
+    },
+    {
+        "key":  "orientation",
+        "file":  "assets/orientation.txt",
+        "sha256":  "e1f47fa1252997748a69077f043f181a001d0559120ed138a6cfdce59b06bd00"
+    }
+]

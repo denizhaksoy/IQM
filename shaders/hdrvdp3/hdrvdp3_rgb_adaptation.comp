@@ -1,0 +1,11 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input { float data[]; } src;
+layout(set=0,binding=1,std430) writeonly buffer Output { float data[]; } dst;
+layout(push_constant) uniform Push { uint count; uint pixels; uint reserved0; uint reserved1; } pc;
+void main(){
+ uint i=gl_GlobalInvocationID.x;if(i>=pc.count)return;
+ precise float l=clamp(src.data[i],1e-8,1e10);
+ precise float m=clamp(src.data[pc.pixels+i],1e-8,1e10);
+ dst.data[i]=l+m;
+}

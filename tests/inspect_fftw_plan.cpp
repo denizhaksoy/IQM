@@ -449,7 +449,7 @@ static int forward256_axes(const std::filesystem::path& source,const std::filesy
     std::cout<<"Forward256 axis oracles saved to "<<output.string()<<'\n';return 0;
 }
 static int mixed_plan(const std::filesystem::path& source,const std::filesystem::path& output,unsigned H,unsigned W,unsigned extraFlags=0){
-    if(!((H==160&&W==192)||(H==192&&W==160)))throw std::runtime_error("Mixed diagnostic requires160x192/192x160");
+    if(!((H==160&&W==160)||(H==160&&W==192)||(H==192&&W==160)||(H==192&&W==192)))throw std::runtime_error("Mixed diagnostic requires160/192 axis pairs");
     if(!std::filesystem::create_directory(output))throw std::runtime_error("Fresh output directory required");
     std::ifstream wf(source/"native_single_wisdom.txt");const std::string wisdom((std::istreambuf_iterator<char>(wf)),{});
     if(wisdom.empty())throw std::runtime_error("Native single wisdom required");
@@ -483,8 +483,8 @@ static int mixed_plan(const std::filesystem::path& source,const std::filesystem:
             for(size_t i=0;i<count;++i){if(input[2*i+1]!=0)throw std::runtime_error("Forward input is not real");real[i]=input[2*i];ci[i][0]=filtered[2*i];ci[i][1]=filtered[2*i+1];}
             api.execute(forward.data);api.execute(inverse.data);
             size_t fm=0,dm=0,mm=0;const float reciprocal=1.0f/float(count);
-            std::ofstream f(output/(tag+"_forward.txt")),d(output/(tag+"_inverse_div.txt")),m(output/(tag+"_inverse_mul.txt"));
-            for(auto* stream:{&f,&d,&m})*stream<<H<<' '<<2*W<<'\n'<<std::setprecision(9);
+            std::ofstream f(output/(tag+"_forward.txt")),d(output/(tag+"_inverse_div.txt")),m(output/(tag+"_inverse_mul.txt")),rawInverse(output/(tag+"_inverse_raw.txt"));
+            for(auto* stream:{&f,&d,&m,&rawInverse})*stream<<H<<' '<<2*W<<'\n'<<std::setprecision(9);
             for(unsigned y=0;y<H;++y)for(unsigned x=0;x<W;++x){
                 const bool conjugate=y>=halfHeight;const auto compact=conjugate?((W-x)%W)*halfHeight+H-y:x*halfHeight+y;
                 for(unsigned c=0;c<2;++c){
@@ -492,7 +492,7 @@ static int mixed_plan(const std::filesystem::path& source,const std::filesystem:
                     const float fv=c==1&&conjugate?-half[compact][c]:half[compact][c];
                     const float dv=co[size_t(x)*H+y][c]/float(count),mv=co[size_t(x)*H+y][c]*reciprocal;
                     fm+=fv!=expectedForward[expectedIndex];dm+=dv!=expectedInverse[expectedIndex];mm+=mv!=expectedInverse[expectedIndex];
-                    f<<fv<<'\n';d<<dv<<'\n';m<<mv<<'\n';
+                    f<<fv<<'\n';d<<dv<<'\n';m<<mv<<'\n';rawInverse<<co[size_t(x)*H+y][c]<<'\n';
                 }
             }
             results<<label<<'\t'<<chain<<'\t'<<threads<<'\t'<<unaligned<<'\t'<<inplace<<'\t'<<wisdomForward<<'\t'<<wisdomInverse<<'\t'<<fm<<'\t'<<dm<<'\t'<<mm<<'\n';results.flush();

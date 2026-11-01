@@ -16,6 +16,13 @@
 #include <xmmintrin.h>
 #endif
 using IQM::GPU::VulkanRuntime;
+#ifndef IQM_MEAN_COUNT
+#define IQM_MEAN_COUNT 120
+#endif
+#if !defined(IQM_MEAN_DYNAMIC_COUNT)
+constexpr unsigned MeanCount=IQM_MEAN_COUNT,MeanStride=MeanCount+1;
+static_assert(MeanCount==120||MeanCount==144);
+#endif
 struct Buffer{vk::raii::DeviceMemory memory=nullptr;vk::raii::Buffer handle=nullptr;};
 static Buffer buffer(const IQM::Bin::VulkanInstance& instance,unsigned bytes){
     auto pair=IQM::Bin::VulkanResource::createBuffer(*instance.device(),*instance.physicalDevice(),bytes,
@@ -28,7 +35,15 @@ static std::vector<uint32_t> read(const std::filesystem::path& path){
     return data;
 }
 int main(int argc,char** argv){try{
+    #if defined(IQM_MEAN_DYNAMIC_COUNT)
+    if(argc!=5)throw std::runtime_error("Usage:shader.spv native-pairs-manifest fresh-output count");
+    const auto parsed=std::stoul(argv[4]);if(parsed<1||parsed>4096)throw std::runtime_error("Unvalidated mean count");
+    const unsigned MeanCount=unsigned(parsed),MeanStride=MeanCount+1;
+    constexpr unsigned SyntheticGroups=1024;
+#else
     if(argc!=4)throw std::runtime_error("Usage:shader.spv native-pairs-manifest fresh-output");
+    constexpr unsigned SyntheticGroups=8192;
+#endif
     if(std::fegetround()!=FE_TONEAREST)throw std::runtime_error("Host needs RTE");
 #if defined(_M_IX86)||defined(_M_X64)||defined(__i386__)||defined(__x86_64__)
     if(_mm_getcsr()&((1u<<15)|(1u<<6)))throw std::runtime_error("Host needs gradual underflow");
@@ -45,19 +60,19 @@ int main(int argc,char** argv){try{
     auto layout=VulkanRuntime::createPipelineLayout(device,{*setLayout},VulkanRuntime::createPushConstantRange(16));auto pipeline=VulkanRuntime::createComputePipeline(device,module,layout);
     std::ofstream results(output/"results.tsv");results<<"case\tvalues\tnumeric_mismatches\tbit_mismatches\n";size_t total=0,nativeTotal=0,batches=0;
     auto check=[&](const std::string& tag,const std::vector<uint32_t>& input,const std::vector<uint32_t>& expected,bool syntheticBatch){
-        if(input.empty()||input.size()%120||expected.size()!=input.size()/120*121)throw std::runtime_error("Fixture count mismatch");
-        for(size_t offset=0;offset<input.size();offset+=120){
+        if(input.empty()||input.size()%MeanCount||expected.size()!=input.size()/MeanCount*MeanStride)throw std::runtime_error("Fixture count mismatch");
+        for(size_t offset=0;offset<input.size();offset+=MeanCount){
             int minimum=1000,maximum=-1000;double sum=0;
-            for(size_t i=0;i<120;++i){float v=std::bit_cast<float>(input[offset+i]);
+            for(size_t i=0;i<MeanCount;++i){float v=std::bit_cast<float>(input[offset+i]);
                 if(!std::isfinite(v))throw std::runtime_error("Nonfinite mean input");
                 if(v!=0){int e=std::ilogb(std::abs(v));minimum=std::min(minimum,e);maximum=std::max(maximum,e);}
                 sum+=double(v);
             }
             if(maximum!=-1000&&(minimum < -90||maximum>100||maximum-minimum>16))throw std::runtime_error("Mean120 exponent domain exceeded");
-            volatile double divisor=120.0;float mean=float(sum/divisor);
-            size_t base=offset/120*121;
+            volatile double divisor=double(MeanCount);float mean=float(sum/divisor);
+            size_t base=offset/MeanCount*MeanStride;
             if(std::bit_cast<uint32_t>(mean)!=expected[base])throw std::runtime_error("Native mean differs from double-accumulation contract");
-            for(size_t i=0;i<120;++i){volatile float v=std::bit_cast<float>(input[offset+i]);float centered=v-mean;
+            for(size_t i=0;i<MeanCount;++i){volatile float v=std::bit_cast<float>(input[offset+i]);float centered=v-mean;
                 if(std::bit_cast<uint32_t>(centered)!=expected[base+1+i])throw std::runtime_error("Native DC contract differs");}
         }
         unsigned bytes=unsigned(expected.size()*4);auto src=buffer(instance,bytes),dst=buffer(instance,bytes);
@@ -70,7 +85,7 @@ int main(int argc,char** argv){try{
         vk::MemoryBarrier before{.srcAccessMask=vk::AccessFlagBits::eHostWrite,.dstAccessMask=vk::AccessFlagBits::eShaderRead};
         instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eHost,vk::PipelineStageFlagBits::eComputeShader,{}, {before},{},{});
         instance.cmdBuf()->bindPipeline(vk::PipelineBindPoint::eCompute,*pipeline);instance.cmdBuf()->bindDescriptorSets(vk::PipelineBindPoint::eCompute,*layout,0,{*sets[0]},{});
-        struct Push{uint32_t count,a,b,c;};instance.cmdBuf()->pushConstants<Push>(*layout,vk::ShaderStageFlagBits::eCompute,0,Push{uint32_t(input.size()/120),0,0,0});instance.cmdBuf()->dispatch((uint32_t(input.size()/120)+63)/64,1,1);
+        struct Push{uint32_t count,a,b,c;};instance.cmdBuf()->pushConstants<Push>(*layout,vk::ShaderStageFlagBits::eCompute,0,Push{uint32_t(input.size()/MeanCount),MeanCount,0,0});instance.cmdBuf()->dispatch((uint32_t(input.size()/MeanCount)+63)/64,1,1);
         vk::MemoryBarrier after{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead};
         instance.cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eHost,{}, {after},{},{});
         instance.cmdBuf()->end();vk::CommandBuffer cmd=*instance.cmdBuf();vk::raii::Fence fence(device,vk::FenceCreateInfo{});instance.queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&cmd},fence);instance.waitForFence(fence);
@@ -82,9 +97,9 @@ int main(int argc,char** argv){try{
         if(syntheticBatch)total+=expected.size();else nativeTotal+=expected.size();++batches;
     };
     std::vector<uint32_t> synthetic,expected;uint32_t rng=0x120dc017u;
-    for(unsigned group=0;group<8192;++group){
+    for(unsigned group=0;group<SyntheticGroups;++group){
         std::vector<float> row;double sum=0;int low=-90+int(group%175);
-        for(unsigned i=0;i<120;++i){
+        for(unsigned i=0;i<MeanCount;++i){
             rng^=rng<<13;rng^=rng>>17;rng^=rng<<5;
             uint32_t word=(rng&0x807fffffu)|(uint32_t(low+int(rng%17)+127)<<23);
             if(group==0)word=0;if(group==1)word=0x80000000u;
@@ -92,7 +107,7 @@ int main(int argc,char** argv){try{
             if(group==3)word=(i&1?0xbf800000u:0x3f800000u);
             float v=std::bit_cast<float>(word);row.push_back(v);synthetic.push_back(word);sum+=double(v);
         }
-        volatile double divisor=120.0;float mean=float(sum/divisor);expected.push_back(std::bit_cast<uint32_t>(mean));
+        volatile double divisor=double(MeanCount);float mean=float(sum/divisor);expected.push_back(std::bit_cast<uint32_t>(mean));
         for(float v:row){volatile float x=v;float centered=x-mean;expected.push_back(std::bit_cast<uint32_t>(centered));}
     }
     std::ofstream(output/"synthetic_input.u32",std::ios::binary).write(reinterpret_cast<const char*>(synthetic.data()),std::streamsize(synthetic.size()*4));
@@ -100,7 +115,11 @@ int main(int argc,char** argv){try{
     check("synthetic",synthetic,expected,true);
     std::ifstream manifest(argv[2]);if(!manifest)throw std::runtime_error("Missing native manifest");std::string tag,inputPath,expectedPath;
     while(manifest>>tag>>std::quoted(inputPath)>>std::quoted(expectedPath))check(tag,read(inputPath),read(expectedPath),false);
-    if(!manifest.eof()||batches!=13||nativeTotal!=1452)throw std::runtime_error("Native coverage incomplete");
-    std::cout<<"mean120/DC synthetic_bitwise="<<total<<" native_bitwise="<<nativeTotal<<" mismatches=0\n";
-    std::ofstream(output/"PASS.txt")<<"Mean120 and DC subtraction exact on bounded synthetic probes and12 official SPYR residual fixtures.\n";return 0;
+    #if defined(IQM_MEAN_DYNAMIC_COUNT)
+    if(!manifest.eof()||batches!=13||nativeTotal!=12*MeanStride)throw std::runtime_error("Native coverage incomplete");
+#else
+    if(!manifest.eof()||batches!=(MeanCount==144?11u:13u)||nativeTotal!=(MeanCount==144?1450u:1452u))throw std::runtime_error("Native coverage incomplete");
+#endif
+    std::cout<<"mean"<<MeanCount<<"/DC synthetic_bitwise="<<total<<" native_bitwise="<<nativeTotal<<" mismatches=0\n";
+    std::ofstream(output/"PASS.txt")<<"Mean"<<MeanCount<<" and DC subtraction bitwise exact on"<<SyntheticGroups<<" bounded synthetic probes and"<<(batches-1)<<" native fixtures.\n";return 0;
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

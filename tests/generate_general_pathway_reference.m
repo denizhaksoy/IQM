@@ -4,12 +4,26 @@ function source=insert_once(source,anchor,extra)
  assert(numel(strfind(source,anchor))==1,['Non-unique trace anchor: ' anchor]);
  source=strrep(source,anchor,[anchor char(10) extra]);
 endfunction
-function write_values(path,a)
- assert(isreal(a)&&all(isfinite(a(:))));
+function write_values(path,a,allow_positive_inf=false)
+ assert(isreal(a));if allow_positive_inf,assert(all(isfinite(a(:)) | (isinf(a(:)) & a(:)>0)));else,assert(all(isfinite(a(:))));endif
  f=fopen(path,'w');assert(f>=0);fprintf(f,'%d %d\n',rows(a),columns(a));
  fprintf(f,'%.17g\n',a.');fclose(f);
 endfunction
-args=argv();visual=numel(args)>=2&&strcmp(args{2},'--visual');assert(numel(args)==1||(visual&&(numel(args)==2||numel(args)==4)));pattern='asymmetric';if numel(args)==4,assert(strcmp(args{3},'--pattern'));pattern=args{4};endif;assert(any(strcmp(pattern,{'asymmetric','impulse','hdr_ramp'})));out=args{1};assert(!exist(out,'dir'));assert(mkdir(out));
+args=argv();assert(numel(args)>=1);visual=false;identity=false;pattern='asymmetric';seen_pattern=false;transform='localized';gain=1.4;offset=.25;level=10;seen={};input_directory='';shapes={[80,96],[96,80]};seen_shape=false;i=2;
+while i<=numel(args)
+ if strcmp(args{i},'--visual'),assert(!visual);visual=true;
+ elseif strcmp(args{i},'--identity'),assert(!identity);identity=true;
+ elseif strcmp(args{i},'--pattern'),assert(!seen_pattern&&i<numel(args));seen_pattern=true;i+=1;pattern=args{i};
+ elseif strcmp(args{i},'--shape'),assert(!seen_shape&&i<numel(args));seen_shape=true;i+=1;hw=sscanf(args{i},'%dx%d');assert(numel(hw)==2&&any(strcmp(args{i},{'80x80','80x96','96x80','96x96','128x128'})));shapes={hw.'};
+ elseif strcmp(args{i},'--input-directory'),assert(isempty(input_directory)&&i<numel(args));i+=1;input_directory=args{i};
+ elseif any(strcmp(args{i},{'--transform','--gain','--offset','--level'})),key=args{i};assert(!any(strcmp(key,seen))&&i<numel(args));seen{end+1}=key;i+=1;value=args{i};
+  if strcmp(key,'--transform'),transform=value;else,v=str2double(value);assert(isfinite(v));if strcmp(key,'--gain'),gain=v;elseif strcmp(key,'--offset'),offset=v;else,level=v;endif;endif
+ else,error('Unknown reference option');endif;i+=1;
+endwhile
+assert(any(strcmp(pattern,{'asymmetric','impulse','hdr_ramp','constant','external'})));assert(any(strcmp(transform,{'localized','uniform','pair'}))&&gain>0&&level>0);if identity,assert(isempty(seen));endif;assert(strcmp(pattern,'external')==!isempty(input_directory));
+if strcmp(transform,'pair'),assert(strcmp(pattern,'external')&&!identity);endif
+out=args{1};assert(!exist(out,'dir'));assert(mkdir(out));
+
 official='C:/HDR-VDP-3_Ref';addpath(genpath(official));
 assert(hdrvdp_version()==3.07);pkg load image;pkg load statistics;
 fftw('threads',3);fftw('planner','estimate');
@@ -55,6 +69,8 @@ if visual
  visual_source=insert_once(visual_source,'P_LMR = zeros_like( R_LMSR );','iqm_stage.LMSR_after=R_LMSR;');
  visual_source=insert_once(visual_source,'P = P_C + P_R;',...
   'iqm_stage.channels=P_LMR;iqm_stage.cones=P_C;iqm_stage.rods=P_R;iqm_stage.P=P;');
+ visual_source=insert_once(visual_source,'BB = bands.get_band( bands.band_count(), 1 );',...
+  'iqm_stage.base_raw=BB;iqm_stage.base_mean=mean(BB(:));');
  f=fopen(fullfile(out,'iqm_visual_trace.m'),'w');assert(f>=0);fputs(f,visual_source);fclose(f);
  for label={'ref','test'}
   n=label{1};old=sprintf('[B_%s, L_adapt_%s, bb_padvalue, P_%s]',upper(n(1)),ifelse(strcmp(n,'ref'),'reference','test'),n);
@@ -66,19 +82,26 @@ if visual
 endif
 f=fopen(fullfile(out,'iqm_general_trace.m'),'w');assert(f>=0);fputs(f,source);fclose(f);
 addpath(out,'-begin');records={};
-for shape={[80,96],[96,80]}
+for shape=shapes
  hw=shape{1};h=hw(1);w=hw(2);[x,y]=meshgrid(0:w-1,0:h-1);
  reference=single(10)+single(.01)*single(mod(3*x+7*y+x.*y,101)-50);
- if strcmp(pattern,'impulse'),reference(:)=single(10);reference(1,8)=single(10.5);reference(h,w-1)=single(9.5);reference(floor(h/2),floor(w/3))=single(10.25);
+ if strcmp(pattern,'external')
+  f=fopen(fullfile(input_directory,sprintf('h%d_w%d',h,w),'reference.txt'),'r');assert(f>=0);dimensions=fscanf(f,'%d',2);v=fscanf(f,'%f');fclose(f);assert(isequal(dimensions,[h;w])&&numel(v)==h*w);reference=single(reshape(v,w,h).');
+ elseif strcmp(pattern,'constant'),reference(:)=single(level);
+ elseif strcmp(pattern,'impulse'),reference(:)=single(10);reference(1,8)=single(10.5);reference(h,w-1)=single(9.5);reference(floor(h/2),floor(w/3))=single(10.25);
  elseif strcmp(pattern,'hdr_ramp'),reference=single(10.^(-2+5*(3*x/(w-1)+2*y/(h-1))/5));endif
  test=reference;ys=floor(h*.25)+1:floor(h*.65);xs=floor(w*.55)+1:floor(w*.85);
- test(ys,xs)=reference(ys,xs)*single(1.4)+single(.25);
+ if strcmp(transform,'pair')
+  f=fopen(fullfile(input_directory,sprintf('h%d_w%d',h,w),'test.txt'),'r');assert(f>=0);dimensions=fscanf(f,'%d',2);v=fscanf(f,'%f');fclose(f);assert(isequal(dimensions,[h;w])&&numel(v)==h*w);test=single(reshape(v,w,h).');
+ elseif !identity,if strcmp(transform,'uniform'),test=reference*single(gain)+single(offset);else,test(ys,xs)=reference(ys,xs)*single(gain)+single(offset);endif;endif
+ assert(all(isfinite(reference(:)))&&all(reference(:)>0)&&all(isfinite(test(:)))&&all(test(:)>0));
  options={'use_gpu',false,'age',24,'quiet',true};
  fftw('swisdom','');baseline=hdrvdp3('quality',test,reference,'luminance',30,options);
  fftw('swisdom','');traced=iqm_general_trace('quality',test,reference,'luminance',30,options);
  assert(isequal(baseline.Q,traced.Q)&&isequal(baseline.Q_JOD,traced.Q_JOD));
  folder=fullfile(out,sprintf('h%d_w%d',h,w));assert(mkdir(folder));
- trace=traced.iqm_trace;save('-mat7-binary',fullfile(folder,'trace.mat'),'trace','baseline');
+ trace=traced.iqm_trace;base=trace.base;zero_noise_limit=base.frequency==0&&isinf(base.N_nCSF)&&base.N_nCSF>0;
+ assert(all(isfinite([double(base.index),double(base.frequency),double(base.L_mean)])));if !isfinite(base.N_nCSF),assert(zero_noise_limit);endif;save('-mat7-binary',fullfile(folder,'trace.mat'),'trace','baseline');
  write_values(fullfile(folder,'reference.txt'),reference);write_values(fullfile(folder,'test.txt'),test);
  names={'L_reference','L_test','L_mean','log_La','P_reference','P_test'};classes=struct();
  for k=1:numel(names),n=names{k};write_values(fullfile(folder,[n '.txt']),trace.(n));classes.(n)=class(trace.(n));endfor
@@ -92,13 +115,15 @@ for shape={[80,96],[96,80]}
   write_values(fullfile(folder,sprintf('band%d_log_resized.txt',b)),trace.log_resized{b});
   write_values(fullfile(folder,sprintf('band%d_csf.txt',b)),trace.csf{b});
   mask=trace.masking{b,1};fields=fieldnames(mask);
-  for j=1:numel(fields),n=fields{j};write_values(fullfile(folder,sprintf('band%d_mask_%s.txt',b,n)),mask.(n));endfor
+  for j=1:numel(fields),n=fields{j};write_values(fullfile(folder,sprintf('band%d_mask_%s.txt',b,n)),mask.(n),zero_noise_limit&&b==rows(trace.bands)&&strcmp(n,'neural'));endfor
  endfor
- base=trace.base;assert(numel(base.difference)==120);
+ base=trace.base;assert(isequal(size(base.difference),[h/8,w/8])&&rows(trace.bands)==5);
  write_values(fullfile(folder,'base_difference.txt'),base.difference);
  write_values(fullfile(folder,'base_fft_real.txt'),real(base.spectrum));
  write_values(fullfile(folder,'base_fft_imag.txt'),imag(base.spectrum));
- write_values(fullfile(folder,'base_selection.txt'),[double(base.index),double(base.frequency),double(base.L_mean),double(base.N_nCSF)]);
+ assert(all(isfinite([double(base.index),double(base.frequency),double(base.L_mean)])));
+ if !isfinite(base.N_nCSF),assert(zero_noise_limit);endif
+ write_values(fullfile(folder,'base_selection.txt'),[double(base.index),double(base.frequency),double(base.L_mean),double(base.N_nCSF)],zero_noise_limit);
  write_values(fullfile(folder,'scores.txt'),[baseline.Q,baseline.Q_JOD]);
  records{end+1}=struct('shape',hw,'classes',classes,'base_class',class(base.difference),...
   'base_log_class',class(trace.log_resized{end}),'base_shape',size(base.difference),...
@@ -106,7 +131,7 @@ for shape={[80,96],[96,80]}
  fprintf('Pathway %dx%d baseline score identity PASS; residual %dx%d\n',h,w,size(base.difference));
 endfor
 metadata=struct('version',hdrvdp_version(),'scope','Native full-pathway traces; no GPU integration claim',...
- 'pattern',pattern,...
+ 'pattern',pattern,'identity',identity,'transform',transform,'gain',gain,'offset',offset,'level',level,'input_directory',input_directory,...
  'official_source_sha256',hash('sha256',original),'trace_source_sha256',hash('sha256',source),...
  'ppd',30,'age',24,'threads',3,'planner',fftw('planner'),'records',{records},...
  'padding','Official visual pathway, exact 2H x 2W FFT; no power-of-two rounding',...
@@ -114,4 +139,4 @@ metadata=struct('version',hdrvdp_version(),'scope','Native full-pathway traces; 
  'DC','Base spectrum captured after official DC zero; base difference exactly as used by official metric');
 if visual,metadata.visual_source_sha256=hash('sha256',visual_original);metadata.visual_trace_sha256=hash('sha256',visual_source);endif
 f=fopen(fullfile(out,'metadata.json'),'w');assert(f>=0);fputs(f,jsonencode(metadata));fclose(f);
-f=fopen(fullfile(out,'PASS.txt'),'w');assert(f>=0);fputs(f,'Two native full-pathway traces; stock/traced Q and Q_JOD identical.');fclose(f);
+f=fopen(fullfile(out,'PASS.txt'),'w');assert(f>=0);if numel(shapes)==2,fputs(f,'Two native full-pathway traces; stock/traced Q and Q_JOD identical.');else,fprintf(f,'%d native full-pathway trace; stock/traced Q and Q_JOD identical.',numel(shapes));endif;fclose(f);

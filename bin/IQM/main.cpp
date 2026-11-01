@@ -40,6 +40,7 @@
 
 #if COMPILE_HDRVDP3
 #include "../shared/wrappers/hdrvdp3.h"
+#include "srgb_quality.h"
 #endif
 
 void printHelp() {
@@ -62,6 +63,20 @@ void printHelp() {
     << "    --hdrvdp3-spectral-data <DIR>: D65 spectral tables; required for nondefault age\n"
     << "    --hdrvdp3-export <FRESH_DIR>: optional diagnostic output directory\n"
     << "    Sizes: square32/64; square128 and64x128/128x64 only at30ppd/age24.\n"
+    << "    80x96/96x80: v1 pathway runtime,30ppd/age24,fixed D65; no spectral overrides.\n"
+    << "    96x96: v2 square96 pathway runtime,same viewing profile.\n"
+    << "    80x80: v3 square80 pathway runtime,same viewing profile.\n"
+    << "    128x128: v4 square128 pathway runtime,map14,same viewing profile.\n"
+    << "HDRVDP3 RGB quality (96x96 color PF,linear native display primaries):\n"
+    << "    --hdrvdp3-encoding rgb-native --hdrvdp3-runtime <RGB_DIR>\n"
+    << "    --hdrvdp3-display <led-lcd-srgb|led-lcd-wcg|oled> --hdrvdp3-spectral-data <DIR>\n"
+    << "    Requires --input/--ref color PF;30ppd/age24;no gamma or color conversion.\n"
+    << "    Linear BT.709: --hdrvdp3-encoding rgb-bt.709 with a distinct709 runtime.\n"
+    << "    No sRGB EOTF;709 is converted to display primaries with native gamut clamp.\n"
+    << "    Also --hdrvdp3-encoding rgb-bt.2020|xyz with its matching linear-color runtime.\n"
+    << "    Encoded sRGB: --hdrvdp3-encoding srgb-display --hdrvdp3-runtime <DOUBLE96_DIR>\n"
+    << "    Requires96x96 colorPF in[0,1],30ppd/age24;model data is inside runtime.\n"
+    << "    --hdrvdp3-device <SUBSTRING>: optional Float64 GPU selection for sRGB.\n"
     << "PSNR:\n"
     << "    --psnr-variant <VAR> : One of `rgb`, `luma` or `yuv`\n"
     << "FLIP:\n"
@@ -92,6 +107,12 @@ int main(const int argc, const char **argv) {
     }
     std::cout << "[DEBUG] Method parsed: " << static_cast<int>(args->method) << std::endl;
 
+#if COMPILE_HDRVDP3
+    if(args->hdrvdp3Quality&&args->hdrvdp3Quality->encoding=="srgb-display"){
+        try{return IQM::Bin::run_srgb_quality96_cli(*args);}
+        catch(const std::exception& e){std::cerr<<e.what()<<'\n';return -1;}
+    }
+#endif
     IQM::Bin::FileMatcher matcher;
     const auto matches = matcher.match(args.value());
 

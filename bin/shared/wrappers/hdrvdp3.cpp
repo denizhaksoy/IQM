@@ -21,6 +21,9 @@
 #include <IQM/hdrvdp3/resize.h>
 #include <IQM/hdrvdp3/quality.h>
 #include <IQM/hdrvdp3/map_gpu.h>
+#include <IQM/hdrvdp3/rgb_image.h>
+#include <IQM/hdrvdp3/pathway_runtime.h>
+#include <bit>
 #include "../../shared/debug_utils.h"
 #include "../../shared/vulkan_res.h"
 #include <IQM/hdrvdp3/spyr.h>
@@ -710,14 +713,55 @@ static void run_spyr_level1_test(
 static HDRVDP3FFTConfig fft_config_from_environment(unsigned side);
 
 static void run_quality_inputs(const VulkanInstance& instance);
+static void run_rgb_quality_cli(const Args& args,const VulkanInstance& instance) {
+    using namespace IQM::HDRVDP3;
+    const auto& cli=*args.hdrvdp3Quality;
+    const auto reference=load_rgb_pfm(args.refPath),test=load_rgb_pfm(args.inputPath);
+    if(reference.width!=96||reference.height!=96||test.width!=96||test.height!=96)
+        throw std::invalid_argument("RGB quality supports96x96 PF inputs only");
+    const bool bt709=cli.encoding!="rgb-native";
+    const auto encoding=cli.encoding=="rgb-bt.2020"?LinearColorEncoding::BT2020:cli.encoding=="xyz"?LinearColorEncoding::XYZ:LinearColorEncoding::BT709;
+    RGBQualityAssets assets;std::filesystem::path conversion;
+    if(bt709){auto runtime=load_linear_color_pathway_runtime(cli.runtimeDirectory,96,96,encoding);assets=std::move(runtime.native);conversion=runtime.conversion;}
+    else assets=load_rgb_pathway_runtime(cli.runtimeDirectory,96,96);
+    const std::filesystem::path data(*cli.spectralDirectory);
+    const auto spectra=load_rgb_spectral_samples(data/"log_cone_smith_pokorny_1975.csv",data/"cie_scotopic_lum.txt",data/("emission_spectra_"+*cli.rgbDisplay+".csv"));
+    const auto output=cli.exportDirectory?std::filesystem::path(*cli.exportDirectory):
+        std::filesystem::path("validation")/("quality_rgb_cli_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count()));
+    if(std::filesystem::exists(output))throw std::invalid_argument("Fresh RGB export directory required");
+    RGBQualityTrace trace;
+    RGB709QualityTrace trace709;QualityScores scores;
+    if(bt709){const auto xyz=load_xyz_display_samples(data/"ciexyz31.csv",data/("emission_spectra_"+*cli.rgbDisplay+".csv"));scores=evaluate_pathway_linear_color_quality(instance,reference.pixels,test.pixels,96,96,xyz,spectra,assets,conversion,encoding,&trace709);trace=std::move(trace709.native);}
+    else scores=evaluate_pathway_rgb_quality(instance,reference.pixels,test.pixels,96,96,spectra,assets,&trace);
+    if(!std::filesystem::create_directories(output))throw std::runtime_error("Cannot create RGB export directory");
+    auto dump=[&](const std::string& name,const std::vector<float>& values){std::ofstream f(output/(name+".f32"),std::ios::binary);for(float v:values){uint32_t bits=std::bit_cast<uint32_t>(v);for(unsigned b=0;b<4;++b)f.put(char((bits>>(8*b))&255));}if(!f)throw std::runtime_error("Cannot write RGB trace");};
+    dump("reference_rgb",reference.pixels);dump("test_rgb",test.pixels);
+    if(bt709)for(unsigned i=0;i<2;++i){std::string tag=i?"test":"reference";dump(tag+"_conversion_raw",trace709.raw[i]);dump(tag+"_native_rgb",trace709.converted[i]);}
+    for(unsigned i=0;i<2;++i){std::string tag=i?"test":"reference";
+        dump(tag+"_optical",trace.optical[i]);dump(tag+"_LMSR",trace.lmsr[i]);
+        dump(tag+"_adaptation",trace.quality.adaptation[i]);dump(tag+"_P",trace.quality.P[i]);
+    }
+    std::ofstream quality(output/"quality.txt");quality<<std::setprecision(17);
+    for(const auto& band:trace.quality.masking.bands)quality<<band.error<<' ';
+    quality<<'\n'<<scores.error<<' '<<scores.Q<<' '<<scores.Q_JOD<<'\n';
+    if(!quality)throw std::runtime_error("Cannot write RGB quality export");
+    std::ofstream profile(output/"profile.txt");profile<<"IQM_HDRVDP3_RGB_CLI 1\nencoding "<<cli.encoding<<"\ndisplay "<<*cli.rgbDisplay<<"\ndimensions96x96\nppd30\nage24\nlayout planar-row-major-little-endian-f32\nruntime "<<std::filesystem::absolute(cli.runtimeDirectory).string()<<"\nspectral-data "<<std::filesystem::absolute(data).string()<<'\n';
+    if(!profile)throw std::runtime_error("Cannot write RGB profile export");
+    std::cout<<std::setprecision(17)<<"Quality API returned Q="<<scores.Q<<" Q_JOD="<<scores.Q_JOD<<'\n';
+    std::cout<<"Quality export directory: "<<std::filesystem::absolute(output).string()<<'\n';
+}
 static void run_quality_cli(const Args& args,const VulkanInstance& instance) {
     const auto& cli=*args.hdrvdp3Quality;
+    if(cli.encoding!="luminance"){run_rgb_quality_cli(args,instance);return;}
     const auto reference=IQM::HDRVDP3::load_luminance_pfm(args.refPath);
     const auto test=IQM::HDRVDP3::load_luminance_pfm(args.inputPath);
     const std::filesystem::path runtime(cli.runtimeDirectory);
     IQM::HDRVDP3::EvaluationOptions options;
     options.pixelsPerDegree=cli.pixelsPerDegree;options.observerAge=cli.observerAge;
     options.fft.columnFirst=true;
+    if((reference.width==96&&reference.height==80)||(reference.width==80&&reference.height==96)||
+       std::filesystem::exists(runtime/"pathway.runtime"))
+        options.pathwayRuntimeDirectory=runtime;
     const auto fft=reference.width==reference.height&&(reference.width==32||reference.width==64)?
         "fft"+std::to_string(reference.width)+".spv":"fft.spv";
     options.fft.referenceShaderPath=(runtime/fft).string();

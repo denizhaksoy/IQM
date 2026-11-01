@@ -1,0 +1,10 @@
+#include <IQM/hdrvdp3/srgb_quality96_double.h>
+#include "double192_gpu_chain_diagnostic.h"
+#include <iomanip>
+namespace fs=std::filesystem;using namespace IQM::HDRVDP3;
+std::vector<float> image(const fs::path&p){std::ifstream f(p,std::ios::binary|std::ios::ate);if(!f||f.tellg()!=27648*4)throw std::runtime_error("Expected96x96 planar column-major encodedRGB f32: "+p.string());std::vector<float> v(27648);f.seekg(0);f.read(reinterpret_cast<char*>(v.data()),v.size()*4);return v;}
+int main(int argc,char**argv){try{
+ if(argc!=7)throw std::runtime_error("Usage: raw-model-data display reference.f32 test.f32 shader-directory fresh-output-directory");fs::path data=argv[1],shaders=argv[5],out=argv[6];std::string display=argv[2];if(display!="led-lcd-srgb"&&display!="led-lcd-wcg"&&display!="oled")throw std::invalid_argument("Unsupported display");if(fs::exists(out)||!fs::create_directories(out))throw std::runtime_error("Fresh output required");
+ auto r=image(argv[3]),t=image(argv[4]);auto xyz=load_xyz_display_samples(data/"ciexyz31.csv",data/("emission_spectra_"+display+".csv"));auto spectral=load_rgb_spectral_samples(data/"log_cone_smith_pokorny_1975.csv",data/"cie_scotopic_lum.txt",data/("emission_spectra_"+display+".csv"));const std::array<fs::path,6> paths{shaders/"forward-first.spv",shaders/"forward-second.spv",shaders/"multiply.spv",shaders/"inverse-first.spv",shaders/"inverse-second.spv",shaders/"crop.spv"};
+ SRGBQuality96BackendDouble backend;backend.convolve=[&](auto a,auto b){return GPUChain::execute({a.begin(),a.end()},{b.begin(),b.end()},paths,out).cropped;};backend.base_fft=[&](auto v){return GPUChain::baseFFT({v.begin(),v.end()},shaders/"base12.spv");};auto result=evaluate_srgb_quality96_double(r,t,xyz,spectral,backend);std::ofstream f(out/"scores.json");f<<std::setprecision(17)<<"{\"error\":"<<result.scores.error<<",\"Q\":"<<result.scores.Q<<",\"Q_JOD\":"<<result.scores.Q_JOD<<"}\n";std::cout<<std::setprecision(17)<<"Q="<<result.scores.Q<<" Q_JOD="<<result.scores.Q_JOD<<'\n';return 0;
+}catch(const std::exception&e){std::cerr<<e.what()<<'\n';return 1;}}

@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-01",
+  "timezone": "Europe/Prague",
+  "scope": "measured local LIVE HDR quality validation; not full metric or original challenge completion",
+  "full_videos": [
+    {
+      "video": "4k_3M_Daylight1",
+      "frames": 16,
+      "Q_JOD": 8.4828519821167,
+      "root": "validation/live_hdr_video_20261101_run01"
+    },
+    {
+      "video": "540p_2.2M_Daylight1",
+      "frames": 16,
+      "Q_JOD": 8.534526824951172,
+      "root": "validation/live_hdr_540p_video_20261101_run01"
+    }
+  ],
+  "additional_frame": {
+    "video": "720p_2.6M_Bonfire",
+    "frame": 0,
+    "Q": "7.088564395904541",
+    "Q_JOD": "7.9553570747375488"
+  },
+  "distinct_frame_pairs_exact": 33,
+  "gpu_matrix_values_exact": 116121600,
+  "gpu_validation_errors_reported": false,
+  "cli_checks_passed": 7,
+  "candidate_cohort_cases": 27,
+  "candidate_cohort_author_verified": false,
+  "correlation_performed": false,
+  "full_gpu_pipeline": false
+}

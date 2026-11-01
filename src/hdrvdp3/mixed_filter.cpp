@@ -54,16 +54,30 @@ struct Kernel{
 };
 }
 namespace IQM::HDRVDP3 {
-MixedFilterResult run_mixed_filter(const IQM::VulkanInstance& instance,
+MixedFilterResult
+#if defined(IQM_HDRVDP3_SQUARE_FILTER_DIAGNOSTIC)
+run_square_filter_diagnostic(const IQM::VulkanInstance& instance,
+#else
+run_mixed_filter(const IQM::VulkanInstance& instance,
+#endif
  const std::vector<float>& input,unsigned w,unsigned h,MixedFilterMode mode,
  const MixedFilterAssets& assets,bool trace) {
- if(!((h==80&&w==96)||(h==96&&w==80))||input.size()!=size_t(h)*w)
+#if defined(IQM_HDRVDP3_SQUARE128_FILTER_DIAGNOSTIC)
+ const bool reference256=true;
+ const bool square=h==128&&w==128;
+#else
+ const bool reference256=assets.reference256Graph;
+ const bool square=(h==80&&w==80)||(h==96&&w==96)||(h==128&&w==128);
+#endif
+ if(!((h==80&&w==96)||(h==96&&w==80)||square)||input.size()!=size_t(h)*w)
  throw std::invalid_argument("Unvalidated mixed filter dimensions");
- if(mode!=MixedFilterMode::OpticalMTF&&mode!=MixedFilterMode::LocalAdaptation)
+ if(reference256!=(h==128&&w==128))throw std::invalid_argument("FFT asset ABI does not match geometry");
+ if(mode!=MixedFilterMode::OpticalMTF&&mode!=MixedFilterMode::LocalAdaptation&&mode!=MixedFilterMode::OpticalRGB)
  throw std::invalid_argument("Invalid mixed filter mode");
- for(float v:input)if(!std::isfinite(v)||v<=0)throw std::invalid_argument("Positive finite luminance required");
+ for(float v:input)if(!std::isfinite(v)||(mode==MixedFilterMode::OpticalRGB?v<0:v<=0))
+ throw std::invalid_argument("Invalid input domain for mixed filter mode");
  const unsigned fh=2*h,fw=2*w,n=fh*fw,pixels=h*w;
- const bool mtf=mode==MixedFilterMode::OpticalMTF;
+ const bool mtf=mode!=MixedFilterMode::LocalAdaptation;
 std::vector<float> filter(n);
  if(mtf)IQM::HDRVDP3::generate_mtf_filter(filter.data(),fw,fh,30);
  else{const double sigma=std::pow(10.0,-0.781367)*30;for(unsigned y=0;y<fh;++y)for(unsigned x=0;x<fw;++x){const double kx=(std::fmod(0.5+double(x)/fw,1.0)-0.5)*(2*3.14159265358979323846),ky=(std::fmod(0.5+double(y)/fh,1.0)-0.5)*(2*3.14159265358979323846);filter[y*fw+x]=float(std::exp(-0.5*(kx*kx+ky*ky)*sigma*sigma));}}
@@ -72,8 +86,25 @@ std::vector<float> filter(n);
  auto original=buffer(instance,pixels*4),prepared=buffer(instance,n*8),scratch=buffer(instance,n*8),forward=buffer(instance,n*12),filtered=buffer(instance,n*8),inverseScratch=buffer(instance,n*8),inverse=buffer(instance,n*8),result=buffer(instance,pixels*4);upload(original,input);upload(forward,forwardInitial);
  const auto sb=vk::DescriptorType::eStorageBuffer;Kernel prep(instance,assets.io,{sb,sb}),f0(instance,assets.forward,{sb,sb}),f1(instance,assets.forward,{sb,sb}),mul(instance,assets.io,{sb,sb}),i0(instance,assets.inverse,{sb,sb}),i1(instance,assets.inverse,{sb,sb}),finish(instance,assets.io,{sb,sb});
  prep.bind(instance,0,original);prep.bind(instance,1,prepared);f0.bind(instance,0,prepared);f0.bind(instance,1,scratch);f1.bind(instance,0,scratch);f1.bind(instance,1,forward);mul.bind(instance,0,forward);mul.bind(instance,1,filtered);i0.bind(instance,0,filtered);i0.bind(instance,1,inverseScratch);i1.bind(instance,0,inverseScratch);i1.bind(instance,1,inverse);finish.bind(instance,0,inverse);finish.bind(instance,1,result);
+ std::unique_ptr<Kernel> narrowForward,narrowFiltered,narrowInverse;
+ if(square){
+  narrowForward=std::make_unique<Kernel>(instance,assets.io,std::vector<vk::DescriptorType>{sb,sb});
+  narrowFiltered=std::make_unique<Kernel>(instance,assets.io,std::vector<vk::DescriptorType>{sb,sb});
+  narrowInverse=std::make_unique<Kernel>(instance,assets.io,std::vector<vk::DescriptorType>{sb,sb});
+  narrowForward->bind(instance,0,forward);narrowForward->bind(instance,1,forward);
+  narrowFiltered->bind(instance,0,filtered);narrowFiltered->bind(instance,1,filtered);
+  narrowInverse->bind(instance,0,inverse);narrowInverse->bind(instance,1,inverse);
+ }
+
  auto cmd=**instance.cmdBuf();cmd.begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit});vk::MemoryBarrier before{.srcAccessMask=vk::AccessFlagBits::eHostWrite,.dstAccessMask=vk::AccessFlagBits::eShaderRead};cmd.pipelineBarrier(vk::PipelineStageFlagBits::eHost,vk::PipelineStageFlagBits::eComputeShader,{}, {before},{},{});
- prep.run(cmd,{mtf?0u:1u,h,w,n},(n+63)/64);f0.run(cmd,{fh,fw,3,0},(fw+31)/32);f1.run(cmd,{fw,fh/2+1,4,0},(fh/2+32)/32);mul.run(cmd,{4,fh,fw,n},(n+63)/64);i0.run(cmd,{fh,fw,3,0},(fw+31)/32);i1.run(cmd,{fw,fh,4,1},(fh+31)/32);finish.run(cmd,{mtf?2u:3u,h,w,pixels},(pixels+63)/64);
+const unsigned forwardFirst=reference256?8:3,forwardSecond=reference256?9:4;
+ prep.run(cmd,{mtf?0u:1u,h,w,n},(n+63)/64);f0.run(cmd,{fh,fw,forwardFirst,0},(fw+31)/32);f1.run(cmd,{fw,fh/2+1,forwardSecond,0},(fh/2+32)/32);
+ if(square)narrowForward->run(cmd,{5,fh,fw,n},1);
+ mul.run(cmd,{4,fh,fw,n},(n+63)/64);
+ if(square)narrowFiltered->run(cmd,{5,fh,fw,n},1);
+ i0.run(cmd,{fh,fw,3,0},(fw+31)/32);i1.run(cmd,{fw,fh,4,1},(fh+31)/32);
+ if(square)narrowInverse->run(cmd,{5,fh,fw,n},1);
+ finish.run(cmd,{mtf?2u:3u,h,w,pixels},(pixels+63)/64);
  cmd.end();vk::CommandBuffer raw=*instance.cmdBuf();vk::raii::Fence fence(device,vk::FenceCreateInfo{});instance.queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&raw},fence);instance.waitForFence(fence);
 
  auto download=[](Buffer& b,unsigned rows,unsigned cols,bool transpose){

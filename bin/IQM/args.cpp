@@ -19,7 +19,7 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
     while (i < argc)  {
         const std::string key(argv[i]);
         if(key.rfind("--hdrvdp3-",0)==0) {
-            if(key!="--hdrvdp3-runtime"&&key!="--hdrvdp3-spectral-data"&&key!="--hdrvdp3-export"&&key!="--hdrvdp3-ppd"&&key!="--hdrvdp3-age")
+            if(key!="--hdrvdp3-runtime"&&key!="--hdrvdp3-spectral-data"&&key!="--hdrvdp3-export"&&key!="--hdrvdp3-ppd"&&key!="--hdrvdp3-age"&&key!="--hdrvdp3-encoding"&&key!="--hdrvdp3-display"&&key!="--hdrvdp3-device")
                 throw std::runtime_error("Unknown HDRVDP3 option: "+key);
             if(!hdrOptions.insert(key).second)throw std::runtime_error("Duplicate option: "+key);
             if(i+1>=argc||!argv[i+1][0]||std::string(argv[i+1]).rfind("--",0)==0)
@@ -29,6 +29,9 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
             if(key=="--hdrvdp3-runtime")hdrvdp3Quality->runtimeDirectory=value;
             else if(key=="--hdrvdp3-spectral-data")hdrvdp3Quality->spectralDirectory=value;
             else if(key=="--hdrvdp3-export")hdrvdp3Quality->exportDirectory=value;
+            else if(key=="--hdrvdp3-encoding")hdrvdp3Quality->encoding=value;
+            else if(key=="--hdrvdp3-device")hdrvdp3Quality->device=value;
+            else if(key=="--hdrvdp3-display")hdrvdp3Quality->rgbDisplay=value;
             else {
                 double number;size_t consumed=0;
                 try{number=std::stod(value,&consumed);}catch(const std::exception&){throw std::runtime_error("Invalid number for "+key);}
@@ -136,6 +139,14 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
         if(!hdrvdp3Quality||hdrvdp3Quality->runtimeDirectory.empty())throw std::runtime_error("HDRVDP3 luminance input requires --hdrvdp3-runtime");
         if(outputPath)throw std::runtime_error("HDRVDP3 quality uses --hdrvdp3-export, not --output");
         const auto& quality=*hdrvdp3Quality;
+        if(quality.encoding!="luminance"&&quality.encoding!="rgb-native"&&quality.encoding!="rgb-bt.709"&&quality.encoding!="rgb-bt.2020"&&quality.encoding!="xyz"&&quality.encoding!="srgb-display")throw std::runtime_error("Unsupported HDRVDP3 encoding");
+        if(quality.device&&quality.encoding!="srgb-display")throw std::runtime_error("Device override requires srgb-display encoding");
+        if(quality.encoding=="srgb-display"&&quality.spectralDirectory)throw std::runtime_error("sRGB model data must come from the Double96 runtime"  );
+        if(quality.encoding!="luminance"){
+            if(!quality.rgbDisplay||(*quality.rgbDisplay!="led-lcd-srgb"&&*quality.rgbDisplay!="led-lcd-wcg"&&*quality.rgbDisplay!="oled"))throw std::runtime_error("RGB requires --hdrvdp3-display led-lcd-srgb|led-lcd-wcg|oled");
+            if(quality.encoding!="srgb-display"&&!quality.spectralDirectory)throw std::runtime_error("RGB requires --hdrvdp3-spectral-data");
+            if(quality.pixelsPerDegree!=30||quality.observerAge!=24)throw std::runtime_error("RGB supports30ppd/age24 only");
+        }else if(quality.rgbDisplay)throw std::runtime_error("Display option requires rgb-native encoding");
         if(quality.pixelsPerDegree!=30&&quality.pixelsPerDegree!=60)throw std::runtime_error("Unvalidated HDRVDP3 pixels per degree");
         if(quality.observerAge!=24&&quality.observerAge!=60&&quality.observerAge!=60.001)throw std::runtime_error("Unvalidated HDRVDP3 observer age");
         if(quality.observerAge!=24&&!quality.spectralDirectory)throw std::runtime_error("Nondefault HDRVDP3 age requires --hdrvdp3-spectral-data");
