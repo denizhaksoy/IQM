@@ -2,7 +2,27 @@
 
 Last updated: 2026-11-01 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
-## Publication work authorized (2026-11-01)
+## GitHub publication checkpoint (2026-11-01)
+
+Source/report commit65ffb11 (Add HDR-VDP-3 reference-parity runtimes and LIVE HDR
+evaluation) was successfully pushed to origin/feature/hdr-vdp3 at
+https://github.com/denizhaksoy/IQM. It contains452selected files (~3.3MB),
+covering accumulated validated runtime dependencies, SingleCPU CLI, GPU4K
+matrix stages, reproduction tools and scoped reports. User explicitly authorized
+commit/push. Dataset media, validation outputs, binaries, logs, backups, local
+glslang checkout and AGENTS.md remain local. No forcepush/reset/cleanup.
+
+Pre-publication CPU CLI/GPU4K target builds and71JavaScript syntaxchecks passed.
+Original upstream/model whitespace and existing formatting were preserved rather
+than rewriting byte-pinned sources. Publication manifests/logs are in
+validation/github_publish_20261101_run01. Protected shader indexblob remains
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 and worktree SHA256 remains
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6;
+dirty VkFFT untouched. This small follow-up records the successful source push.
+Next metric work remains broader fullvideo/cohort validation and remaining GPU
+stages; publication does not expand numerical acceptance or imply metric completion.
+
+## Publication preparation history (2026-11-01)
 
 User explicitly requested sending necessary changes to GitHub. Preparing source,
 headers, test/reproduction tools, new shaders and reports on feature/hdr-vdp3.
