@@ -2,6 +2,23 @@
 
 Last updated: 2026-11-04 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Published Nov4: hybrid CLI and strict LIVE validation code/docs
+
+User authorizedGitHubupload. Implementationcommit
+a139a857b4f4ce60a98a44d6d38f6c706dab631f pushed successfully to
+origin/feature/hdr-vdp3 (previousremote39bd331).49selectedfiles ~0.8MB:
+hybridmatrixprovider/CLI, cohort/recovery/referenceconsistency tooling, statistics,
+trace/FFT/pooling probes and honestvalidationdocs includingopenoutlier.
+CPU+hybridbuilds,24JSsyntaxchecks,PowerShellparser,selectedstagedwhitespace and
+commit-scope checks PASSED. No dataset/media/validation/buildoutputs uploaded.
+Pre-existingstagedshaderindexblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7,
+worktreeSHA03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6
+anddirtyVkFFT status confirmedUNCHANGED aftercommit. LocalAGENTS/backups/artifacts
+excluded/preserved. Manifests/receipts validation/github_publish_20261104_run01.
+This documentationcheckpoint followsimplementationpublication; remoteHEAD tobe
+verified afterits push. Active98561/60532/84239 untouched; originalanomalyopen,
+no metriccompletionclaim. NEXT: monitortriplicate andconditionalcontinuation.
+
 ## Publication preparation Nov4 (user explicitly authorized commit/push)
 
 Selected49code/docsfiles (~0.8MB), manifest under
