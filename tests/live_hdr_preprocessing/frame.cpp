@@ -24,6 +24,11 @@ int main(int argc,char**argv){try{
  auto spectral=load_rgb_spectral_samples(data/"log_cone_smith_pokorny_1975.csv",data/"cie_scotopic_lum.txt",data/"emission_spectra_oled.csv");
  auto lut=create_jnd_lut();unsigned w=0,h=0;
  auto start=std::chrono::steady_clock::now();std::ofstream log(out/"progress.log");
+ auto trace=[&](const std::string& name,const std::vector<float>& values){
+#ifdef IQM_TRACE_SINGLE
+   std::ofstream f(out/(name+".f32"),std::ios::binary);f.write(reinterpret_cast<const char*>(values.data()),values.size()*sizeof(float));if(!f)throw std::runtime_error("Trace write failed");
+#endif
+ };
  auto note=[&](const char* side,const char* stage){log<<side<<' '<<stage<<std::endl;std::cout<<side<<' '<<stage<<std::endl;};
  auto prepare=[&](const char* file,const char* side){
    if(!stbi_is_16_bit(file))throw std::runtime_error("Explicit RGB16 PNG required");int iw,ih,channels;
@@ -34,12 +39,13 @@ int main(int argc,char**argv){try{
    std::vector<float> encoded(3*sourceN);for(size_t c=0;c<3;++c)for(size_t i=0;i<sourceN;++i)encoded[c*sourceN+i]=normalize_pq_u16_single(raw.get()[3*i+c]);raw.reset();
    if(sourceW!=w||sourceH!=h){std::vector<float> resized(3*n);for(size_t c=0;c<3;++c){std::vector<float> plane(encoded.begin()+c*sourceN,encoded.begin()+(c+1)*sourceN);auto values=resize_bicubic(plane,int(sourceH),int(sourceW),int(h),int(w));for(size_t i=0;i<n;++i)resized[c*n+i]=std::clamp(values[i],0.f,1.f);}encoded=std::move(resized);note(side,"PQ_bicubic_resize");}
    auto linear=pq_to_display_single(encoded,{200.,.005,2000.});encoded.clear();encoded.shrink_to_fit();
-   QualitySideSingle result;result.native_rgb=prepare_linear_color_single(linear,xyz,LinearColorEncoding::BT2020);linear.clear();linear.shrink_to_fit();note(side,"color");
+   trace(std::string(side)+"_linear",linear);
+   QualitySideSingle result;result.native_rgb=prepare_linear_color_single(linear,xyz,LinearColorEncoding::BT2020);linear.clear();linear.shrink_to_fit();note(side,"color");trace(std::string(side)+"_native",result.native_rgb);
    auto optical=filter_optical_rgb_single(result.native_rgb,w,h,ppd,backend);note(side,"optical");
-   auto lmsr=project_optical_rgb_single(optical,spectral,24.);optical.clear();optical.shrink_to_fit();
+   trace(std::string(side)+"_optical",optical);auto lmsr=project_optical_rgb_single(optical,spectral,24.);optical.clear();optical.shrink_to_fit();trace(std::string(side)+"_lmsr",lmsr.clamped);
    result.adaptation=local_adaptation_single(lmsr.adaptation_input,w,h,ppd,backend);note(side,"adaptation");
-   auto jnd=rgb_to_jnd_response_single(lut,lmsr.clamped,result.adaptation,w,h,double(n)/(ppd*ppd),24.);lmsr={};jnd.channels.clear();jnd.channels.shrink_to_fit();note(side,"JND");
-   result.pyramid=build_sp0_pyramid_single(jnd.response,w,h,ppd);note(side,"pyramid");return result;
+   trace(std::string(side)+"_adaptation",result.adaptation);auto jnd=rgb_to_jnd_response_single(lut,lmsr.clamped,result.adaptation,w,h,double(n)/(ppd*ppd),24.);lmsr={};jnd.channels.clear();jnd.channels.shrink_to_fit();note(side,"JND");trace(std::string(side)+"_response",jnd.response);
+   result.pyramid=build_sp0_pyramid_single(jnd.response,w,h,ppd);for(size_t b=0;b<result.pyramid.bands.size();++b)trace(std::string(side)+"_band"+std::to_string(b+1),result.pyramid.bands[b].values);note(side,"pyramid");return result;
  };
  auto reference=prepare(argv[1],"reference"),test=prepare(argv[2],"test");
  auto result=evaluate_quality_single(reference,test,w,h,ppd,backend);note("pair","quality");

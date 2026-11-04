@@ -1,6 +1,10 @@
 // Local Section-6 reconstruction on one pair. Explicit phase=0 and RGB48.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),os=require('node:os');
-const [dataset,official,bundle,out,testId='4k_3M_Daylight1',referenceId='4k_ref_Daylight1']=process.argv.slice(2);
+const {reuseFrame,fingerprintTree}=require('./live_hdr_frame_reuse.cjs');
+const {referenceConsistency}=require('./live_hdr_reference_consistency.cjs');
+const [dataset,official,bundle,out,testId='4k_3M_Daylight1',referenceId='4k_ref_Daylight1',seedArg,referenceRunsArg='1',priorityArg]=process.argv.slice(2);
+const seedRoot=seedArg==='-'?undefined:seedArg,referenceRuns=Number(referenceRunsArg);
+if(!Number.isSafeInteger(referenceRuns)||referenceRuns<1||referenceRuns>5)throw Error('Reference runs must be1..5');
 if(!out||fs.existsSync(out))throw Error('Usage: staged-dataset clean-reference accepted-bundle fresh-root');
 fs.mkdirSync(out,{recursive:true});
 const octave='C:/Program Files/GNU Octave/Octave-11.3.0/mingw64/bin/octave-cli.exe';
@@ -27,13 +31,21 @@ async function main(){
  if(matches.length!==1||matches[0].ref!==referenceId||matches[0].frm_cnt!==matches[0].ref_frm_cnt)throw Error('Unverified metadata pairing');const expectedFrames=Number(matches[0].frm_cnt);if(!Number.isSafeInteger(expectedFrames)||expectedFrames<=0)throw Error('Invalid metadata frame count');
  const rt=timing(reference),tt=timing(test);if(rt.length!==expectedFrames||tt.length!==rt.length||rt.some((t,i)=>t!==tt[i]))throw Error('Decoded timing/count mismatch');
  const indices=Array.from({length:Math.ceil(rt.length/30)},(_,i)=>i*30);
- fs.writeFileSync(path.join(out,'plan.json'),JSON.stringify({scope:'one video pair local reconstruction; author phase/PNG precision unresolved',reference_id:referenceId,test_id:testId,metadata_sha256:sha(csvPath),reference,test,reference_sha256:sha(reference),test_sha256:sha(test),decoded_frames:rt.length,reference_timestamps:rt,test_timestamps:tt,zero_based_phase:0,stride:30,indices,png_pixel_format:'rgb48be',ppd,executable_sha256:sha(exe),fftw_sha256:sha(dll)},null,2));
- const results=new Map();let cursor=0;const workers=os.freemem()>14*1073741824?2:1;event('aligned '+rt.length+' frames; workers='+workers+'; selected='+indices.length);
- async function worker(){while(cursor<indices.length){const index=indices[cursor++],name='frame'+String(index).padStart(4,'0'),root=path.join(out,name);fs.mkdirSync(root);event(name+' decode');
+ const priority=priorityArg===undefined?null:Number(priorityArg);
+ if(priority!==null&&!indices.includes(priority))throw Error('Priority frame must be one of the declared samples');
+ const workIndices=priority===null?indices:[priority,...indices.filter(i=>i!==priority)];
+ const calculation={reference_runs:referenceRuns,official_tree_sha256:fingerprintTree(official),bundle_manifest_sha256:sha(path.join(bundle,'files.json')),scripts:Object.fromEntries(['tests/prepare_live_hdr_reference.m','tests/score_live_hdr_reference_frame.m','tests/decode_live_hdr_frame.cjs','tests/run_live_hdr_video_pair.cjs','tests/live_hdr_frame_reuse.cjs','tests/live_hdr_reference_consistency.cjs'].map(p=>[p,sha(p)]))};
+ const calculationHash=crypto.createHash('sha256').update(JSON.stringify(calculation)).digest('hex');
+ const plan={scope:'one video pair local reconstruction; author phase/PNG precision unresolved',reference_id:referenceId,test_id:testId,metadata_sha256:sha(csvPath),reference,test,reference_sha256:sha(reference),test_sha256:sha(test),decoded_frames:rt.length,reference_timestamps:rt,test_timestamps:tt,zero_based_phase:0,stride:30,indices,png_pixel_format:'rgb48be',ppd,executable_sha256:sha(exe),fftw_sha256:sha(dll),calculation_sha256:calculationHash,calculation,seed_root:seedRoot?path.resolve(seedRoot):null};
+ plan.reference_runs=referenceRuns;plan.processing_order=workIndices;
+ fs.writeFileSync(path.join(out,'plan.json'),JSON.stringify(plan,null,2));
+ const results=new Map();let cursor=0,failed=false;const workers=os.freemem()>14*1073741824?2:1;event('aligned '+rt.length+' frames; workers='+workers+'; selected='+indices.length);
+ async function worker(){while(!failed&&cursor<workIndices.length){const index=workIndices[cursor++],name='frame'+String(index).padStart(4,'0'),root=path.join(out,name);fs.mkdirSync(root);event(name+' decode');
   await run(process.execPath,['tests/decode_live_hdr_frame.cjs',reference,test,String(index),path.join(root,'decoded')],path.join(root,'decode_runner.log'));
   const ref=path.join(root,'decoded/reference.png'),dis=path.join(root,'decoded/test.png');
-  const known=path.join(bundle,name);let stock,actual,reused=false;
-  if(fs.existsSync(known)&&sha(ref)===sha(path.join(known,'reference.png'))&&sha(dis)===sha(path.join(known,'test.png'))){
+  const known=path.join(bundle,name),resumed=referenceRuns===1?reuseFrame(seedRoot,plan,index,ref,dis):null;let stock,actual,reused=false;
+  if(resumed){stock=resumed.official;actual=resumed.cpp;reused=true;event(name+' reused verified prior frame');}
+  else if(referenceRuns===1&&fs.existsSync(known)&&sha(ref)===sha(path.join(known,'reference.png'))&&sha(dis)===sha(path.join(known,'test.png'))){
    const knownRuns=fs.readdirSync(bundle).filter(n=>n.startsWith('results_'+name+'_'));if(knownRuns.length!==1)throw Error('Ambiguous accepted results');
    const previous=path.join(bundle,knownRuns[0]);if(!JSON.parse(fs.readFileSync(path.join(previous,'comparison.json'),'utf8')).exact)throw Error('Reuse not exact');
    stock=JSON.parse(fs.readFileSync(path.join(known,'stock_score.json'),'utf8'));actual=JSON.parse(fs.readFileSync(path.join(previous,'score.json'),'utf8'));reused=true;
@@ -46,12 +58,27 @@ async function main(){
    ]);
    stock=JSON.parse(fs.readFileSync(path.join(root,'official/score.json'),'utf8'));actual=JSON.parse(fs.readFileSync(path.join(root,'cpp/score.json'),'utf8'));
   }
-  const exact=stock.Q_hex===actual.Q_hex&&stock.Q_JOD_hex===actual.Q_JOD_hex;
-  const result={zero_based_frame:index,timestamp:rt[index],reused,exact,reference_png_sha256:sha(ref),test_png_sha256:sha(dis),official:stock,cpp:actual};
+  const observations=[stock],observationFiles=[];
+  if(referenceRuns>1){
+   observationFiles.push({file:'official/score.json',sha256:sha(path.join(root,'official/score.json'))});
+   for(let repeat=2;repeat<=referenceRuns;repeat++){
+    event(name+' reference repeat '+repeat+'/'+referenceRuns);
+    const directory='official_repeat_'+repeat;
+    await run(octave,['--quiet','tests/score_live_hdr_reference_frame.m',official,path.join(root,'preprocessing'),path.join(root,directory)],path.join(root,directory+'.log'));
+    const file=path.join(root,directory,'score.json');observations.push(JSON.parse(fs.readFileSync(file,'utf8')));observationFiles.push({file:directory+'/score.json',sha256:sha(file)});
+   }
+  }
+  const consistency=referenceConsistency(observations);
+  if(referenceRuns>1)fs.writeFileSync(path.join(root,'reference_consistency.json'),JSON.stringify({...consistency,files:observationFiles},null,2));
+  const exact=consistency.all_identical&&stock.Q_hex===actual.Q_hex&&stock.Q_JOD_hex===actual.Q_JOD_hex;
+  const result={zero_based_frame:index,timestamp:rt[index],reused,exact,reference_consistency:consistency,reference_png_sha256:sha(ref),test_png_sha256:sha(dis),official:stock,cpp:actual,reuse_source:resumed?{file:resumed.source_comparison,sha256:resumed.source_comparison_sha256}:null};
   fs.writeFileSync(path.join(root,'comparison.json'),JSON.stringify(result,null,2));results.set(index,result);event(name+(exact?' EXACT':' BIT MISMATCH'));
-  if(!exact)throw Error(name+' numerical mismatch');
+  if(!exact)throw Error(name+(consistency.all_identical?' numerical mismatch':' inconsistent clean reference observations'));
  }}
- await Promise.all(Array.from({length:workers},worker));
+ // Let already-running frames finish and retain their exports, but never
+ // schedule more work after a failed frame. Propagate failure after draining.
+ const settled=await Promise.allSettled(Array.from({length:workers},async()=>{try{await worker();}catch(error){failed=true;throw error;}}));
+ const rejection=settled.find(r=>r.status==='rejected');if(rejection)throw rejection.reason;
  const ordered=indices.map(i=>results.get(i));if(ordered.length!==indices.length||ordered.some(r=>!r?.exact))throw Error('Incomplete video');
  const value=hex=>{if(!/^[0-9a-f]{8}$/i.test(hex))throw Error('Not Single hex');const b=Buffer.alloc(4);b.writeUInt32LE(parseInt(hex,16));return b.readFloatLE();};
  const aggregate=key=>{let sum=0;for(const r of ordered)sum=Math.fround(sum+value(r[key].Q_JOD_hex));return Math.fround(sum/ordered.length);};

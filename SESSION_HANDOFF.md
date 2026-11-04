@@ -1,6 +1,631 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-11-01 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-11-04 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Publication preparation Nov4 (user explicitly authorized commit/push)
+
+Selected49code/docsfiles (~0.8MB), manifest under
+validation/github_publish_20261104_run01/manifest.json andmanifest.nul.
+Excludes datasets,validation/build outputs,localAGENTS/backups,dirtyVkFFT and
+pre-existingstaged/worktree shader.24JSsyntaxchecks, PowerShellparser and
+selecteddiffwhitespace checks passed. CPUandhybridmainCMakebuilds passed.
+Remote feature/hdr-vdp3 verifiedstill39bd331ba9cf3d2174cd614be606a745f402b3b9.
+Publish explicitly includes unresolvedreferenceinvestigation, notcompletionclaim.
+Activejobs98561/60532/84239 continue; triplicatediagnostic10/17passed sofar,
+next300/330evaluating. Originalcohort21/27 unchanged; historicaloutlieropen.
+Nextpublicationstep: selectiveadd +commit--only usingNULmanifest to preserve
+stagedshader; normalpush thenverifyremoteHEAD; recordpublishedcommit afterward.
+
+## Latest Nov4:8/17triplicate exact; FFT/pooling saved-tensor probes stable
+
+Live jobs98561(primaryNode24612),60532(postprocessNode4240),84239(conditional
+continuationNode27396) ACTIVE. Triplicate frames0,30,60,90,120,150,180,210 all
+3cleanreferences+CPPbitexact (8/17). Next240/270 evaluating. Continuationstatus
+waiting_for_repeated_video. Originalcohort still21/27, no promotedretry yet.
+
+Added probe_live_hdr_base_fft.m:32offset/slice scenarios onpreserved later-band
+difference135x240 Single,columnmajor,noFFTpadding,DCzero,FFTW3/estimate/cleared
+wisdom. AllspectraSHA c016949b93c91955679478b061d1a56152d452f4f2e21419eb7a3972f45923c9,
+frequencyDouble3f9dbcfe3b0d0eb1 (0.029041263918101639), otherphysicalpeakgap
+0.10297088325. No near-tie evidence onthese tensors; addressesnotmeasured.
+Artifact validation/live_hdr_base_fft_offsets_20261104_run01.
+
+Added capture_live_hdr_quality.cjs: FRESHinstrumentedcopy qualityD_p/perband
+errors;99737DONEexit0, scorepreservation PASS againstlatercleanrepeat1,
+notagainsthistoricaloutlier. Added probe_live_hdr_pooling.m:6bands*8offset
+Singleinput-identical probes, allcapturedperbandhexmatch andQ/JOD40ec7071/
+41038aea. Artifacts validation/live_hdr_quality_capture_20261104_run01 and
+live_hdr_pooling_offsets_20261104_run01. No originalreference edits. These
+later-tensor results do notlocalizeinitialfailedrun whoseintermediatesunknown.
+No mathematicalfix/rootcauseclaim. Docs investigation/dailyupdated. No commits,
+pushes,protectedshader/VkFFTchanges. NEXT: allow3livejobs tocomplete; audit
+tripleall17, thenconditionalremaining5/statistics/evidence/publicbackends. Keep
+historicaloutlierexplicit; fullGPU/originalpaper/allconditions remainunproven.
+
+## Latest Nov4: conditional full local-validation continuation attached
+
+Currenttriplicate98561/Node24612 ACTIVE:frames0,30,60,150 allPASSED3cleanref
+observations ANDCPP exact (4/17). Next90/120 evaluating. Postprocess60532
+(Node4240 perpostprocess.lock) waitsfullvideo, thenauditsallrefs+Octavemean.
+
+NEW continuation84239 ACTIVE, waitingforfullindependentlyauditedvideo marker:
+node tests/continue_live_hdr_verified_cohort.cjs validation/live_hdr_cohort_scores_20261102_run01/config.json validation/live_hdr_football_triplicate_20261104_run01 validation/live_hdr_verified_continuation_20261104_run01
+Statusfile validation/live_hdr_verified_continuation_20261104_run01/continuation_status.json.
+OnFULLdiagnosticpass: reauditsall3records, copiesoriginalcheckpoint/outlier for
+provenance, createsFRESHconfig withold21accepted+newtriplicatevideo, remaining5
+videos require3independentrefprocesses perframe, allidentical+CPPbitexact.
+Then pipeline computes27videocorrelations+independentOctave verification,
+auditsallcohortevidence andrunsrepresentativepublicCPU/hybrid onall27using
+frozenpriorpublicexecutables/shader. Originalcohort21checkpoint NEVERrewritten;
+itsSHAcheckedagain. No blindrestart, no failedframe skipped.
+
+Importantdecision: referenceoutlier is STILLunresolved. Newlocalvalidation is
+allowedtoextend evidence understrongerall-observations condition; notafixclaim
+orretroactiveacceptance ofoldfailedscore. Config/manifest/analysis explicitly
+carry unresolved_reference_discrepancies; analysisrows reportreference-run
+counts (old21single; retry+new5triple). Finalstatus states openhistoricalissue,
+originalpaperreproduction=false andfullGPU=false. No universalcompletionclaim.
+
+Schedulerconfig.reference_runs nowforwarded; default1backwardcompatible.
+Analyzer preservespendinganomaly andper-rowreferencecounts. Regressiontests
+PASSED validation/live_hdr_statistics_20261104_run01, includinganomalyretention.
+Negativecontinuationtest onoriginalFAILEDroot PASSED: refusedwithoutcreating
+config, artifact validation/live_hdr_continuation_failure_guard_20261104_run01.
+Thisnegativeguardroot isTEST, notfailureofactivecontinuation. SyntaxchecksPASS.
+No changes toloadedper-video/scorer/math sources whileactive; no commit/push.
+NEXT: monitor98561,60532,84239. Any reference mismatchmuststop, no majorityvote.
+Afterfull27verifybothanalysisandpublicaudit; do notmarkentiremetric/paper/GPU
+finished whileopenhistoricalissue/otherprofiletasks remain.
+
+## Nov4 latest: eight-repeat probe complete; triplicate full-video diagnostic active
+
+Oldjobs59332/6746/35137 are NOTactive now. Originalcohort stopped21/27accepted,
+400frames; statsstatusfailedNov2schedulerdisappeared. No fullcohortanalysis.
+Eight-run probe validation/live_hdr_reference_repeatability_20261102_run01
+COMPLETE:8/8Q40ec7071/JOD41038aea, allmatchCPP; runtime_unchanged.json verified.
+Pathsmatchedoriginalargumentlength, reference/scorer/Octave/FFTW hashesstable.
+Firsthistoricalstock40ec4f50/41037c75 remainsunexplained, notoverwritten.
+
+Added live_hdr_reference_consistency.cjs +check_live_hdr_reference_consistency.cjs.
+9guardsPASSED onrealpreservedrecords includingoriginaloutliercannotbeoutvoted,
+profile/input mismatch and nonfinitebits. Artifact
+validation/live_hdr_reference_consistency_checks_20261104_run01.
+Per-video runner now accepts reference-runs(default1,1..5) afterseed(optional'-'),
+thenpriorityframe. Multireference mode forces freshdecodes/computation,no reuse;
+requires ALLreferencebits/profile/inputhashes identical ANDmatchCPP. Perframe
+reference_consistency.json hashesrechecked byextended accepted()audit. Model
+math/executables unchanged; sourcefingerprintsupdated. Priorityonlyprocessing
+order; declared0:30:480 and orderedSingleaggregation unchanged.
+
+ACTIVE runner session98561,NodePID24612:
+node tests/run_live_hdr_video_pair.cjs validation/live_hdr_639290787607997134 validation/general_quality_639290762115433659/official_clean/hdrvdp-3.0.7 validation/live_hdr_single_demo_20261101_run03 validation/live_hdr_football_triplicate_20261104_run01 540p_2.2M_football1 4k_ref_football1 - 3 150
+First150 AND0 nowPASSED all3reference observations ANDCPP exact; comparison
+andreference_consistency fileswritten. Frame150Q40ec7071/JOD41038aea across3
+cleanprocesses,allscorehashespreserved. Next30/60 preparing. Full17framediagnostic
+stillpending, notpromoted intooldcohort. Originalhistoricaloutlierunresolved.
+ACTIVE postprocess60532:
+node tests/verify_live_hdr_repeated_video.cjs validation/live_hdr_football_triplicate_20261104_run01 validation/live_hdr_639290787607997134 24612
+Waitsfullvideo, thenmetadata/PNG/three-reference audits +independentOctavemean.
+Writesrepeated_video_acceptance.json, DOESNOTpromoteintooriginalcohort orresolve
+prioroutlier. Originalresults andinvestigation.json contextpreserved.
+
+Docs LIVE_HDR_COHORT_RUNNER.md, LIVE_HDR_FOOTBALL150_INVESTIGATION.md and
+HDRVDP3_DAILY_PROGRESS_2026-11-04.md updated. Protectedshader working/staged
+hashes recheckedunchanged; dirtyVkFFT untouched. No commit/push. Noalgorithmfix
+claim; originaloutlierunresolved. NEXT: monitor98561/60532 for150all3consistency
+andfull17frameoutcome. No automaticrestart oldcohort; decide further localization
+from fresh evidence, preserving historicalfailure and exactacceptancecriteria.
+
+Controlled BLAS/OpenMP diagnostics finished: session68848(thread1) and
+74536(thread2), bothexit0, FFTWstill3/estimate, both Q/JOD40ec7071/41038aea.
+Separatefreshroots validation/live_hdr_failure_stock_blas1_20261102_run01 and
+blas2_20261102_run01. Did NOTreproducefirstoldstockscore; no provenrootcause,
+no acceptedretry, no mathematicalfixclaim. Tracecomparison total287517600
+Singlevalues/24tensors exact onlyagainst laterinstrumentedcapture; initial
+capturepreservationassert failed, so do NOTclaimoriginalfailedrun parity.
+Latestoldmainworker observedframe450decode afterframe420exact; oldrunmaystill
+bealive temporarilybeforefailedexit. No newcohortattempt shouldstart blindly.
+
+## Latest investigation: clean repeats match CPP; initial reference unresolved
+
+User explicitly asked fix. Added trace-only target live-frame-trace in
+tests/live_hdr_preprocessing, guardedexports inframe.cpp. Fresh MSVCstrictbuild
+validation/live_hdr_trace_build_20261102_run01 succeeded (session40448 done).
+CPPtrace18293 finished, sameQ/JOD40ec7071/41038aea asfrozen/publicCPP.
+Both linear tensorhashes equal originalpreprocessing. Addedcompare_live_hdr_trace.cjs;
+all24exported stage tensors match freshinstrumentedreference afterlayoutconversion.
+BUT capture48340 preservationassertion FAILED: instrumentedQ/JODmatchesCPP,
+NOToriginalstock40ec4f50/41037c75. Cannot use this toclaim localization oforiginal
+discrepancy. Cleanreferenceunchanged; captureonlyfreshcopy.
+
+Crucial: TWO fresh CLEANstock repeats (17296,84996 DONEexit0) also yield
+40ec7071/41038aea, sameCPP, samepreservedsource+linearhashes/settings.
+Roots validation/live_hdr_failure_stock_repeat_20261102_run01/run02 (separate
+siblings endingrun01/run02). Originaldifferentreference remainsunexplained.
+No algorithm fix, no acceptedretry/cherrypicking. Report
+tests/LIVE_HDR_FOOTBALL150_INVESTIGATION.md describesalloutcomes andlimits.
+
+Corrected runner failure draining: failedflag +Promise.allSettled; no newly
+scheduledframesafterfailure, currentlyrunningframesallowedtofinish. Syntaxpass.
+Existingprocessloadedoldrunner so unaffected; main59332 maystilldrainoldworker.
+Sourcecodefingerprintchanged -> conservative futureseedrecomputation expected.
+No commit/push, no protectedshader/VkFFT edits. Cohort still21/27accepted.
+EXACT NEXT: diagnose reference repeatability (FFT/quality/call environment) and
+reproducefirstdifferentstockscore; don't silentlyreplacefirstreference. Then
+fixprovenrootcause andrerunfreshcase withall17frames/aggregation before resume.
+
+## CRITICAL latest21:27UTC: first numerical mismatch, cohort21/27 only
+
+User requestedstatus. Cohort21accepted/400frames. Current540p2.2Mfootball1
+frame150 FAILED exactQ ANDQJOD. Root:
+validation/live_hdr_cohort_scores_20261102_run01/results/540p_2.2M_football1_1793653626058/frame0150.
+StockQ7.3846817016601562 hex40ec4f50; CPPQ7.388725757598877 hex40ec7071.
+StockJOD8.2178850173950195 hex41037c75; CPPJOD8.2214145660400391 hex41038aea.
+InputPNG hashes incomparison.json, stocklinear hashes inofficialscore. NotULP
+tolerancepass, notaccepted. Other worker continues outstandingframes despite
+Promise.all rejection (knownrunnerlimitation); main59332 may remainalive until
+remainingworkerfinishes, but it will not acceptvideo/advancecohort normally.
+Do not report currentjobhealthy basedonlyschedulerprocess_exists=true.
+
+Independent reproduction through CURRENTpublicCPU also FAILED, session18339
+finished exit1: validation/live_hdr_mismatch_football150_cpu_20261102_run01.
+Wrapper preservedactualscore/comparison/settings/input/exehashes/logs. Thus
+not merely frozen diagnosticCLI discrepancy. Publicsweep21/27representative
+frame0cases pass; this does NOTcover failingframe150. Statswatcherwaiting at
+lastcheck and willfail ifschedulerexitswithoutanalysis. No sourcefix yet;
+no code/build/shaderchanges/commit/push. All prioracceptedresults preserved.
+EXACT NEXT: localize failingframe using cleanstock intermediateexports vs
+freshCPPexports (first compare PQresize/linear tensors to preservedreference
+preprocessing); then optical/adaptation/JND/pyramid/masking/quality. Preserve
+oldreference/bundles; don't weakenacceptance orskipbadframe. Check59332/6746/
+35137 eventualexit before restarting corrected freshattempt/seed recovery.
+
+Status20:14UTC: cohort19/27accepted,360frames, allacceptedQ/QJODexact.
+SchedulerPID29784 live;current540p2.2MBonfire2/18exact,no failure. PublicCPU/
+hybrid representative checks19/27passedboth; statisticsverificationwaiting.
+8videos remain includingcurrent. Statusonly; no code/build/commit/push.
+Continue59332/6746/35137; nofullcohort/originalpaper/fullGPU completionclaim.
+
+Status19:21UTC: cohort17/27accepted,321frames, allacceptedQ/QJODexact.
+SchedulerPID29784 live;current4k6MCargoBoat6/22exact,no failure. PublicCPU/hybrid
+representative checks17/27passedboth; statisticsverificationwaiting.10videos
+remain includingcurrent. Statusonly; no code/build/commit/push. Continue
+existing59332/6746/35137; no fullcohort/paper/fullGPU completionclaim.
+
+Status18:41UTC: cohort15/27accepted,286frames, allacceptedQ/QJODexact.
+SchedulerPID29784 live;current4k3Mfootball1 has14/17exact,no failure.
+PublicCPU/hybrid representative checks15/27passedboth; statsverificationwaiting.
+User requestedstatus only. No code/build/commit/push. Continue existingjobs
+59332/6746/35137;12fullvideos remain including current, nofullcohortclaim.
+
+Status17:17UTC: schedulerPID29784 confirmedlive. Cohort14/27accepted,264frames,
+allacceptedQ/QJODexact. Now4k3MCargoBoat2/22selectedframes exact,no failure.
+Public CPU/hybrid representative sweep14/27passedboth; statisticswatcherwaiting.
+No fullcohortanalysis yet. No code/build/commit/push. Continue59332/6746/35137;
+no duplicatejobs. Independentaggregate evidence run08 stillhistorical239cases;
+newercheckpoint counts are not a regenerated full-evidence audit.
+
+Background status confirmed16:23UTC: schedulerPID29784 and C++PIDs24212/35876,
+OctavePIDs15812/33596 active.13/27accepted;4k3MBonfire frames240/270 evaluating.
+Automatic video sequencing remains active; no user continuation required for
+already launched jobs. Processes need running machine/session and do not
+automatically resume aftershutdown. No code/build/commit/push this status check.
+
+## ETA check16:11UTC:13/27 accepted;estimated6-10hours for remaining batch
+
+User requestedtimeestimate. Measured attemptstart tovideo_scoremtime for12new
+completedvideos:20.8,28.1,21.1,23.1,28.0,28.4,30.8,37.6,25.7,23.7,27.6,45.7min.
+Checkpointnow13accepted;4k15Mfootballcompleted17frames, next4k_3M_Bonfireactive.
+Remaining14videos at roughly25-45min each ->approx6-10additionalhours for
+this27video evaluation batch, conditional uninterruptedmachine/no mismatches.
+NOT estimate of fullGPU/allconditions/originalpapercompletion. No newindependent
+evidenceaudit since run08; don'trelabel derivedtotals audited. No code/build/
+shaderchange/commit/push. Nextmonitor59332/6746/35137, check13thacceptance and
+updatedevidence atappropriatecheckpoint; verifycompleteanalysisbeforefinalclaim.
+
+## Status check16:02UTC: still computing,12/27accepted
+
+User asked iffinished. Confirmed active live-frame-singlePID9108 and
+OctavePID22520, both started16:01:06UTC on finalfootball4k15Mframe480.
+Main59332 stillrunning;16/17footballframes Q/QJOD exact,no failure.
+Cohort12/27/229frames unchanged. Publicbackendcheckpoint12/27 completepairs;
+statisticsverificationstatuswaiting. No claimfullcohortfinished. No code/build/
+shaderchanges/commit/push. Nextmonitor59332 forfinalframe+aggregation then
+13thacceptance; keep6746/35137 running, avoidduplicatejobs.
+
+## Status check 15:28UTC:12/27 complete; football4K6/17 active
+
+User asked whether anything is stillrunning. Confirmed actuallive-frame-single
+processes5940/6636 and schedulerPID29784 live. Cohort12/27accepted,229frames.
+4k15MCargoBoat completed22/22 exact,mean7.835967540740967; checkpoint accepted.
+Now4k15Mfootball1 selected17frames,6exactsofar,no failure. Public CPU/hybrid
+sweep caughtup through4k15MCargoBoat; statswatcherstatuswaiting. Currentrunning
+sessions remain59332(main),6746(publicsweep),35137(statswatcher). Do notduplicate.
+No edits to algorithms/builds/shaders, no commit/push. Priorindependent evidence
+snapshotrun08 remains239cases (predates latestCargoBoat); don't claimnew full
+evidenceaudit until regenerated. Next: continue monitors and auditnewcompleted
+roots whenappropriate; remaining15cohortvideos/fullGPU/originalpaperunknowns.
+
+## Latest: 4K CargoBoat10/22;publicsweep11/27;239distinct completedcases
+
+Primarycontinuation59332/schedulerPID29784 ACTIVE.4k_15M_Bonfire complete18/18
+Q/QJOD exact clean3.0.7 Single; mean8.3020801544189453 hex4104d552, fullacceptance
+and independent Octaveaggregation passed. Cohort11/27videos,207frames.
+Active4k_15M_CargoBoat root results/4k_15M_CargoBoat_1793631033138 under
+validation/live_hdr_cohort_scores_20261102_run01;650decodedframes aligned,
+10/22selectedframes Q/QJOD exact,no failure; notyetfullvideo accepted.
+Evidence run08 reaudited all11cohort roots+2Daylight1:13pairs/4contents/
+239uniquevideo-framecases AND239PNGpairs. Report83551 finished exit0.
+
+Publicbackend sweep6746 ACTIVE,11/27 representativeframe0 pairs passed BOTH
+public CPU andhybrid, caughtup withall11acceptedcohortvideos andnowwaiting
+fornextacceptedvideo. EachQ/QJOD exact;eachhybrid4actualVulkanmatrix
+dispatches and no reportedvalidationerrors. Not fullvideo GPU ornewuniquecases.
+Statisticswatcher35137 stillwaiting, asfullcohort notcomplete.
+No code/build/shaderchanges, no commit/push. Next: monitor59332/6746/35137;
+auditCargoBoat4K acceptance, continue remaining16cohortvideos, confirm final
+analysis and verifierSHA before asserting completecohort. FullGPU and original
+paperprotocol unknowns still unresolved; preserve dirtyshader/VkFFT/oldfiles.
+
+## Latest: representative public backend sweep active; 4K12/18
+
+Primarycontinuation59332/schedulerPID29784 ACTIVE:4k15MBonfire12/18selected
+Q/QJOD exact, nofailure, nofullvideoacceptance yet. Cohort10/27,189frames;
+completedunique221scope unchanged. Statisticswatcher35137 waiting as intended.
+
+Added tests/audit_live_hdr_public_backends.cjs; session6746 ACTIVE:
+node tests/audit_live_hdr_public_backends.cjs validation/live_hdr_cohort_scores_20261102_run01/config.json build-vs2026/bin/Release/IQM-hdrvdp3-cpu.exe build-vs2026/bin/Release/IQM-hdrvdp3-hybrid.exe validation/live_hdr_gpu4k_20261101_run02/projection.spv validation/live_hdr_public_backends_20261102_run01
+Followsacceptedcohort, audits eachacceptedroot, runs frame0 throughfrozenpublic
+CPU thenhybrid executables, comparesstock Q/QJOD, verifies4GPUmatrixdispatches
+and no reportedvalidationerrors. Uses separate freshoutputs, model/exe/shader
+copies andexplicitFFTWchecksum; atmostoneadditional image-scorejob atonce.
+First720p2.6MBonfire public CPU+hybrid PASSED, sweepcheckpoint1/27; secondcase
+nowstarting. Notadditionalunique cases, NOTfullvideo GPU validation orfullGPU.
+Mainpipeline unchanged/uninterrupted. Syntaxpassed; actualfirst-case acceptance
+exercisesorchestration. Docs tests/LIVE_HDR_PUBLIC_BACKEND_AUDIT.md.
+No algorithm/build/shaderchanges/commit/push. Next: monitor59332,35137 AND6746;
+don't launchduplicate sweeps. Update counts onlyafterfullvideo acceptance.
+
+## Latest measured checkpoint: 10/27 complete; 4K evaluation active
+
+Continuation59332/schedulerPID29784 and verificationwatcher35137 ACTIVE.
+Football9M complete17/17 Q/QJOD stockbitexact; mean8.9048662185668945
+hex410e7a55, acceptance + independentOctave aggregation passed. Cohort10/27,
+189acceptedframes. Allcompletedroots reaudited: evidence run07 ->12video pairs,
+4contents,221uniquevideo-framecases AND221uniquePNGpairs (32Daylight1 outside
+cohort included). Artifact validation/live_hdr_evidence_20261102_run07/evidence.json.
+Report session66574 finished exit0.
+
+Next activevideo4k_15M_Bonfire/ref4K, root
+validation/live_hdr_cohort_scores_20261102_run01/results/4k_15M_Bonfire_1793629604842.
+527decodedframes/timestamps aligned,18selected0:30:510,2workers, firstframes
+preparing; notyetaccepted. Watcherstatus remainswaiting forfullcohortanalysis.
+No algorithm/build/shader changes, commit or push this turn. Protectedshader
+workingSHA03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6
+and stagedblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 confirmedunchanged.
+Next: monitor59332 and35137; inspect first4Kcohort result; continue remaining17
+videos, then verify analysis+OctaveSHA. Originalpaperunknowns/fullGPU remain.
+
+## Latest: public CPU CLI independently exact on CargoBoat9M
+
+Sessions59332 (cohort) and35137 (statistics watcher) ACTIVE unchanged; cohort
+9/27 accepted,172frames,204uniquecompletedcases including2Daylight1videos.
+Currentfootball9M4/17selectedframes Q/QJOD exact, nofailure. Watcherwaiting.
+No new acceptedvideo this turn.
+
+Added tests/run_live_hdr_cpu.cjs to validate PUBLIC named-option CPU interface,
+separate from frozen diagnostic positionalexe. Session28134 finished exit0:
+validation/live_hdr_public_cpu_cargoboat9M_20261102_run01. CargoBoat9Mframe0:
+Q6.786186695098877 hex40d92871; JOD7.6794109344482422 hex40f5bdbc;
+both exactcleanofficial3.0.7 Single. Verified CPU-FFTW/zeroGPUdispatches and
+age/display/ambient/reflectivity/peak/PPD/FFTsettings; preserved hashes/model
+files/logs/usedexe. Existingframe repetition, NOTnewunique case.
+Docs tests/PUBLIC_SINGLE_CPU_VALIDATION.md. No rebuild/shaderchanges/commit/push.
+Next: monitor59332 and35137; don't duplicate scheduler/watcher. After remaining
+18videos verify finalanalysis+Octave passedSHA before asserting cohortcomplete;
+continue unsupportedprofiles/remainingGPU, keep authorunknowns distinct.
+
+## Latest checkpoint: 9/27 complete, 204 distinct exact cases; verifier attached
+
+Continuation59332/schedulerPID29784 ACTIVE; next1080p_9M_football1,17selected
+frames, beginningevaluation. Cohort9/27accepted,172frames. Newcompleted since
+priorhandoff: CargoBoat6M22frames mean7.2904024124145508 hex40e94afa;
+football6M17frames mean8.8060951232910156 hex410ce5c4; Bonfire9M18frames
+mean8.3304967880249023 hex410549b7; CargoBoat9M22frames mean7.5433168411254883
+hex40f162da. All Q/QJOD exact, full acceptance and independent Octave means.
+Evidence run06 reaudited all9cohort roots plus2Daylight1:11video pairs,
+4contents,204uniquevideo-framecases AND204uniquePNGpairs. Artifact:
+validation/live_hdr_evidence_20261102_run06/evidence.json. Session58422 DONE.
+
+New watcher session35137 ACTIVE:
+node tests/watch_live_hdr_analysis.cjs validation/live_hdr_cohort_scores_20261102_run01/config.json validation/live_hdr_cohort_analysis_20261102_run01
+Attaches final Octave statistics verifier to CURRENT olderloaded pipeline;
+no restart. Once finalanalysis appears checkscohortSHA/count/IDs, then runs
+verify_live_hdr_cohort_analysis.m. Status currentlywaiting:
+validation/live_hdr_cohort_analysis_20261102_run01.verification_status.json.
+Do not launchduplicate watcher; exclusiveverification lock protects it.
+This supersedes older note thatmanualverification MUST be performed: watcher
+now handles it, but confirm passedstatus/verificationSHA before reportingfinal.
+Positiveengineeringfixture passed; foreigncohortrow rejected withoutverification
+in validation/live_hdr_analysis_watch_checks_20261102_run01. Not LIVEaccuracy.
+
+Updated source live_hdr_protocol.json selection_implemented=true with measured
+localprofile/checkpoint; frozenbundlecopies/oldreferencefiles preserved. Audit
+markdown labels initial Double-only/notimplemented paragraphs historical.
+Added tests/HDRVDP3_REPRODUCTION_ACCEPTANCE.md: exactnumericalqualityprofile,
+separateoriginalpaperprotocol, missingauthorassets and remainingGPUcoverage.
+No universal100%/originalexperiment/fullGPU completionclaim. No commit/push.
+Next: monitor59332 and35137, continue remaining18videos; after27 complete audit
+analysis and independentverification, then broaden supportedprofiles/GPUstages.
+
+## Latest: next Bonfire bitrate complete; independent statistics audit ready
+
+Continuation59332/schedulerPID29784 ACTIVE. 1080p_6M_Bonfire complete18/18
+Q/QJOD exact, mean8.1062984466552734 hex4101b366; Octaveaggregation passed.
+Cohort5/27videos,93frames. Next1080p_6M_CargoBoat22samples,4exactatfirstcheck,
+stillrunning/no failure. Evidence run05 reaudited allcompletedcohort roots plus
+2Daylight1:7video pairs/4contents/125uniquevideo-framecases AND125PNGpairs.
+Artifact validation/live_hdr_evidence_20261102_run05/evidence.json.
+
+Added tests/verify_live_hdr_cohort_analysis.m: independently recomputes rawPLCC
+andSROCC from analysis rows via Octave corr/spearman, ensures nofit/retraining,
+noRMSEmapping, equalofficial/CPPscores; SHA tiesverification toanalysisfile.
+Engineering6case fixture passed tolerance1e-14; modifiedSROCC rejected with no
+verificationoutput. Artifact validation/live_hdr_analysis_verifier_20261102_run01.
+These negativeengineering correlations are NOT LIVE accuracy numbers.
+Pipeline SOURCE now calls this verifier afteranalysis, but running59332 already
+loaded oldsource and WILL NOT execute that addedstep. Mandatory nextstep after
+currentanalysis exists: octave-cli --quiet tests/verify_live_hdr_cohort_analysis.m
+validation/live_hdr_cohort_analysis_20261102_run01/analysis.json
+validation/live_hdr_cohort_analysis_20261102_run01/verification_octave.json
+(single command, actualOctaveexe path elsewhere inhandoff). Do not restart or
+duplicate activepipeline merely toinstallthisstep. No commit/push.
+
+## Latest: football complete; real recovery passed; next bitrate active
+
+Continuation59332/schedulerPID29784 ACTIVE, now1080p_6M_Bonfire18selectedframes
+evaluating. Football1080p1M COMPLETE:506decodedframes aligned,17samples0:30:480,
+all Q/QJOD stock3.0.7bitexact. Mean7.7903523445129395 hex40f94a91; independent
+Octave/metadata/PNG acceptance passed. Cohort4/27videos,75frames.
+Reaudited all6completevideo roots: validation/live_hdr_evidence_20261102_run04
+->6video pairs/4contents/107uniquevideo-framecases AND107uniquePNGpairs.
+Includes twoDaylight1 outsidecohort. No repetitions counted.
+
+Session87506 finished exit0: footballframe0 actualhybrid exact,
+validation/live_hdr_hybrid_football1080_20261102_run01. Q4.5036582946777344
+hex40901df8, JOD5.384850025177002 hex40ac50b1;4Vulkanmatrixdispatches,
+no reportedvalidationerrors. Hybrid now5framepairs/4contents, GPUmatrices only.
+
+Added tests/verify_live_hdr_video_recovery.cjs. Session99029 finished exit0:
+validation/live_hdr_football_recovery_20261102_run01/recovery_acceptance.json.
+All17frames freshly decoded, hashes/settings/calculation fingerprints matched,
+all17 reused fromverifiedseed; every Q/QJOD exact, independent Octave video
+mean again40f94a91. Originalseed/currentpipeline NOTinterrupted; recovery-path
+rehearsal, notOScrashtest, no17newmetriccases. Oldartifacts preserved.
+Docs LIVE_HDR_COHORT_RUNNER.md, HYBRID_SINGLE_QUALITY_VALIDATION.md and daily
+progress updated. No commit/push. Next: monitor59332 for1080p6MBonfire then
+remaining23cohortvideos andcompleteanalysis; don't duplicate active scheduler.
+Originalauthor cohort/phase/PNG/backend uncertainties and remainingGPUstages
+still prevent full-reference-reproduction/fullGPU completion claim.
+
+## Latest measured result: CargoBoat COMPLETE; 90 exact distinct cases
+
+Continuation59332 ACTIVE. CargoBoat1080p1M/ref4K fullvideo completed:
+650decodedframes aligned,22selected0:30:630, ALL Q/QJOD bitexact.
+Mean QJOD5.7304935455322266 hex40b76034; metadata/PNG acceptance and independent
+Octave Singleaggregation passed. Root results/1080p_1M_CargoBoat_1793616207068
+under validation/live_hdr_cohort_scores_20261102_run01. Cohort now3/27 videos,
+58acceptedframes. All acceptedroots reaudited by summarize_live_hdr_evidence.cjs:
+validation/live_hdr_evidence_20261102_run03/evidence.json ->5video pairs,
+3referencecontents,90uniquevideo-framecases AND90uniquePNGpairs. Includes two
+Daylight1videos outsidecandidatecohort; nohybridreruns counted. No tolerancepass.
+SchedulerPID29784 automatically advanced to1080p_1M_football1 (probing/starting,
+no acceptedframes yet atcheckpoint). Newpervideo loads calculationfingerprint
+code; don't restart active scheduler. Next: monitor59332, verify football1plan
+andprogress, then use its newformat exactframes to test recovery with fresh
+decoding (no interruption needed); keep currentpipeline running. Remaining24
+cohortvideos and authorprotocol unknowns/fullGPU unfinished. No commit/push.
+
+## Latest continuation: frame recovery added; CargoBoat16/22
+
+Continuation59332/schedulerPID29784 ACTIVE; CargoBoat1080p1M16/22 exact,
+no failure. No new fullvideo acceptance; completed68unique scope unchanged.
+Added tests/live_hdr_frame_reuse.cjs and check_live_hdr_frame_reuse.cjs;
+run_live_hdr_video_pair.cjs optional final seed-root freshly decodes then reuses
+only exact verified frames with matching MP4/CSV/exe/FFTW/settings/timing and
+calculation fingerprint (official reference tree + bundlemanifest + scripts).
+Old fingerprints missing -> recompute; corruption of claimed exactseed throws.
+Records sourcecomparison path/SHA; fresh output dirs, no oldfile mutation.
+Scheduler source now selects previousattempt as seed on a future invocation.
+Current scheduler/activepervideo already loaded oldercode, NOT restarted;
+next spawnedpervideo records newfingerprints, but seedselection needs future
+scheduler invocation. Do not kill/restart activeprocess to install this change.
+11engineering checks passed validation/live_hdr_frame_reuse_checks_20261102_run01;
+syntax checks passed. No real interrupted-video recovery claim yet.
+Docs LIVE_HDR_COHORT_RUNNER.md updated. No commit/push. Next: monitor59332;
+audit CargoBoatfullacceptance and automaticnextvideo whenfinished, updatecounts
+onlyafteracceptance/Octaveaggregation; preserve all oldartifacts anddirtyfiles.
+
+## Latest session checkpoint: third-content hybrid exact; evidence recounted
+
+Continuation59332/schedulerPID29784 still ACTIVE. CargoBoat1080p1M now14/22
+selectedframes Q/QJOD exact; nofailure, fullvideo notyetaccepted. Cohort2/27.
+Session49169 finished exit0: validation/live_hdr_hybrid_cargoboat1080_20261102_run01
+Q1.6976785659790039 hex3fd94d88, JOD2.171440601348877 hex400af8e2, bothstockexact,
+4actualVulkanmatrixdispatches and no reportedvalidationerrors. Integrated hybrid
+now4framepairs/3contents (Daylight1,Bonfire,CargoBoat); remains GPUmatrices only.
+
+Added tests/summarize_live_hdr_evidence.cjs. Audits completed video timing,
+MP4/PNG/metadata provenance, Q/JOD equality and independently recomputed means;
+counts unique video/frame keys AND decoded PNG hashpairs. Original Daylight1
+plan lacks explicitIDs/CSVhash, recovered from preserved acceptance metadata
+in memory only; oldfiles and strictcohortscheduler unchanged. Real audit PASSED:
+validation/live_hdr_evidence_20261102_run01/evidence.json ->4videos/2contents/
+68uniquevideo-framecases AND68uniquePNGpairs. Duplicate-root test run02 also
+4/2/68/68, no inflatedcounts. PartialCargoBoat/hybridreruns excluded fromcompleted
+video count. Newhybrid acceptance documented HYBRID_SINGLE_QUALITY_VALIDATION.md.
+No commit/push. Next: monitor59332 for CargoBoatfullacceptance then automatic
+remainingcohort; update evidence/report using acceptedroots only. Do not start
+duplicate scheduler. Originalauthor protocol unknowns/fullGPU remain unfinished.
+
+## Latest measured checkpoint: Bonfire1080 complete, CargoBoat running
+
+Supersedes partial Bonfire1080 status below. Session69819 finished exit0.
+1080p_1M_Bonfire/ref4K:527 aligned decodedframes,18samples0:30:510,
+ALL Q/QJOD bitexact. Mean5.0774068832397461 hex40a27a1e; independent Octave
+Single aggregation and metadata/PNG acceptance passed. Root:
+validation/live_hdr_cohort_scores_20261102_run01/results/1080p_1M_Bonfire_1793614951107.
+Fullvideo cumulative scope now4pairs/2contents/68distinctHDRframepairs,
+including32Daylight1+18Bonfire720+18Bonfire1080. Cohortaccepted2/27 (36frames).
+
+Continuation59332 ACTIVE, has launched schedulerPID29784. Current nextvideo
+1080p_1M_CargoBoat/ref4K:650decodedframes aligned,22selected0:30:630;
+12/22 Q/QJOD exact so far, no failure, not a fullacceptedvideo yet. Root:
+validation/live_hdr_cohort_scores_20261102_run01/results/1080p_1M_CargoBoat_1793616207068.
+Do NOT poll old69819 or launch duplicate scheduler. Monitor59332/checkpoint.
+
+Third actualhybrid complete score acceptance: session26630 finished exit0.
+validation/live_hdr_hybrid_bonfire1080_20261102_run01, Bonfire1080frame0:
+Q5.6833958625793457 hex40b5de61, JOD6.6135272979736328 hex40d3a204.
+Both exactstock3.0.7;4actualVulkanmatrixdispatches, no reportedvalidationerrors.
+Hybrid remains GPUmatrices +CPUremaining; notfullGPU. Existingframe repetition,
+does not add another unique dataset case. Docs HYBRID_SINGLE_QUALITY_VALIDATION.md.
+
+Added read-only tests/status_live_hdr_cohort.cjs (config path argument) to inspect
+accepted vs partial progress and process PID; ran successfully on realcheckpoint.
+No commit/push this session. Next: monitor continuation59332, audit CargoBoat
+fullacceptance whenfinished, continue all27 beforeanalysis. Unresolved original
+phase/PNG/backend/cohort and remainingGPUstages still apply.
+
+## Active cohort scheduler checkpoint (2026-11-02)
+
+Continuation now ACTIVE: exec session59332 runs
+node tests/run_live_hdr_cohort_pipeline.cjs validation/live_hdr_cohort_scores_20261102_run01/config.json validation/live_hdr_cohort_analysis_20261102_run01
+It waits for schedulerPID32072/session69819, then runs remaining27 limit and
+only after success invokes analyzer. Do NOT launch a second scheduler while
+this continuation is active. Stops if prior scheduler's last attempt unaccepted.
+Current first new video frames0,30,60,90,120,150 Q/QJOD EXACT (6/18);
+frames180/210 evaluating. No new full-video acceptance yet.
+Partial frames are not a completed video and do not change the50-frame historical
+completed-video scope. Latest source strengthens acceptance with decoded timing,
+score indices, reference input provenance, finite Single bits and recomputed
+video mean; checkpoint/manifest writes use temp+rename. Eight engineering
+integrity checks passed: validation/live_hdr_scheduler_checks_20261102_run01;
+real existing Bonfire72018frame acceptance also passes strengthened audit.
+Pipeline/scheduler must remain alive (not services); no shutdown persistence.
+Next: monitor both sessions rather than start duplicate work; inspect numerical
+failures if any. Update counts only after full acceptance/Octave aggregation.
+
+Added tests/run_live_hdr_cohort.cjs and tests/LIVE_HDR_COHORT_RUNNER.md.
+Sequential scheduler preserves prior attempts and resumes at video boundaries,
+auditing accepted source/PNG hashes, exact frame scores, protocol and Octave
+aggregation before reuse. No frame-level resume yet. Syntax check passed;
+second concurrent invocation correctly rejected EEXIST without changing lock.
+Config: validation/live_hdr_cohort_scores_20261102_run01/config.json.
+Output: same directory/results. Imported accepted 720p_2.6M_Bonfire (1/27).
+Active exec session 69819, scheduler PID32072, max-new-videos=1, currently
+1080p_1M_Bonfire attempt 1080p_1M_Bonfire_1793614951107. Numerical result pending;
+do not count it as passed. No new commit/push. Do not remove a live scheduler lock.
+Next: poll session69819 and continuation59332; inspect first new video's
+acceptance/Octave aggregation. Continuation59332 automatically starts remaining
+videos and analyzer; do not manually duplicate it. Existing50distinct-frame
+exactness scope unchanged. Preserve all protected dirty files/submodule.
+
+Supplementary source check: tests/LIVE_HDR_AUTHOR_BENCHMARK_SCOPE.md records
+Cambridge ColorVideoVDP LIVEHDR/HDRVDP3 report (separate train/test/regression
+conditions, not evidence of original2023 cohort). HTML preserved under
+validation/live_hdr_author_benchmark_20261102_run01. No raw per-video CSV found
+in detailedHTML; protocol unknowns remain. Protected shader workingSHA
+03DCAC86ED49ADE71C804061C66BB5F382BC754B69B0BD9F0354B6D9024450C6 and stagedblob
+1cf7baedb1d54be0ca8ad02d14485e510b0434e7 rechecked unchanged this turn.
+
+## Latest checkpoint: second-content fullvideo complete, actual hybrid exact (2026-11-02)
+
+Session54940 completed successfully. Bonfire720p_2.6M/ref4K:527decodedframes,
+alltimestamps/counts equal,18samples indices0:30:510 allQ ANDQJOD bitexact.
+MeanQJOD7.7758626937866211 hex40f8d3de; C++=stock3.0.7. Metadata/hash acceptance
+and independent Octave Singleaggregation passed. Root
+validation/live_hdr_bonfire720_video_20261102_run01 contains video_score.json,
+acceptance.json,aggregation_octave.json. Cumulative3fullvideo pairs/2contents/
+50distinctframepairs (32Daylight1+18Bonfire); new17 becauseBonfireframe0 old.
+Progress report tests/HDRVDP3_PROGRESS_2026-11-02.md.
+
+Actual hybrid complete tests PASSED on Daylight1frame30 andBonfire720frame0:
+validation/live_hdr_hybrid_frame30_20261102_run01 and
+validation/live_hdr_hybrid_bonfire720_20261102_run01. BothQ/JOD exact stock,
+4actualVulkanmatrixdispatches each, no reportedvalidationerrors. Used exe/shader
+copies and SHA/logs preserved. CLI target IQM-hdrvdp3-hybrid explicitly requires
+--projection-shader; GPU Native/LMSR only, CPUremaining stages/FFTW/calibration.
+No implicit fallback. CPU7guardchecks and3hybrid/backendcontractchecks passed.
+Docs tests/HYBRID_SINGLE_QUALITY_VALIDATION.md; CPU+hybrid mainbuilds passed
+(existingglfw/stb warnings). No newshader compilation needed; frozenvalidated
+shader from live_hdr_gpu4k_20261101_run02 used.
+
+Input readiness: tests/stage_live_hdr_cohort.cjs/.ps1 staged30videos fordeclared
+27distortion/3ref subset; existing files neveroverwritten andall comparedSHAwith
+decompressedZIPentries. ZIPfingerprint remains4c4db97addbeecb7ac52d6edcfa78bf0387ab2002dbfb9a7bbc276e40597f8d3.
+All30 headers match dimensions/containerframecounts; allPQ/BT2020nc/10bit/tv.
+Root validation/live_hdr_cohort_inputs_20261102_run01, docs LIVE_HDR_COHORT_READINESS.md.
+This isheader/stagingverification only, NOTall27 decoded orscored. OnlyBonfire720
+fullvideo amongthiscandidate27complete; Daylight1 notinthatcandidate cohort.
+
+Statistics analyzer/tests complete. validation/live_hdr_statistics_20261102_run03
+checks pass againstOctave corr/spearman at1e-14 tolerance, includingties,
+undefinedinputs, incompletecohortrejection, complete6-caseENGINEERING CLIfixture.
+No actual LIVE27video SROCC/PLCC/RMSE reported. Neveruse negativeengineering
+correlationvalues asdatasetaccuracy. Analyzer requires allcohortpredictions,
+sameCSV/phase/ppd/RGB48/Singleaggregation, no referencevideos/fitting/retraining.
+
+Next exact work: complete remaining declaredcohort videoevaluations andproduce
+complete predictionmanifest before running analyze_live_hdr_cohort.cjs; preserve
+author-cohort flagfalse untiloriginaltrainCSVverified. Continue remainingGPU
+FFT/adaptation/JND/masking/quality. No full310/originalchallenge/fullGPU claim.
+Today'ssource changes LOCAL, no newcommit/push. HEAD39bd331 stilllastpublication.
+PreserveprotectedshaderAM/index1cf7.../working03DC... anddirtyVkFFT. No reset/clean.
+
+## Historical active continuation: second-content fullvideo, actual hybrid pipeline and cohort analysis (2026-11-02)
+
+User said continue. Read handoff; publication HEAD remains39bd331, protected
+shader AM/indexblob and dirtyVkFFT preserved. No new commit/push requested.
+Answered previous dataset question: Section6LIVEHDR evaluation, UPIQcalibration.
+
+ACTIVE full Bonfire720video session54940 -> validation/live_hdr_bonfire720_video_20261102_run01,
+test720p_2.6M_Bonfire/ref4k_ref_Bonfire. CSV527frames; runner verifies decoded
+counts/alltimestamps before18samples indices0:30:510. Uses frozenrun03 independent
+CPUexe and cleanofficial3.0.7. At latestcheck first6samples exact, othersrunning.
+Do NOT restart or claim fullvideo until video_score.json exists complete/exact.
+Aftercompletion run summarize_live_hdr_video.cjs and verify_live_hdr_video_aggregation.m.
+Then update cumulative scope: previous32Daylight1pairs +18Bonfirepairs=50distinct
+(prior Bonfireframe0 already among18, so new17, not18additionalunique cases).
+
+NEW actual hybrid pathway: SingleMatrixBackend optional callback in general
+SingleAPI; Native andLMSR per-pixel projection onVulkan, CPUFFT/adaptation/JND/
+pyramid/quality retained, calibrationCPUexplicit. Nullcallback keepsCPUpath.
+IQM-hdrvdp3-hybrid mainCMake target shares CLI withCPU, requires explicit
+--projection-shader. No silent fallback, defaultCPUexe stillnoVulkaninit.
+Output records backend and gpu_matrix_dispatches. Built bothtargets; CPU7CLI
+checks passed again in validation/public_cpu_cli_checks_20261102_run01.
+FIRST complete hybrid frame30Daylight1 ACCEPTED in
+validation/live_hdr_hybrid_frame30_20261102_run01: exactQ40ef326a/JOD4104bd82,
+4actualVulkanmatrixdispatches, no reportedvalidationerrors. Frozen usedexe/shader
+and provenance captured by tests/run_live_hdr_hybrid.cjs.
+Second hybrid Bonfire720frame0 active; inspect running execsession/results before
+starting another. Expected stockQ40e2d585/JOD40fe9249, not yet accepted atthisnote.
+
+NEW tests/analyze_live_hdr_cohort.cjs: requires complete unique declaredcohort,
+acceptedvideo/Octaveaggregates, sameCSVversion, explicitlocalphase/RGB48/ppd,
+video-MOS joins/referenceexclusion. Average-tieSpearman andrawPearson only;
+no retraining/fitting/RMSEinvented. Originalcohortauthorverificationflagretained.
+Engineeringtests againstOctave corr/spearman passat1e-14 absolute tolerance;
+tie/undefined/incomplete-cohort guards andcomplete syntheticCLI fixture pass.
+Artifacts validation/live_hdr_statistics_20261102_run01 andrun02. IMPORTANT:
+negative0.907/0.940 testcorrelations are engineeringvectors, NOT LIVEaccuracy.
+Actual subjectivecohort evaluation remains NOTperformed (27predictions absent).
+
+Next: finish active fullvideo/hybrid, preserve allprior scopes and artifacts,
+document measured results and exact nextstep; do not claim fullGPU/all310/paper
+challenge equivalence. New statistical checks are tolerance checks, not metric
+bitwiseacceptance. No blindshadercompilation/reset/cleanup/commit/push.
 
 ## GitHub publication checkpoint (2026-11-01)
 

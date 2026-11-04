@@ -1,0 +1,20 @@
+// Validate the public CPU CLI, independently of the frozen diagnostic runner.
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+const [exe,reference,test,data,dll,stockPath,out]=process.argv.slice(2);
+if(!out||fs.existsSync(out))throw Error('Usage: CPU-exe ref.png test.png model-data FFTW-dll official-score.json fresh-root');
+const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'),stock=JSON.parse(fs.readFileSync(stockPath,'utf8'));
+if(stock.reference_version!=='3.0.7'||stock.input_precision!=='single'||stock.backend!=='CPU'||stock.ppd!==62.729130063099447||stock.inputs[0].source_sha256!==sha(reference)||stock.inputs[1].source_sha256!==sha(test))throw Error('Reference inputs/settings differ');
+fs.mkdirSync(out,{recursive:true});
+const args=['--input',test,'--ref',reference,'--encoding','pq-bt2020-rgb16','--ppd',String(stock.ppd),'--model-data',data,'--fftw',dll,'--output',path.join(out,'results')];
+const provenance={executable_sha256:sha(exe),fftw_sha256:sha(dll),reference_png_sha256:sha(reference),test_png_sha256:sha(test),official_score_sha256:sha(stockPath),model_files:fs.readdirSync(data).sort().filter(n=>fs.statSync(path.join(data,n)).isFile()).map(n=>({file:n,sha256:sha(path.join(data,n))}))};
+fs.writeFileSync(path.join(out,'provenance.json'),JSON.stringify({provenance,args},null,2));
+const run=cp.spawnSync(path.resolve(exe),args,{encoding:'utf8',windowsHide:true,maxBuffer:16*1024*1024});
+fs.writeFileSync(path.join(out,'stdout.log'),run.stdout||'');fs.writeFileSync(path.join(out,'stderr.log'),run.stderr||'');
+if(run.error)throw run.error;if(run.status!==0)throw Error('Public CPU CLI failed; inspect retained logs');
+const actual=JSON.parse(fs.readFileSync(path.join(out,'results/score.json'),'utf8'));
+const exact=actual.Q_hex===stock.Q_hex&&actual.Q_JOD_hex===stock.Q_JOD_hex;
+const settings=actual.backend==='cpu-fftw'&&actual.gpu_matrix_dispatches===0&&actual.encoding==='pq-bt2020-rgb16'&&actual.ppd===stock.ppd&&actual.age===24&&actual.display==='oled'&&actual.ambient_lux===200&&actual.reflectivity===0.005&&actual.peak===2000&&actual.fftw_threads===3&&actual.fftw_planner==='estimate';
+fs.copyFileSync(exe,path.join(out,'used.exe'));
+fs.writeFileSync(path.join(out,'comparison.json'),JSON.stringify({scope:'public CPU CLI real-image score check, repeated frame not an additional unique dataset case',exact,settings_verified:settings,official_Q_hex:stock.Q_hex,Q_hex:actual.Q_hex,official_Q_JOD_hex:stock.Q_JOD_hex,Q_JOD_hex:actual.Q_JOD_hex,provenance},null,2));
+if(!exact||!settings)throw Error('Public CPU CLI did not match official score/settings');
+console.log('EXACT Q/Q_JOD via public CPU CLI; explicit CPU backend/settings verified');

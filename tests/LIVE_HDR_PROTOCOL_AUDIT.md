@@ -1,7 +1,12 @@
 # LIVE HDR / HDR-VDP-3 Section 6 protocol audit
 
-Date: 2026-11-01. Status: protocol audit completed; evaluation pipeline not yet implemented.
-No LIVE HDR metric scores or published-result equivalence are claimed.
+Initial audit: 2026-11-01. The historical implementation status below describes
+that date. Update 2026-11-02: independent C++ Single evaluation, an explicit
+Vulkan-matrix hybrid path, and full-video evaluation are implemented. See
+SESSION_HANDOFF.md and HDRVDP3_PROGRESS_2026-11-02.md for measured scope.
+Original-publication equivalence remains unverified; local choices below remain
+distinct from author-confirmed settings. The old Double-only and pending-next-step
+paragraphs are retained as audit history, not the current implementation status.
 
 ## Sources and scope
 

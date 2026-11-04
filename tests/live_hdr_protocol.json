@@ -35,7 +35,12 @@
     "backend": "CPU_Octave",
     "candidate_zero_based_first_frame": 0,
     "candidate_frame_phase_provenance": "interpretation_of_example_loop_not_independently_confirmed_by_paper",
-    "selection_implemented": false
+    "selection_implemented": true,
+    "implemented_selection": "zero_based_0_30_60_until_frame_count; all_decoded_timestamps_and_counts_verified_per_pair",
+    "numerical_reference": "clean_official_3.0.7_CPU_Octave_Single_FFTW3threads_estimate",
+    "implementation": "independent_CPP_Single_and_explicit_hybrid_Vulkan_matrices_CPU_remaining",
+    "current_checkpoint": "validation/live_hdr_cohort_scores_20261102_run01/results/checkpoint.json",
+    "historical_bundle_protocol_copies": "preserved; source_update_does_not_rewrite_frozen_bundles"
   },
   "unresolved_original_submission": {
     "decoder_version_and_color_conversion": null,

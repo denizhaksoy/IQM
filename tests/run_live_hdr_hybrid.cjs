@@ -1,0 +1,18 @@
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+const [exe,reference,test,data,dll,shader,stockPath,out]=process.argv.slice(2);
+if(!out||fs.existsSync(out))throw Error('Usage: exe ref.png test.png data fftw-dll shader official-score.json fresh-root');
+const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'),stock=JSON.parse(fs.readFileSync(stockPath,'utf8'));
+if(stock.input_precision!=='single'||stock.backend!=='CPU'||stock.ppd!==62.729130063099447||stock.inputs[0].source_sha256!==sha(reference)||stock.inputs[1].source_sha256!==sha(test))throw Error('Official input/settings mismatch');
+fs.mkdirSync(out,{recursive:true});
+const args=['--input',test,'--ref',reference,'--encoding','pq-bt2020-rgb16','--ppd',String(stock.ppd),'--model-data',data,'--fftw',dll,'--projection-shader',shader,'--output',path.join(out,'results')];
+const provenance={executable_sha256:sha(exe),shader_sha256:sha(shader),fftw_sha256:sha(dll),reference_sha256:sha(reference),test_sha256:sha(test),stock_score_sha256:sha(stockPath)};
+const run=cp.spawnSync(path.resolve(exe),args,{encoding:'utf8',windowsHide:true,maxBuffer:16*1024*1024});
+fs.writeFileSync(path.join(out,'stdout.log'),run.stdout||'');fs.writeFileSync(path.join(out,'stderr.log'),run.stderr||'');
+if(run.error)throw run.error;if(run.status!==0)throw Error('Hybrid failed; inspect retained logs');
+const actual=JSON.parse(fs.readFileSync(path.join(out,'results/score.json'),'utf8'));
+const validationErrors=/Validation Error|VUID-/i.test((run.stdout||'')+(run.stderr||''));
+const exact=actual.Q_hex===stock.Q_hex&&actual.Q_JOD_hex===stock.Q_JOD_hex;
+const backendVerified=actual.backend==='hybrid-vulkan-matrices-cpu-fftw'&&actual.gpu_matrix_dispatches===4;
+fs.copyFileSync(exe,path.join(out,'used.exe'));fs.copyFileSync(shader,path.join(out,'used.spv'));
+fs.writeFileSync(path.join(out,'comparison.json'),JSON.stringify({scope:'hybrid matrices on Vulkan; FFT/adaptation/JND/pyramid/quality on CPU',exact,backendVerified,validationErrors,Q_hex:actual.Q_hex,reference_Q_hex:stock.Q_hex,Q_JOD_hex:actual.Q_JOD_hex,reference_Q_JOD_hex:stock.Q_JOD_hex,provenance,args},null,2));
+if(!exact||!backendVerified||validationErrors)throw Error('Hybrid not accepted');console.log('EXACT Q/Q_JOD, 4 Vulkan matrix dispatches, no reported validation errors');

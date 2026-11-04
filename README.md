@@ -276,3 +276,17 @@ two complete selected-frame video comparisons and a second-content frame check.
 See [CLI and 4K GPU stages](tests/PUBLIC_SINGLE_CPU_AND_GPU4K.md) for exact scope,
 dependencies and commands. The 4K Vulkan matrix-stage results do not imply a
 complete GPU quality pipeline or full LIVE HDR dataset acceptance.
+
+The explicit `IQM-hdrvdp3-hybrid` target connects the two validated Vulkan
+matrix stages to the full Single image-to-score pipeline. It additionally
+requires `--projection-shader`; FFT and the remaining stages stay on CPU.
+See [integrated hybrid validation](tests/HYBRID_SINGLE_QUALITY_VALIDATION.md).
+The [cohort readiness notes](tests/LIVE_HDR_COHORT_READINESS.md) distinguish
+verified source files, completed quality evaluations and pending correlations.
+
+LIVE HDR validation is ongoing. A preserved reference-score discrepancy and
+the subsequent repeatability experiments are documented in the
+[investigation report](tests/LIVE_HDR_FOOTBALL150_INVESTIGATION.md).
+[Repeated-reference checks](tests/LIVE_HDR_COHORT_RUNNER.md) require every
+reference observation to agree; completed local tests do not establish
+universal agreement, full GPU processing or the original paper's exact cohort.

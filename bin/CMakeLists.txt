@@ -2,6 +2,13 @@ add_executable(IQM IQM/main.cpp IQM/args.cpp IQM/file_matcher.cpp IQM/vulkan_ins
 add_executable(IQM::IQM ALIAS IQM)
 
 if(WIN32 AND HDRVDP3)
+    add_executable(IQM-hdrvdp3-hybrid IQM-hdrvdp3-cpu/main.cpp IQM/vulkan_instance.cpp shared/vulkan_res.cpp)
+    target_compile_definitions(IQM-hdrvdp3-hybrid PRIVATE IQM_HDRVDP3_HYBRID=1)
+    target_include_directories(IQM-hdrvdp3-hybrid PRIVATE "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/lib/stb" "${PROJECT_SOURCE_DIR}/bin/IQM" "${PROJECT_SOURCE_DIR}/bin/shared")
+    target_link_libraries(IQM-hdrvdp3-hybrid PRIVATE IQM::HDRVDP3 Vulkan::Vulkan)
+    if(MSVC)
+        target_compile_options(IQM-hdrvdp3-hybrid PRIVATE /fp:strict /EHsc)
+    endif()
     add_executable(IQM-hdrvdp3-gpu4k-projection ../tests/verify_live_hdr_gpu_projection.cpp IQM/vulkan_instance.cpp shared/vulkan_res.cpp)
     target_include_directories(IQM-hdrvdp3-gpu4k-projection PRIVATE "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/bin/IQM" "${PROJECT_SOURCE_DIR}/bin/shared")
     target_link_libraries(IQM-hdrvdp3-gpu4k-projection PRIVATE IQM::HDRVDP3 Vulkan::Vulkan)
