@@ -2,6 +2,20 @@
 
 Last updated: 2026-11-07 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Latest 2026-11-07: selective GitHub publication verified
+
+User-authorized56file source/docs checkpoint committed2718e3dc24c106a09708b0ae0b2fc016389fa04d
+and pushed origin/feature/hdr-vdp3. gitls-remote independently confirmedexacthash.
+Syntax/whitespace checks passed; priorC++/GPU/reference validation recordedabove.
+Dataset/validation/binaries/backups/AGENTS/dirtyVkFFT/protectedcorrDn excluded.
+Protected stagedblob remains1cf7baedb1d54be0ca8ad02d14485e510b0434e7;
+workingSHA256 remains03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6.
+Localreceipt validation/github_publish_20261107_run01 recordsselectedfiles/checks.
+Atpostpushcheck controller24612/watcher15416 bothlive; fullrun02completed6/279,
+activeCourtYard. Numericrunner/scorer/audit filesunchanged; backgroundjobsnotstopped.
+No fullarchive/paperreproductionclaim. Followactualrun02checkpoint/logs/failures.
+This handoff publication receipt is a separate documentation-only checkpoint.
+
 ## Latest 2026-11-07: user authorized publication; selective source/docs checkpoint
 
 User explicitly requested publishing relevant changes while tests continue.
