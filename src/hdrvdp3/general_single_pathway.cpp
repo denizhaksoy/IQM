@@ -43,10 +43,10 @@ QualitySideSingle prepare_quality_side_single(std::span<const float> linear,
 }
 GeneralQualityResultSingle evaluate_general_quality_single(
     std::span<const float> reference,std::span<const float> test,unsigned w,unsigned h,double ppd,
-    const XYZDisplaySamples& xyz,const RGBSpectralSamples& spectral,const FFTBackendSingle& fft,const SingleMatrixBackend* matrices) {
+    const XYZDisplaySamples& xyz,const RGBSpectralSamples& spectral,const FFTBackendSingle& fft,const SingleMatrixBackend* matrices,const SingleComparisonBackend* comparison,const SingleMutualBackend* mutual,const SingleComparisonResizeBackend* resize) {
     if(!fft.forward)throw std::invalid_argument("Explicit Single forward FFT required");
     auto r=prepare_quality_side_single(reference,w,h,ppd,xyz,spectral,fft,matrices);
     auto t=prepare_quality_side_single(test,w,h,ppd,xyz,spectral,fft,matrices);
-    return evaluate_quality_single(r,t,w,h,ppd,fft);
+    return evaluate_quality_single(r,t,w,h,ppd,fft,comparison,mutual,resize);
 }
 }

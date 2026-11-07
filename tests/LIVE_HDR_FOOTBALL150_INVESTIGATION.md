@@ -29,6 +29,18 @@ Additional Nov4 localization on the **later matching persisted tensors**:
   Artifacts: `validation/live_hdr_quality_capture_20261104_run01` and
   `validation/live_hdr_pooling_offsets_20261104_run01`.
 
+### Update 2026-11-05: fresh diagnostic and local continuation completed
+
+The fresh football video diagnostic passed all 17 selected frames, each with
+three independent clean official evaluations and the C++ evaluator, including
+frame150. Independent aggregation passed. The separate continuation accepted
+all 27 declared local videos (513 selected video-frame pairs); its statistics
+were independently verified by Octave. Public CPU/hybrid representative checks
+are still running. These results belong to the fresh continuation, not the
+original failed checkpoint. The initial discrepant score is preserved and its
+cause is still unresolved. Older pending statements below describe the earlier
+investigation state and must not be read as the current local-cohort count.
+
 These probes do not recover the first failed run's unsaved intermediates and
 do not prove that FFT/pooling behavior could never differ in another context.
 They narrow hypotheses on the available data; the historical outlier stays open.

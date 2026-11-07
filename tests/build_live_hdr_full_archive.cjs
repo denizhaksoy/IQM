@@ -1,0 +1,19 @@
+// Full supplied-archive coverage, explicitly NOT an author-confirmed paper split.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const [datasetArg,outArg]=process.argv.slice(2);
+if(!outArg||fs.existsSync(outArg))throw Error('Usage: staged-dataset fresh-full-archive-manifest');
+const dataset=path.resolve(datasetArg),out=path.resolve(outArg),hashes={};
+function csv(name){const bytes=fs.readFileSync(path.join(dataset,'metadata',name));hashes[name]=crypto.createHash('sha256').update(bytes).digest('hex');const text=bytes.toString('utf8').replace(/^\uFEFF/,'').replace(/\r/g,'');if(text.includes('"'))throw Error('Unsupported quoted CSV');const lines=text.trim().split('\n').map(l=>l.split(',')),header=lines.shift();return lines.map(row=>{if(row.length!==header.length)throw Error('CSV row shape');return Object.fromEntries(header.map((key,i)=>[key,row[i]]));});}
+const rows=csv('video_info_with_bitrate.csv'),bright=csv('sureal_bright_mos_and_dmos.csv'),dark=csv('sureal_dark_mos_and_dmos.csv');
+const metadata=new Map(rows.map(r=>[r.video,r]));if(rows.length!==310||metadata.size!==310)throw Error('Expected complete 310-video archive metadata');
+const references=rows.filter(r=>r.video===r.ref);if(references.length!==31)throw Error('Expected 31 reference groups');
+function label(table,id,column){const values=table.filter(r=>r.video===id);if(values.length!==1||typeof values[0][column]!=='string'||!values[0][column].trim()||!Number.isFinite(Number(values[0][column])))throw Error('Missing/invalid subjective label: '+id+' / '+column);return values[0];}
+const cases=rows.filter(r=>r.video!==r.ref).map(r=>{const ref=metadata.get(r.ref);if(!ref||ref.video!==ref.ref||Number(ref.w)!==3840||Number(ref.h)!==2160||Number(ref.frm_cnt)!==Number(r.frm_cnt)||Number(r.frm_cnt)!==Number(r.ref_frm_cnt))throw Error('Reference geometry/frame mapping differs');return {video:r.video,reference:r.ref,content:r.content,width:Number(r.w),height:Number(r.h),metadata_frames:Number(r.frm_cnt),bright:label(bright,r.video,'bright_mos'),dark:label(dark,r.video,'dark_mos'),decoded_alignment_verified:false,prediction:null};}).sort((a,b)=>a.video.localeCompare(b.video,'en'));
+if(cases.length!==279||new Set(cases.map(c=>c.video)).size!==279||references.some(r=>cases.filter(c=>c.reference===r.video).length!==9))throw Error('Expected 31 x 9 distortions');
+const inventory=JSON.parse(fs.readFileSync(path.join(dataset,'metadata/videos.json'),'utf8').replace(/^\uFEFF/,'')),names=new Set(inventory.map(v=>path.posix.basename(v.FullName,'.mp4')));
+if(cases.some(c=>!names.has(c.video)||!names.has(c.reference)))throw Error('Archive names missing');
+const frames=cases.reduce((n,c)=>n+Math.ceil(c.metadata_frames/30),0);
+const manifest={scope:'all 279 distorted videos in supplied LIVE HDR archive; not author-confirmed original paper evaluation cohort',original_train_video_info_csv_verified:false,author_cohort_verified:false,excluded_references:references.map(r=>r.video).sort(),target:'bright_mos',recalibration:false,correlation_mapping:null,source_csv_sha256:hashes,cases};
+fs.mkdirSync(out);fs.writeFileSync(path.join(out,'full_archive_cohort.json'),JSON.stringify(manifest,null,2));
+fs.writeFileSync(path.join(out,'workload.json'),JSON.stringify({video_pairs:cases.length,reference_groups:references.length,phase:0,stride:30,selected_frames:frames,full_archive_metadata_verified:true,decoded_alignment_verified:false,quality_evaluation_complete:false,original_paper_reproduction_verified:false,avoided_float32_export_bytes:frames*2*3840*2160*3*4,raw_rgb16_png_payload_upper_bound_bytes:frames*2*3840*2160*3*2,note:'PNG payload bound excludes container overhead; no disk quota or runtime guarantee'},null,2));
+console.log(JSON.stringify({video_pairs:cases.length,reference_groups:references.length,selected_frames:frames,author_cohort_verified:false}));

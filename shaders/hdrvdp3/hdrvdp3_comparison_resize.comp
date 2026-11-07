@@ -1,0 +1,27 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Source {double v[];} sourceImage;
+// Per destination coordinate: normalization, (source index, Double weight)*taps.
+layout(set=0,binding=1,std430) readonly buffer Plan {double v[];} axisPlan;
+layout(set=0,binding=2,std430) writeonly buffer Output {double v[];} destination;
+layout(push_constant) uniform Parameters {
+ uint count;uint width;uint height;uint targetWidth;
+ uint targetHeight;uint taps;uint horizontal;uint unused;
+} params;
+void main(){
+ uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;
+ if(i>=params.count)return;
+ uint x=i%params.targetWidth,y=i/params.targetWidth;
+ uint coordinate=params.horizontal!=0?x:y;
+ uint offset=coordinate*(2*params.taps+1);
+ precise double sum=0.0;
+ for(uint tap=0;tap<params.taps;tap++){
+  uint index=uint(axisPlan.v[offset+1+2*tap]);
+  uint position=params.horizontal!=0?y*params.width+index:index*params.width+x;
+  precise double product=sourceImage.v[position]*axisPlan.v[offset+2+2*tap];
+  sum=sum+product;
+ }
+ precise double result=sum/axisPlan.v[offset];
+ destination.v[i]=result;
+}

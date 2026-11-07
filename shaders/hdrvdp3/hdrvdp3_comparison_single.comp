@@ -1,0 +1,24 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Reference {float v[];} reference;
+layout(set=0,binding=1,std430) readonly buffer Test {float v[];} testImage;
+layout(set=0,binding=2,std430) writeonly buffer Mask {float v[];} mask;
+layout(push_constant) uniform Parameters {uint pixels;} params;
+// Inputs: three planar native RGB channels, finite and >= 1e-6f.
+// CPU semantics: roundFloat(abs(roundFloat(test-ref))/ref) > 0.001f.
+// The threshold has odd significand (0x3a83126f). Its upper rounding
+// midpoint therefore belongs to the next (even) Float32, hence >=.
+// midpoint has 25 significant bits; ref has 24. Product is exact in Double.
+void main(){
+ uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;
+ if(i>=params.pixels)return;
+ double midpoint=(double(uintBitsToFloat(0x3a83126fu))+double(uintBitsToFloat(0x3a831270u)))*0.5;
+ bool changed=false;
+ for(uint c=0;c<3;c++){
+  uint k=c*params.pixels+i;
+  precise float delta=testImage.v[k]-reference.v[k];
+  changed=changed || double(abs(delta))>=double(reference.v[k])*midpoint;
+ }
+ mask.v[i]=changed?1.0:0.0;
+}

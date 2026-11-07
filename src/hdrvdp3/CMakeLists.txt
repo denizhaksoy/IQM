@@ -31,6 +31,9 @@ add_library(IQM-HDRVDP3 STATIC
     general_quality_single.cpp
     general_single_pathway.cpp
     projection_single_gpu.cpp
+    comparison_single_gpu.cpp
+    mutual_single_gpu.cpp
+    comparison_resize_gpu.cpp
     srgb_display.cpp
 )
 add_library(IQM::HDRVDP3 ALIAS IQM-HDRVDP3)
@@ -41,6 +44,7 @@ target_include_directories(IQM-HDRVDP3
         PRIVATE "../../include"
         PRIVATE "../../shaders_out"
         PRIVATE "../../bin/shared"
+        PRIVATE "../../bin/IQM"
         PRIVATE "../../lib/VkFFT/vkFFT"
 )
 

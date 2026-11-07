@@ -1,6 +1,573 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-11-04 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-11-07 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Latest 2026-11-07: user authorized publication; selective source/docs checkpoint
+
+User explicitly requested publishing relevant changes while tests continue.
+Selected56source/docs files recorded validation/github_publish_20261107_run01/files.json.
+JSsyntax checks and gitdiff whitespace checks passed. Existing C++ builds and
+measuredGPU/ref acceptance recorded above; no running numeric jobs modified.
+Publication excludes dataset/validation/binaries/shaders_out/AGENTS/backupdumps,
+protected stagedcorrDn shader and dirtyVkFFT. Commit mustuseexplicitselected
+paths so unrelated pre-existing stagedshader staysstagedunchanged.
+Currentfullrun02checkpoint6completed/279activeCourtYard; notfullarchivepass.
+Updated acceptanceclaim docwithdatedcompletedvalidation andpendingfullscope.
+Nextfinishcommit/push, verifyremoteHEAD andprotectedindex/worktreehash; retain
+receipt under github_publish_20261107_run01. Neverinferpushsuccessbeforeverification.
+
+## Latest 2026-11-07: third video accepted and independently audited; fourth active
+
+Hidden run02controller24612 andwatcher15416 remainlive. Checkpointcompleted3/279,
+active1080p_1M_Chasing1. Itsfirst2frames(index0,30) exact;index60reference+C++
+active atlatestlog. Actualexperimental21472/Octave22392 observed earlier thisturn;
+PIDschangeperframe, checkliveprocesses. No failure/auditwatcherfailure recorded.
+CenterPanorama COMPLETE21/21, mean8.756434440612793 exact. Independently ran
+read-only auditVideo againstcompletedthirdvideo, passedPNG/MP4/runtimehashes,
+profiles/timing/indices,GPUcounts,scorebits and reconstructedSinglemeans.
+Evidence run02/centerpanorama_independent_audit_20261107.json. Fullarchive
+completed3videos/61frames, plus separatelyacceptedDaylightpilot16; nofullcohort
+correlation claimed. All529maskstageacceptance remainscomplete. Currentaction:
+letactivefullcohortrun andautomaticindependentauditwatcherproceed; inspectactual
+failureifany, doNOTmodifyactive runner/auditsources orrestarthealthyjobs.
+No commit/push/outboundmessages. Historicalreferenceanomaly/paperprotocolgaps
+remainunresolved. No universalparityclaim.
+
+## Latest 2026-11-07: pilot COMPLETE; full evaluation resumed with preserved audited prefix
+
+Pilot live_hdr_compact_daylight_20261107_run02 COMPLETE16/16 exact; orderedSingle
+mean8.4828519821166992 matches preserved original bits. Full run01 passed pilot
+gate and completed Bonfire18frames andCargoBoat22frames. Both independently
+positively audited using audit_live_hdr_full_compact.auditVideo: scorebits,
+source/runtimehashes, decodedalignment, GPUstagecounts and reconstructedmeans.
+Evidence run01/preserved_prefix_audit_20261107.json. Means5.077406883239746 and
+5.730493545532227 respectively. Thus finalaudit helper has realpositivecoverage.
+
+At this turn no node/Octave process remained; run01 had stopped at CenterPanorama
+frame90 reference+C++, nofailurefile. DO NOT describe oldcheckpoint asstillactive.
+Original interrupted artifacts and40acceptedframes preserved. Created
+ tests/resume_live_hdr_full_compact.cjs from priorcontroller; fresh run02 audits
+and references the2complete priorvideos, never overwrites them; interruptedthird
+video restarts fresh. Pilot16reused onlythroughpreviouspreservedscore/hashgate.
+Active newroot validation/live_hdr_full_scores_20261107_run02, latestcompleted2,
+active1080p_1M_CenterPanorama. Newrunner source itself unchanged/frozen.
+Started explicit hidden background Node via Start-Process, controllerPID24612,
+stdout/stderr validation/full_compact_run02_{stdout,stderr}.log. Tool session32587
+mayremain dueinheritedprocesshandles; processPID/checkpointsareactualevidence.
+New watcher tests/watch_live_hdr_full_audit_run02.cjs hiddenPID15416(session22362),
+usesrun02root; logs validation/full_audit_run02_{stdout,stderr}.log. It awaits
+full279/4716thenindependentaudit. Oldwatcherwasnotrunning andoldfilesretained.
+
+Next inspect run02processes/checkpoint/failure andCenterPanoramaprogress; ifno
+processesdoNOTclaimbackgroundwork. All529resize stage acceptance remainscomplete.
+No commit/push/outboundmessages; protectedshader/VkFFT/oldexports retained.
+Originalreferenceanomaly andoriginalpaperprotocolgapsremainunresolved.
+
+## Latest 2026-11-07: resize529 stage sweep COMPLETE; final audit watcher running
+
+Resize continuation61579 finished189/189 and passed posthash/error audit.
+Combined340preserved+189new=529unique frames /1,456,866,000Double values exact.
+Final evidence comparison_resize_live_continuation_20261107_run01/completion_audit.json.
+Original stopped-prefix root remains unchanged (its oldstatus not rewritten).
+Updated COMPARISON_RESIZE_GPU_VALIDATION.md andNov7daily toactualcompletedstage
+scope, not new529completequality predictions. FullGPU stillfalse.
+
+Pilot46293 latest13/16frames exact throughindex360; frame390reference+C++active.
+No failure file. Controller20309 waiting for pilotcomplete16+preservedcomparison
+gate, then full279. Actual node/Octave processes observed. Do not duplicate jobs.
+Added tests/watch_live_hdr_full_audit.cjs, syntaxpassed, registeredACTIVEsession
+62115. root live_hdr_full_scores_20261107_run01/audit_watcher.json stagewaiting.
+Snapshots/hashes independent audit source; checks fullcontroller failures; runs
+independent finalaudit onlyafterfullcomplete+passed and enforces279/4716coverage.
+Outputs independent_audit.json/log andwatcherstate; failures separatepreserved
+ audit_watcher_failure.txt. Activeaudit source mustnotchange meanwhile.
+No universal/paperreproduction claim; oldreference anomaly unresolved. No commit,
+push,externalmessages. Next monitorpilot/controller/watcheraudit; investigate
+first actualfailure ifany, otherwise letfullsuppliedarchiveevaluationrun.
+
+## Latest 2026-11-07: pilot first frame exact; independent final audit prepared
+
+Pilot46293 live_hdr_compact_daylight_20261107_run02 frame0000 EXACT at23:12:15Z;
+Q40826c85/JOD409d6d04 match preserved Daylight, now frame0030decode. Both official
+and C++ processes completed frame0 successfully. Full controller20309 remains
+waiting for complete16-frame gate. No mismatch/failure observed; not fullpass.
+Resize61579 latest109/189 new (plus340preserved=449/529),300186000newDoublevalues.
+No numerical failure. Continue observing actual processes/checkpoints.
+
+Added tests/audit_live_hdr_full_compact.cjs, read-only acceptance/correlation
+helper using existing compensated Pearson/tie-aware Spearman functions. Requires
+all279complete, reconstructs Singlemeans from individual official/C++ hex scores,
+checks frameindex/timestamps/phase/stride/PPD, PQreferenceprofile, PNG+MP4+runtime
+hashes, actual GPUdispatch counts and validationlogs. No partial-cohort statistical
+claim, fitting or paper reproduction flag. Node syntax passed; negative test
+correctly rejected unfinished pilot before any output. Full positive audit still
+pending actual data completion. No active runner/controller sources modified.
+Command after controller completes:
+node tests/audit_live_hdr_full_compact.cjs validation/live_hdr_full_archive_20261106_run01/full_archive_cohort.json validation/live_hdr_full_scores_20261107_run01 validation/live_hdr_full_scores_20261107_run01/independent_audit.json
+Do not run prematurely or relabel529-stage sweep as fullscore validation.
+No commit/push/externalmessages. Original football reference anomaly remainsopen.
+
+## Latest 2026-11-07: compact16 accepted,310video inventory complete, full archive controller queued
+
+Compact reference equivalence session6993 PASSED16/16 after exact Float32 extrema
+bit comparison (full linear/source hashes and Q/QJOD bits exact, no tolerance).
+Artifact compact_reference_equivalence_20261107_run01/checkpoint.json complete.
+Staging24832 COMPLETE310/310 ZIP byte-verified MP4s and ffprobe HDR/header counts;
+artifact live_hdr_full_archive_staging_20261107_run01/inventory.json. This does
+NOT yet prove full decode/timestamp alignment or author cohort identity.
+
+Added tests/run_live_hdr_compact_video.cjs: fresh PNG decode, decoded frame count/
+timestamp matching, phase0/stride30, compact official PNG scorer and frozen
+experimental matrices/comparison/mutual/resize C++ runtime, exact Q/QJOD bits,
+4+1+6+8 GPU dispatch gates/no validation errors, ordered Single video mean.
+Single worker. No previous-reference reuse or persistent Float32 image exports.
+Initial preflight run01 cancelled before numerical evaluation: stale legacy
+resumed variable found and removed. Cancellation record preserved. Corrected
+pilot ACTIVE session46293, root live_hdr_compact_daylight_20261107_run02.
+Latest progress frame0000 official+C++;16frames total. Check failure/progress.
+
+Added tests/run_live_hdr_full_compact.cjs controller, ACTIVE session20309, root
+live_hdr_full_scores_20261107_run01. Waiting for pilot16 completion; checks every
+pilot PNGhash and frameQ/QJOD vs preserved Daylight original, plus Singlemean,
+then stages accepted279 manifest/inventory gate and sequentially evaluates all
+279videos/4716frames (pilot reused only after exact workflow gate). Each video
+performs full timing checks/fresh reference and C++ scores. Stops on first failure;
+retains evidence. accepted_videos.json and checkpoint record progress. Never treat
+missing checkpoint updates as proof process alive: inspect node/process/failure.
+Runner/runtime frozen artifacts must not change during this run. No claim of
+paper reproduction; no author split or historical anomaly resolution inferred.
+
+Resize continuation61579 still ACTIVE: latest93/189 new masks,256122000Double
+values, plus preserved340. It validates all inputs/runtime before and after and
+writes combined completion_audit only at actual completion. Stage-only coverage.
+
+Next: monitor pilot46293/controller20309/resize61579. If pilot/controller fail,
+inspect retained evidence, never overwrite/relabel failed outputs. Upon full
+completion perform independent aggregation/MOS correlations on declared full
+archive (unfitted rawPLCC/SROCC), retaining distinction from unknown paper split.
+Update acceptance/daily docs with final verified counts. No commit/push or author
+messages in this session. Protected stagedshader/VkFFT/old artifacts preserved.
+
+## Latest 2026-11-07: compact reference verification and full supplied archive preparation
+
+Read preceding handoff before continuing. Full archive manifest builder corrected to
+validate actual bright_mos/dark_mos columns (previous nonexistent mos rejected).
+Artifact validation/live_hdr_full_archive_20261106_run01: 31 references, 279
+unique distorted videos, phase0/stride30 selects4716 frame pairs. This is supplied
+archive coverage, NOT author-confirmed paper split. No new quality predictions.
+Avoiding persistent Float32 image exports saves938793369600bytes; rawRGB16 PNG
+payload bound469396684800bytes excluding overhead. Disk available ~724GB measured.
+Staging310 MP4s/ZIP byte verification/ffprobe headers running session24832:
+validation/live_hdr_full_archive_staging_20261107_run01. Inspect completion/failure.
+
+Compact PNG official scorer and verification scripts added. Original run
+validation/compact_reference_equivalence_20261106_run01 finished16/16 matching
+Q/Q_JOD bits AND full source/linear SHA256 hashes, but strict JSON extrema Double
+comparison failed in10cases: decimal serialization changed lastdigits of values
+originally Single. All differing extrema encode identical Float32 bits. Corrected
+verification requires identical Float32 extrema bits (NO tolerance) plus full
+image hashes, classes/profile/score bits. Original failed report preserved.
+Fresh rerun session6993 validation/compact_reference_equivalence_20261107_run01:
+14 synthetic cases exact; two real cases pending at lastcheck. Do not accept compact
+workflow or launch full numerical cohort until final16/16 pass and tree posthash.
+
+IMPORTANT old resize sweep was NOT still running: checkpoint340/529 exact,
+936360000 Double values; no corresponding Node/probe process. No numerical failure
+reported in preserved log. Source root comparison_resize_live_20261106_run01
+unchanged. Added tests/continue_comparison_resize_live.cjs, validates frozen
+runtime/model and all529PNG hashes, checks340 preserved results/order/counts,
+then runs remaining189 in FRESH directory. Active session61579 root
+validation/comparison_resize_live_continuation_20261107_run01. Requires final
+posthash+combined529 completion_audit before claiming full stage sweep pass.
+Still stage-only, not529new completequality predictions. No old files rewritten.
+
+Next: inspect sessions6993/24832/61579 and their checkpoints/logs; retain failures.
+After compact16/16 pass, implement compact pair/cohort runner and verify against
+one previously accepted video before full279 evaluation. Original football150
+reference anomaly remains unresolved; original paper cohort/settings still need
+author confirmation. No commit/push/external messages; dirty VkFFT/protected
+staged corrDn shader and all old reference artifacts preserved.
+
+## Latest 2026-11-06: Daylight complete; Double mask resize GPU validated, 529-mask sweep active
+
+Daylight81776 COMPLETED16/16+video mean exact4107b9c3. Independent savedresult
+completion_audit_20261106_run01.json confirmedallframes/stagecounts/mean and
+source-pair dedup:513+16=529distinctrealpairs,28videos/fourcontents. Synthetic
+14settingcases contain12distinctPNGpairs (128square reusedfor3PPDs); corrected
+docs toavoidcallingthem14uniqueimages. Historicalreferenceoutlier stillopen.
+
+Implemented comparison_resize_gpu.h/.cpp and hdrvdp3_comparison_resize.comp:
+Doublebinarymask, CPUexistingaxisplans, DoubleGPUproduct/sum/divide withprecise
+NoContraction, symmetricindices, horizontalthenvertical, identityaxesskip.
+Separate input/plan/output buffers; enabledFloat64required, storageranges
+checkedbeforeallocation; dims<=16384, source/target/intermediate<=4Kpixelcount.
+Standalone resize-probe session50343 PASSED26cases/11068767Doublevalues incl
+singleaxis/up/down/odd/zero/one/random andreal4Kmasks; identitycomparisons included
+with0dispatches. NativeDoubledivision passed, no correction/tolerance introduced.
+Artifact validation/comparison_resize_acceptance_20261106_run01.
+
+Added optional SingleComparisonResizeBackend to qualityandinmemorygeneralAPI;
+outputshape/finitevalidation (noincorrect0..1clamp ofbicubicringing). Defaults
+retainCPU. Library sourceadded; qualityharnessnowacceptsoptionalresizeshader.
+Isolation98536 PASSED sixbanderrors/basefreq/Q40ec7071/JOD41038aea,6resizecalls/
+8dispatches plus1comparison+6mutual. Artifact comparison_resize_quality_
+20261106_run01. Uses reference savedstages; NOTindependentendtoend.
+
+Existing mutualexperimentalCLI has explicitOPTIONAL --comparison-resize-shader;
+newbackend experimental-vulkan-matrices-comparison-mutual-resize-cpu-fftw.
+Requiredflagsremainunchanged foroldprofiles. gpu_stagesJSON nowseparatesresize
+calls/dispatches; full_gpu remainsfalse. Allfourapplications compiled(session
+20093 exit0), nofrozenpriorruntimecopies changed. Newwrapper
+run_live_hdr_resize_experimental.cjs syntaxpassed. Independentfootball150PNG
+run98326 PASSED exactlatercleanstockbits with4matrix+1comparison+6mutual+8resize
+GPUdispatches, noVulkanerrors. Artifact live_hdr_resize_e2e_20261106_run01.
+
+Profilematrixrunner extendedwith explicit optional `all resize` (oldselection
+syntaxunchanged). Newresize-enabled14/14 cases PASSED19197; CPU/GPU/freshclean
+reference bits exact, masksresizecounts2*(bands-2) andcalls=bandsverified.
+Artifact hdrvdp3_resize_profile_matrix_20261106_run01, source snapshots plus
+completion_audit.json. Standalone/quality/E2E/newmatrixprovenance frozenunder
+comparison_resize_shader_20261106_run01, comparison_resize_runtime_
+20261106_run01. OriginalLIVEpreprocessing/scoringfiles unchanged.
+
+Added resize-live-probe CMake target/verify_live_comparison_resize.cpp and
+run_comparison_resize_live_sweep.cjs. Recomputes established CPU RGB16PQ/color
+nativecomparisonmasks fromoriginalPNG; tests ONLYnewDoubleGPUresize againstCPU
+at4downsampledtargets (2754000Doublevalues/frame,8dispatches), noFFT/JND ornew
+qualitypredictions. Hostnativeformula/order matchesacceptedpipeline andcompiled
+strict. Parent verifies529uniquePNGpairs/precedingacceptance/newmatrix, freezes
+probe/shader/models, pre/posthashesimages/runtime/model andfails VUID/errors.
+Source snapshots/provenance retained. Build48829 passed; launcher syntaxpassed.
+ACTIVE session66997, root validation/comparison_resize_live_20261106_run01.
+Parentstatus evaluating_resize_masks; latestchildresults/checkpoint97/529 exact,
+267138000Doublevalues, nofailure. Node30900/probe13556 verifiedlive. IMPORTANT:
+thisisstage-onlycoverage, NOTfresh529fullscorevalidation ofnewresizeprofile.
+Oldcombinednonresizebackend529scoresremaincomplete. DoNOTeditactiveprobe/
+launcher sources orduplicatejob. Laterfinalacceptancealsoawaitsposthashaudit.
+
+Added COMPARISON_RESIZE_GPU_VALIDATION.md; updatedNov6daily/profilematrixdocs.
+Protectedstagedshaderblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 andworking
+SHA03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6 confirmed
+unchanged; dirtyVkFFT/oldexports preserved. No commit/push/externalmessages.
+NEXT: monitor66997 parentstatus ANDresults/checkpoint; auditactual529counts,
+values andpostinputchecks oncompletion. Prioritize remainingreal-dataset scope
+andhistoricalreferenceanomaly/paperprotocol overunneededrepeats ofpassedtests.
+A compactfreshreferencePNG-to-score path couldenablefull279-distortion archive
+coverage withoutpersisting~1TBFloat32preprocessingexports; mustvalidateitsinput
+hashes/scores againstoldcleanruns first. Originalpapercohort/phase/backenddetails
+stillunverified; no universal/fullGPU/papercompletionclaim. Usertarget10business
+days isplanningestimate, externalauthorinformationmayblockpaperidentityclaim.
+
+## Latest 2026-11-06: 14 new profiles exact; Daylight1 backend run active
+
+User authorized further implementation/testing. Added deterministic RGB16PQ
+fixture generator generate_hdrvdp3_profile_fixtures.m, explicitPPD preparation
+prepare_hdrvdp3_quality_profile.m (new file; originalLIVE prep unchanged), and
+run_hdrvdp3_profile_matrix.cjs. No metricalgorithm/CMake changes this turn.
+Initial matrix session21539 COMPLETED12/12 exact:96x80/80x96,127x95/95x127,
+128squarePPD26/128/256,17x33PPD32,33x17PPD128, PQresize17x29->31x47 and59x41->
+47x31, identicalinput. Both CPU and frozen combinedGPU PNG-to-score results
+matched fresh cleanofficialv3.0.7 Q/QJOD bits, noVulkanerrors,3..6mutualdispatches.
+Extended generator supports selection; second session61731 COMPLETED2/2 exact:
+256squarePPD256 (7mutual) and512squarePPD256 (8mutual). No repeatofpassed12cases.
+Artifacts validation/hdrvdp3_profile_matrix_20261106_run01/run02, source snapshots
+match originalscriptSHA at eachrun (run01saved beforegenerator/runnerextension).
+Fresh completion_audit.json forboth verifiedinputs/source snapshots/score bits.
+Referencefulltreefingerprints before/after unchanged. Modelsettings age24OLED,
+SingleFFTW3estimate,ambient200lux/.005,peak2000; variedPPD explicitly as APIinput,
+not assumed originalphysicalviewinggeometry. These are synthetic, not LIVE/MOS.
+
+Added verify_additional_live_hdr_backend.cjs for separateacceptedvideo (supports
+legacyplans withoutrewritingthem; verifies IDsfrommetadata+hashedMP4paths).
+Checks oldcompleteacceptance/timing/profile, copiedmodels/FFTW, framepnghashes,
+newindependentPNG-to-scoreCPU/GPUprofilecounts, finalSinglemean vsindependent
+oldOctaveaggregation;2workers, fails/drains onerror, oldevidencehashchecked.
+Launched session81776 on4k_3M_Daylight1/4k_ref_Daylight1 (16samples), frozen
+runtime fromcompleted513sweep. Artifact validation/live_hdr_daylight_mutual_
+20261106_run01. Latest2/16exact, stage running; node20660 withtwo wrappernodes
+26524/30372 andused24672/25500 observed. No algorithmfixes claimed thisturn.
+Original513/27/fulltestcompletion remains valid; newDaylightcontent outside
+that3-contentgroup extends combinedbackendcoverage ifall16pass. Previously
+acceptedoldDaylightreference records reused withprovenance, notnewstockruns;
+14syntheticcases hadfreshstockruns. No originalscorefiles removed/overwritten.
+
+Added HDRVDP3_PROFILE_MATRIX_VALIDATION.md; updateddailyNov6 withnewtests.
+No commit/push/newexternalmessages. Historical football150 referenceoutlier and
+originalpapercohort/protocol remainunresolved; remainingstagesCPU. No universal
+orfullGPUcompletionclaim. NEXT: monitor81776, independently audit16frames/mean
+oncompletion; updateacceptance scope with513+separatenewcontent/14synthetic
+withoutdoublecounting orclaimingpaperdatasetreproduction. Do notduplicatejobs.
+
+## Latest 2026-11-06: FULL LOCAL SWEEP COMPLETE 513/513, 27 exact means
+
+User requested status. Verified checkpoint complete=true,stagecomplete,513/513
+and27videos. Finished12:59:34UTC (13:59Prague). progresslogCOMPLETE andall27
+video_means exact. No node/used testprocesses found atstatuscheck.
+Ran fresh saved-result audit completion_audit_20261106_run01.json:513unique
+acceptedrecords matchapplication/result/reference bits; all4matrix+1comparison+
+6mutualstage counts correct, no reportedVulkanerrors; all27means markedexact
+withconsistentframecounts. This audit checks savedrecords, not a freshimage
+rehash/recomputation. Artifactrootlive_hdr_mutual_all_frames_20261105_run01.
+Added tests/HDRVDP3_DAILY_PROGRESS_2026-11-06.md. CurrentchainFINISHED, notrunning.
+Supportedclaim: documentedSinglequalityprofile matchesacceptedofficialv3.0.7
+on513localpairs and27means. Historicaloutlierunresolved; originalpapercohort/
+settings unverified; remainingstagesCPU. No universal/paper/fullGPUcompletion.
+No commit/push/newnumericaljobs. NEXT: usecompletionevidence foracceptancereport,
+prioritize unresolvedhistoricalreferencecase andmissingpaperprotocol/broader
+scope ratherthan repeatingpassedcurrentprofiletests withoutnewreason.
+
+## Latest 2026-11-06: 276/513 exact, ETA about 2.5-3.5 active hours
+
+Status-only check: full sweep evaluating_all_frames,276/513 exact at11:03:31UTC.
+237frames remain. Recent pair throughput~83seconds/2frames implies~2.73hours;
+report conditional2.5-3.5hours, no interruption/no failures assumed. Node25480
+andtwo used processes live. No source/runtime edits, restarts or newjobs.
+NEXT: monitor89500 completion andfinalvideo_means; historical flags remainopen.
+
+## Latest 2026-11-06: full backend sweep108/513, live after long log gap
+
+User requested current status. Actual checkpoint evaluating_all_frames108/513
+at09:18:54UTC; everycompletedframe EXACT, nofailure marker. Node25480 plus two
+wrapperNodes19444/34072 andused20540/22332 verified live. video_means.json not
+present yet (expected untilallframesfinish). Log gap from2026-11-05T17:28:53UTC
+(106accepted) to2026-11-06T09:18:52UTC (107accepted). Cause not established;
+do notassert machine sleep asfact orclaim uninterruptedovernight execution.
+Prior6-10h estimate wasactive-run estimateconditional onuninterrupted execution.
+405frames remain; recent active throughput~2frames/90seconds suggests~5h,
+conservative5-7activehoursifunchanged/no furtherinterruptions. Allthree27/27
+representativeaudits remaincomplete. Historicaloutlier, authorprotocol andfullGPU
+coverage stillopen. No restart/newjobs/algorithmchange/commit/push thisstatus turn.
+NEXT: monitor live89500; inspect failures before rerun; final means/acceptance
+onlyafter513complete. Preserve currentruntime andallhistoricalevidence.
+
+## Latest 2026-11-05: all representative audits passed; full sweep14/513
+
+User requested completion estimate. Verified CPU/hybrid27/27 COMPLETE andmutual
+27/27 COMPLETE, comparison-only27/27 previously complete. Original recovery
+stage complete_local_validation_with_open_historical_discrepancy at16:04UTC.
+Full513 sweep active, started16:07:49UTC,14exact by16:18:25UTC; no failures.
+Observed first14throughput implies ~6.3h forremaining499ifunchanged; user-facing
+conservative estimate6-10h, conditional on uninterrupted execution/no failures,
+not estimateforwholepaper/fullmetriccompletion. Missingauthorprotocol/oldanomaly
+andremainingimplementationcoverage prevent a defensible dateforuniversalequality.
+Live Node25480 andtwo used processes verified; no restarts/sourcechanges.
+NEXT: monitorfullsweep89500 andvideo_means.json; donotrelabellocalcoverage as
+originalpaper/fullGPU. Update finalacceptance/report afteractualcompletion.
+
+## Latest status 2026-11-05: mask representative audit COMPLETE 27/27
+
+User emphasizes finishing rather than prolonged expansion. Verified live Node
+andused processes. Comparison-mask experimental audit COMPLETE27/27 exact.
+Original publicCPU/hybrid23/27; newmutual19/27; no failures reported. Full513
+continuation89500 waiting for mutualrepresentative completion, not started yet.
+No new implementation/scope or duplicatejobs this turn. Prioritize completion
+of current acceptance chain and transparent reporting of remaining limitations.
+Historical anomaly stillopen; no universalcompletionclaim. NEXT: monitor
+public/mutual audits andthen full513-frame backend sweep; investigate anyfailure.
+
+## 2026-11-05 status check: local cohort 27/27; public audit running
+
+User asked whether tests still run. Confirmed live Node processes10248/6224/
+26972; recovery receipt stage verifying_public_backends (15:03:25 UTC).
+Cohort checkpoint now27 accepted videos. Independent Octave statistics PASSED
+for27: both official andCPP rawPLCC0.901651002454527 andSROCC0.9352869352869352.
+Public backend checkpoint currently1/27 representative frames accepted, bothCPU
+andhybrid exact; remaining audit running. These are local cohort results only;
+author_cohort_verified false andhistoricalreferenceanomaly stillunresolved.
+No source changes/restarts/commit/push. NEXT: monitor recovery receipt andpublic
+backend checkpoint untilcomplete; retain distinction fromfullGPU/paperparity.
+
+## 2026-11-05: mutual GPU rounding fixed; full-frame continuation attached
+
+Implemented hdrvdp3_mutual_single.comp and mutual_single_gpu.h/.cpp. Exposed
+unchanged CPU stage as mutual_mask_single (geometry guard) for direct oracle.
+Preserves canonical transpose, zero padding, fx/fy order and32-row FMA-tail
+semantics. IMPORTANT: native prototype FAILED on Intel Arc Pro (run01:10/65
+bits at1x65). Native prototype on NVIDIA/Float64-enabled profile FAILED the
+subnormal probe (run02:1089/1089), although six real bands matched. Both rejected
+runs/logs/native SPIR-V preserved; these are new prototype failures, distinct
+from historical clean-reference football150 anomaly.
+
+Corrected kernel requires enabled shaderFloat64 and uses integer subnormal
+input/output, exact Double Float32 products, TwoSum residual and explicit RTE.
+Non-fused tails round product separately. No tolerance or CPU fallback.
+Corrected run03 passed29cases/19375889values. Expanded run04 PASSED35cases/
+19479447values incl all finite exponent ranges, largest finite inputs, normal/
+subnormal boundaries, portrait/landscape/tails and six real4Kbands. Device NVIDIA
+RTX A500 Laptop GPU. Sources/binary snapshot under run04/sources (CPU oracle
+from saved run03 source; expanded probe and corrected runtime current atbuild).
+Artifacts validation/mutual_gpu_acceptance_20261105_run01..run04 and
+validation/mutual_gpu_shader_20261105_run01 (native and corrected SPIR-V separate).
+
+Added optional SingleMutualBackend to quality, strict shape/finite/nonnegative
+output checks, nofallback. Single in-memory evaluate_general_quality_single now
+forwards optional comparison/mutual providers aswell as matrices. Existing
+callers retain defaults. Library includes mutual runtime. Quality isolation
+session18363 PASSED six GPUmutual+oneGPUcomparison; six band errors, basefreq,
+Q40ec7071/JOD41038aea equal CPU/laterstock. Artifact
+validation/mutual_quality_acceptance_20261105_run01. Scope saved reference stages,
+NOT independent end-to-end.
+
+Separate IQM-hdrvdp3-mutual-experimental target added (three required shaders,
+Float64 enabled). PNG-to-score football150 session63424 PASSED exit0 with4matrix
++1comparison+6mutual GPUdispatches, exact laterstock score bits, noVulkanerrors.
+No reference intermediates supplied. Artifact validation/live_hdr_mutual_e2e_
+20261105_run01. Wrapper run_live_hdr_mutual_experimental.cjs syntaxpassed,
+frozen exe/shaders andpre/postinput/model/runtime hashes. FullGPU remainsfalse.
+All4application targets build passed, final session35410 exit0 afterinmemory
+APIforwarding. Earlier build sessions20546/43619 also passed. No commits/pushes.
+
+Launched representative newprofile audit session54937:
+validation/live_hdr_mutual_backend_audit_20261105_run01; latest5/27exact.
+Existing publicCPU/hybrid recovery40374 now15/27exact; comparison-onlyaudit53049
+now21/27exact. All running, no actualfailure. Frozen runtime copies unchanged.
+Attached full513-frame continuation session89500 via new
+continue_live_hdr_mutual_frames.cjs, root
+validation/live_hdr_mutual_all_frames_20261105_run01. Currently WAITING fornew
+representative audit tocomplete; total_frames=0 untilverifiedplanbuilt. Then
+freezes/verifies same runtime/models, reaudits originalaccepted inputs, executes
+all513frames with2workers (freshlyrecomputes frame0too), checks exactbits and
+Singlevideo means. No officialscore replacement/recomputation; retainedhistorical
+anomaly/originalpaper/fullGPU flags. Failure stopsnewscheduling anddrainsactive
+workers. Upstreamfailureguard PASSED under live_hdr_mutual_frame_guard_
+20261105_run01 (its failed fixture isEXPECTED, not realcontinuationfailure).
+
+Updated dailyreport and MUTUAL_SINGLE_GPU_VALIDATION.md. Protectedshaderindex
+blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 andworkingSHA03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6
+verified unchanged; dirtyVkFFT/artifacts preserved. No externalmessages.
+NEXT: monitor40374/53049/54937 and89500 checkpoints; doNOTduplicatejobs ormodify
+activewrapper/auditor sources. Investigate anyfailure before rerun. Full local
+cohort historicalCPU27/27/513 remains accepted buthistoricaloutlier unresolved;
+newfullbackend513 acceptance isPENDING. Next boundedGPUstage candidate: bicubic
+resizing (preserve Float32 mixedweight/tap/division semantics and Doublemask
+path), then remaining FFT/adaptation/JND/CSF/pooling stages. Originalpapercohort
+andmissingexecutiondetails stillunverified; no universal100percentclaim.
+
+## 2026-11-05: independent experimental matrices+mask application passed
+
+User requested continuing toward reference-identical completion. Added separate
+IQM-hdrvdp3-mask-experimental target, with IQM_HDRVDP3_HYBRID andCOMPARISON macros.
+Requires projection/comparison shaders; Float64 explicitly enabled. Backend
+experimental-vulkan-matrices-mask-cpu-fftw; gpu_stages.json reports4matrix+1mask
+dispatches andfull_gpu:false. Existing CPU/hybrid profiles retain their behavior
+(extra GPU-stage metadata file only). All3 application targets compiled; build
+sessions75224/5581 completedexit0. No frozen active validation binaries changed.
+
+NEW independent PNG-to-score football150 run PASSED session6706 exit0, artifact
+validation/live_hdr_mask_e2e_20261105_run01/comparison.json. Q40ec7071 andJOD
+41038aea equal later cleanstock repeat1, notinitialoutlier. No reference
+intermediates supplied. New wrapper run_live_hdr_mask_experimental.cjs verifies
+input/profile/runtime hashes before/after, freezes exe/shaders, requires4+1GPU
+dispatches andfails any score/profile/Vulkan error. Syntaxcheckpassed.
+
+Added audit_live_hdr_mask_backend.cjs (syntaxcheckpassed), launched session53049
+forrepresentative frame0 ofeachaccepted27localvideos. Frozen executable,
+shaders/models under validation/live_hdr_mask_backend_audit_20261105_run01.
+Latestcheckpoint1/27exact;stage running. OriginalpublicCPU/hybrid sweep now4/27
+exact; recovery40374 stillinverifying_public_backends. Localcohort27/27,
+513uniquevideo-framepairs andindependentOctavestatistics alreadycomplete.
+Do notdoublecount experimental/publicreruns asnewimage-paircoverage.
+
+Updated comparisonvalidation/dailyreport/acceptance/investigation docs so old
+pending21/27 statements are identified ashistory. Historicaloutlier stillopen,
+originalauthorcohort/settings unverified andremainingstagesCPU. Prepared
+HDRVDP3_AUTHOR_REPRODUCTION_QUESTIONS.md asdraftONLY; no externalmessage sent.
+No claim ofuniversalbitparity/fullGPU/originalpaperreproduction. No commit/push.
+NEXT: monitor40374 oldpublicaudit and53049 newmaskaudit checkpoints; investigate
+anyfailure before rerun. After newprofile regression, extend remaining CPU->GPU
+stages independently andpreserve numerical order. Author-details draft lists
+externalinformation neededfororiginalpaperclaim; don'tinvent missing settings.
+
+## 2026-11-05: GPU comparison mask implemented and numerically validated
+
+Implemented comparison_single_gpu.h/.cpp and hdrvdp3_comparison_single.comp.
+Three separate buffers, preallocation device-range checks, explicit enabled
+shaderFloat64 requirement; finite native RGB >=1e-6f and <=4K domain. Shader
+uses precise Float32 subtraction and exact Double midpoint-product comparison
+for CPU Float32 division >0.001f semantics (threshold bits3a83126f).
+Added optional SingleComparisonBackend to evaluate_quality_single; default CPU
+and public four-matrix-dispatch hybrid behavior unchanged. Provider errors or
+nonbinary/wrong-size outputs fail, no silent fallback. Added library source and
+Bin header include path in src/hdrvdp3/CMakeLists.txt. New experimental runtime
+accepts Bin::VulkanInstance to check float64Enabled, not just physical support.
+
+Standalone CMake under tests/comparison_single_gpu and two diagnostics added.
+MSVC strict/EHsc build and glslc/spirv-val PASSED. Device measured this session:
+NVIDIA RTX A500 Laptop GPU (do not assume old Intel device context).
+Standalone run01:999995 near-threshold pixels,65 identical-tail,65 extremes-tail,
+8294400 real football150 native pixels; ALL bitwise CPU/GPU exact. Run02 repeats
+synthetics and independently tests another8294400 real native pixels from
+live_hdr_capture_20261101_run03/results; ALL exact. Do not double-count repeated
+synthetics as independent coverage. Validation enabled, no [ERROR] logs.
+Artifacts validation/comparison_gpu_acceptance_20261105_run01 andrun02;
+shader/logs/provenance (source/binary/input SHA256) in
+validation/comparison_gpu_shader_20261105_run01.
+
+Quality isolation session12327 completed exit0. Uses saved later reference
+native/adaptation/pyramid tensors (columnmajor transposed rowmajor), NOT an
+independent end-to-end test. Six band errors, Double base frequency and Q/JOD
+bits CPU vsGPU-provider exact; Q40ec7071/JOD41038aea, checked against saved
+reference score.json. One GPU mask dispatch, PPD62.729130063099447, FFTW3threads,
+estimate/cleared wisdom, unchanged base FFT DC zeroing. Artifact
+validation/comparison_quality_acceptance_20261105_run01/acceptance.json.
+Added validationdoc and tests/HDRVDP3_DAILY_PROGRESS_2026-11-05.md; original
+parallel-work plan has dated update preserving historical plan.
+
+Main CPU/hybrid rebuild session84464 COMPLETED exit0; both public targets linked.
+LIVE recovery40374 still active; 23/27 accepted, new football frame0/30 repeat2
+running. Frozen LIVE diagnostic/public-audit binaries/reference unchanged.
+Protected staged shader blob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 andworking
+SHA03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6 verified
+unchanged. Dirty VkFFT preserved. No commit/push this session.
+NEXT: monitor40374 and resume receipt. New GPU mask still needs
+independent end-to-end/application-profile validation before public adoption;
+remaining CPU stages/full configurations and historical reference anomaly open.
+
+## 2026-11-05: interrupted continuation recovered
+
+Read handoff and inspected actual processes: prior Node/Octave jobs no longer
+running; previous status was stale. Triplicate football diagnostic COMPLETED:
+17/17 frames, all three independent references and C++ exact; independent
+aggregation accepted, video mean Q_JOD 8.210325241088867.
+Continuation checkpoint accepted 23/27 videos (including 720p_2.6M_CargoBoat).
+720p_2.6M_football1 interrupted after eight exact frames; partial artifacts kept.
+Added tests/resume_live_hdr_verified_continuation.cjs; node --check passed.
+Recovery checks historical checkpoint/score hashes and rejects live lock owners;
+confirmed stale PID35856 absent, archived scheduler.lock into fresh receipt.
+Launched recovery session40374, receipt:
+validation/live_hdr_verified_continuation_20261104_run01/resume_20261105_run01.
+Live Node processes10248/13120/33604 observed. Pipeline reaudits accepted videos,
+then evaluates remaining four, retaining triple-reference requirements and fresh
+output directories (partial triple-reference scores are not reused). On success
+runs independent Octave statistics, full evidence audit and public CPU/hybrid
+representative checks. Historical anomaly remains unresolved; full GPU and
+original-paper reproduction not established. No commit/push this turn.
+NEXT: monitor session40374 and receipt/status.json; inspect any failure before
+restart. Keep frozen binaries/reference and active runner sources unchanged.
+Comparison-mask GPU implementation remains planned, not implemented or validated.
+
+## Latest:12/17triplicate passed; parallel GPU-stage preparation
+
+User asked whetherextraactionneeded oronlywait. Verified primary24612 and
+postprocess4240/continuation27396 active; currenttriplicate12/17 exact across
+ALL3refs+CPP. Newcontinuationstatusstillwaiting_for_repeated_video; nofailure.
+No actionneeded fromuser foralreadylaunched jobs beyondkeepingmachine/processes
+running. Finalscientificconclusion stilldepends onpendingevidence/openoutlier.
+
+Read-only codeaudit identified nextindependent GPUstage: comparisonmask in
+general_quality_single.cpp. Concrete4Kconstraint: packingtwoRGBinputsintoone
+buffer199065600bytes exceeds128MiBrange; use separate99532800byteRGBbuffers
+and33177600byteSinglemask. Division/thresholdrounding must beprovenbitexact;
+Float64feature mustbeexplicitlyenabledifused. Addeddesign/preparation doc
+tests/HDRVDP3_PARALLEL_GPU_WORK.md. NoGPUmaskkernel implemented orclaimedtested.
+Safeparallelwork canuse separate sources/build/shaderoutputs whilefrozen
+binaries/reference/active runner/scorer files remainunchanged. DefaultCPU and
+fourdispatchhybrid profiles mustnotchange untilnewstageverified.
+No algorithm/buildchanges thisquestionturn. Thisdoc/handoffupdate localonly;
+priorGitHubpublicationHEAD1e738b83f89101156a70e15c0ce6cbde6bb93259 remainsverified.
+NEXT: monitor98561/60532/84239 anddevelop isolatedcomparison-mask GPUprimitive,
+testthresholdboundarycases+real4Knativearrays beforeintegration; no blindfullGPU
+ororiginalpapercompletionclaim andnopreexistingdirtyfilecleanup.
 
 ## Published Nov4: hybrid CLI and strict LIVE validation code/docs
 

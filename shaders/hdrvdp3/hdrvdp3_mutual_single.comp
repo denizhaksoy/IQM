@@ -1,0 +1,65 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Reference {float v[];} reference;
+layout(set=0,binding=1,std430) readonly buffer Test {float v[];} testImage;
+layout(set=0,binding=2,std430) writeonly buffer Output {float v[];} outputMask;
+layout(push_constant) uniform Parameters {uint pixels;uint width;uint height;uint unused;} params;
+// Decode/round subnormals through integer bits: native GPU arithmetic may flush
+// these values. Float64 products of two Float32 values are exact. TwoSum keeps
+// the addition residual so a Double rounding tie cannot corrupt Float32 RTE.
+double decode(uint bits){
+ if(bits<0x00800000u)return double(bits)*1.4012984643248170709237295832899e-45;
+ return double(uintBitsToFloat(bits));
+}
+uint rounded(double value,double residual){
+ if(value<1.1754943508222875079687365372222e-38){
+  precise double scaled=value*7.1362384635297994052914298472475e44;
+  uint n=uint(scaled);double fraction=scaled-double(n);
+  if(fraction>0.5 || (fraction==0.5 && (residual>0.0 || (residual==0.0 && (n&1u)!=0u))))n++;
+  return n;
+ }
+ // Overflow midpoint of the largest finite Float32 and the next exponent.
+ double overflow=3.4028235677973366163753939545814e38;
+ if(value>overflow || (value==overflow && residual>=0.0))return 0x7f800000u;
+ if(value==overflow)return 0x7f7fffffu;
+ uint n=floatBitsToUint(float(value));
+ if(n==0x7f800000u)return 0x7f7fffffu;
+ double center=decode(n);
+ double lower=(decode(n-1u)+center)*0.5;
+ double upper=n==0x7f7fffffu?overflow:(decode(n+1u)+center)*0.5;
+ if(value==lower && residual<0.0)n--;
+ else if(value==upper && residual>0.0)n++;
+ return n;
+}
+uint addProduct(uint a,uint accumulator,bool fused){
+ if(accumulator==0x7f800000u)return accumulator;
+ precise double product=decode(a)*double(uintBitsToFloat(0x3de38e39u));
+ if(!fused)product=decode(rounded(product,0.0));
+ precise double previous=decode(accumulator);
+ precise double sum=product+previous;
+ precise double back=sum-product;
+ precise double residual=(product-(sum-back))+(previous-back);
+ return rounded(sum,residual);
+}
+// Preserve the existing strict Single CPU correlation order, including its
+// canonical transpose and the distinct FMA treatment of the final 32-row tail.
+void main(){
+ uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;
+ if(i>=params.pixels)return;
+ bool trans=params.width>params.height;
+ int cw=int(trans?params.height:params.width),ch=int(trans?params.width:params.height);
+ int ox=int(i%params.width),oy=int(i/params.width);
+ int x=trans?oy:ox,y=trans?ox:oy;
+ uint acc=0u;
+ for(int fx=0;fx<3;fx++)for(int fy=2;fy>=0;fy--){
+  int sx=x+fx-1,sy=y+fy-1;
+  uint value=0u;
+  if(sx>=0&&sy>=0&&sx<cw&&sy<ch){
+   uint k=trans?uint(sx)*params.width+uint(sy):uint(sy)*params.width+uint(sx);
+   value=min(floatBitsToUint(reference.v[k])&0x7fffffffu,floatBitsToUint(testImage.v[k])&0x7fffffffu);
+  }
+  acc=addProduct(value,acc,sy>=0&&sy<(ch/32)*32);
+ }
+ outputMask.v[i]=uintBitsToFloat(acc);
+}

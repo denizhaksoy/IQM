@@ -3,6 +3,28 @@
 The project has two independent acceptance targets. Passing one does not prove
 the other. GPU coverage is recorded separately from both.
 
+## Publication checkpoint: 2026-11-07
+
+The comparison, mutual-activity and optional Double comparison-mask resize GPU
+stages are implemented in separate experimental quality backends. The runtime
+remains hybrid; full_gpu=false. New shaders require enabled Float64 support.
+
+Completed evidence includes the combined non-resize backend on513+16distinct
+real frame pairs,14synthetic setting cases (12distinct image pairs),16/16compact
+reference workflow comparisons and529real-mask resize-stage checks covering
+1,456,866,000Double values with exact bits and final preservation audits.
+The new resize-enabled compact Daylight end-to-end pilot passed16/16frames and
+its orderedSingle video mean matched preserved reference results.
+
+All310supplied MP4s are ZIP-byte-verified and HDR stream headers checked.
+The declared full archive has279distorted videos/31reference groups and4716
+phase0/stride30samples. Its numerical evaluation is IN PROGRESS, not complete.
+At this publication check6videos were complete; the count is a dated checkpoint,
+not a claim that the full archive or original paper results have been reproduced.
+The original football150 reference discrepancy and undocumented author settings
+remain unresolved. Author questions are a local draft and have not been sent.
+Earlier dated scope below is retained as historical context.
+
 ## Numerical implementation equivalence
 
 Use clean official HDR-VDP-3 v3.0.7 on identical hashed image inputs, explicitly
@@ -20,9 +42,19 @@ Those choices are documented in `live_hdr_protocol.json`. This is a concrete
 supported profile, not evidence for every task, age, spectrum, dimension,
 numerical precision or GPU/driver combination accepted by the original metric.
 
-Required next evidence: finish the declared27video candidate cohort, audit
-each exact frame and mean, compute the complete-cohort statistics and independently
-verify those statistics with Octave. Record unsupported configurations and
+Update 2026-11-05: the fresh declared 27-video local continuation completed,
+including evidence auditing of 513 selected frame pairs and independent Octave
+statistics verification. Official and C++ predictions have identical local
+raw PLCC (approximately 0.901651) and SROCC (approximately 0.935287). The
+historical football150 discrepancy remains open and is retained in the analysis.
+Representative public CPU/hybrid checks are still running; this is not an
+original-paper reproduction or a result for all 279 archive distortion pairs.
+See the resume receipt under
+`validation/live_hdr_verified_continuation_20261104_run01/resume_20261105_run01`.
+
+Required next evidence: complete the public-backend audit, resolve or explicitly
+bound the historical discrepancy, and independently validate any new GPU stages.
+Record unsupported configurations and
 remaining CPU stages explicitly. Full GPU completion requires the remaining
 stages to execute on GPU and retain the required reference agreement; matrix
 dispatches alone do not establish that.
