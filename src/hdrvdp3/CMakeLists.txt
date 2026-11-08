@@ -33,6 +33,8 @@ add_library(IQM-HDRVDP3 STATIC
     projection_single_gpu.cpp
     comparison_single_gpu.cpp
     mutual_single_gpu.cpp
+    padding_single_gpu.cpp
+    adaptation_input_single_gpu.cpp
     comparison_resize_gpu.cpp
     srgb_display.cpp
 )

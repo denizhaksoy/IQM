@@ -1,0 +1,212 @@
+{
+  "scope": "completed local public LIVE HDR subset, not original paper cohort proof",
+  "videos": 25,
+  "frames": 433,
+  "all_exact": true,
+  "pairs": [
+    {
+      "video": "1080p_1M_Bonfire",
+      "reference": "4k_ref_Bonfire",
+      "frames": 18,
+      "reference_mean_Q_JOD": 5.077406883239746,
+      "cpp_mean_Q_JOD": 5.077406883239746,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_CargoBoat",
+      "reference": "4k_ref_CargoBoat",
+      "frames": 22,
+      "reference_mean_Q_JOD": 5.730493545532227,
+      "cpp_mean_Q_JOD": 5.730493545532227,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_CenterPanorama",
+      "reference": "4k_ref_CenterPanorama",
+      "frames": 21,
+      "reference_mean_Q_JOD": 8.756434440612793,
+      "cpp_mean_Q_JOD": 8.756434440612793,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Chasing1",
+      "reference": "4k_ref_Chasing1",
+      "frames": 18,
+      "reference_mean_Q_JOD": 7.9266533851623535,
+      "cpp_mean_Q_JOD": 7.9266533851623535,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Chasing3",
+      "reference": "4k_ref_Chasing3",
+      "frames": 14,
+      "reference_mean_Q_JOD": 8.323689460754395,
+      "cpp_mean_Q_JOD": 8.323689460754395,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Chasing4",
+      "reference": "4k_ref_Chasing4",
+      "frames": 16,
+      "reference_mean_Q_JOD": 7.701744079589844,
+      "cpp_mean_Q_JOD": 7.701744079589844,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_CourtYard",
+      "reference": "4k_ref_CourtYard",
+      "frames": 21,
+      "reference_mean_Q_JOD": 7.528592109680176,
+      "cpp_mean_Q_JOD": 7.528592109680176,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Daylight1",
+      "reference": "4k_ref_Daylight1",
+      "frames": 16,
+      "reference_mean_Q_JOD": 8.043368339538574,
+      "cpp_mean_Q_JOD": 8.043368339538574,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_firework",
+      "reference": "4k_ref_firework",
+      "frames": 21,
+      "reference_mean_Q_JOD": 5.652720928192139,
+      "cpp_mean_Q_JOD": 5.652720928192139,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Flowers",
+      "reference": "4k_ref_Flowers",
+      "frames": 23,
+      "reference_mean_Q_JOD": 6.7350921630859375,
+      "cpp_mean_Q_JOD": 6.7350921630859375,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football1",
+      "reference": "4k_ref_football1",
+      "frames": 17,
+      "reference_mean_Q_JOD": 7.7903523445129395,
+      "cpp_mean_Q_JOD": 7.7903523445129395,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football10",
+      "reference": "4k_ref_football10",
+      "frames": 17,
+      "reference_mean_Q_JOD": 7.638467311859131,
+      "cpp_mean_Q_JOD": 7.638467311859131,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football2",
+      "reference": "4k_ref_football2",
+      "frames": 17,
+      "reference_mean_Q_JOD": 7.783788204193115,
+      "cpp_mean_Q_JOD": 7.783788204193115,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football3",
+      "reference": "4k_ref_football3",
+      "frames": 16,
+      "reference_mean_Q_JOD": 7.859343528747559,
+      "cpp_mean_Q_JOD": 7.859343528747559,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football4",
+      "reference": "4k_ref_football4",
+      "frames": 14,
+      "reference_mean_Q_JOD": 7.79065465927124,
+      "cpp_mean_Q_JOD": 7.79065465927124,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football5",
+      "reference": "4k_ref_football5",
+      "frames": 17,
+      "reference_mean_Q_JOD": 8.081564903259277,
+      "cpp_mean_Q_JOD": 8.081564903259277,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football6",
+      "reference": "4k_ref_football6",
+      "frames": 16,
+      "reference_mean_Q_JOD": 7.919111251831055,
+      "cpp_mean_Q_JOD": 7.919111251831055,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football7",
+      "reference": "4k_ref_football7",
+      "frames": 16,
+      "reference_mean_Q_JOD": 7.992904186248779,
+      "cpp_mean_Q_JOD": 7.992904186248779,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football8",
+      "reference": "4k_ref_football8",
+      "frames": 16,
+      "reference_mean_Q_JOD": 8.104995727539062,
+      "cpp_mean_Q_JOD": 8.104995727539062,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_football9",
+      "reference": "4k_ref_football9",
+      "frames": 17,
+      "reference_mean_Q_JOD": 8.562650680541992,
+      "cpp_mean_Q_JOD": 8.562650680541992,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Furniture",
+      "reference": "4k_ref_Furniture",
+      "frames": 16,
+      "reference_mean_Q_JOD": 8.172066688537598,
+      "cpp_mean_Q_JOD": 8.172066688537598,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_golf1",
+      "reference": "4k_ref_golf1",
+      "frames": 16,
+      "reference_mean_Q_JOD": 8.02841567993164,
+      "cpp_mean_Q_JOD": 8.02841567993164,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_golf2",
+      "reference": "4k_ref_golf2",
+      "frames": 20,
+      "reference_mean_Q_JOD": 7.966817378997803,
+      "cpp_mean_Q_JOD": 7.966817378997803,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Light2",
+      "reference": "4k_ref_Light2",
+      "frames": 12,
+      "reference_mean_Q_JOD": 6.320251941680908,
+      "cpp_mean_Q_JOD": 6.320251941680908,
+      "exact": true
+    },
+    {
+      "video": "1080p_1M_Light4",
+      "reference": "4k_ref_Light4",
+      "frames": 16,
+      "reference_mean_Q_JOD": 7.732987403869629,
+      "cpp_mean_Q_JOD": 7.732987403869629,
+      "exact": true
+    }
+  ],
+  "blocked_video": "1080p_1M_Light3",
+  "full_archive_complete": false,
+  "full_gpu": false,
+  "original_paper_reproduction_verified": false
+}

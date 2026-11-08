@@ -1,0 +1,6 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint v[];} inputImage;
+layout(set=0,binding=2,std430) writeonly buffer Output {uint v[];} result;
+layout(push_constant) uniform P {uint count;uint width;uint height;uint unused;} p;
+void main(){uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(i>=p.count)return;uint x=i/p.height,y=i%p.height;result.v[i]=inputImage.v[2*(x*128+y)];}

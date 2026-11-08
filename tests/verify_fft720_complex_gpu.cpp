@@ -1,0 +1,15 @@
+#include "fft720_complex_gpu.h"
+#include <IQM/hdrvdp3/fftw_single_provider.h>
+#include <vulkan_instance.h>
+#include <bit>
+#include <fstream>
+#include <iostream>
+#include <random>
+int main(int argc,char**argv){try{
+ if(argc!=4&&argc!=5)throw std::runtime_error("Usage: shader fftw.dll fresh-out");std::filesystem::path out=argv[3];if(std::filesystem::exists(out)||!std::filesystem::create_directories(out))throw std::runtime_error("Fresh output required");IQM::Bin::VulkanInstance gpu(true,"",true);IQM::HDRVDP3::FFTWProviderSingle fft(argv[2]);using Complex=IQM::HDRVDP3::FFTWProviderSingle::Complex;auto make=fft.symbol<void*(*)(int,Complex*,Complex*,int,unsigned)>("fftwf_plan_dft_1d");auto print=fft.symbol<char*(*)(void*)>("fftwf_sprint_plan");IQM::HDRVDP3::FFTWProviderSingle::Memory input(fft,1440*4),output(fft,1440*4);std::mt19937 random(7404);std::ofstream rows(out/"results.jsonl");uint64_t count=0,values=0,mismatches=0;
+ for(bool inverse:{false,true}){fft.forget();void* plan=make(720,static_cast<Complex*>(input.data),static_cast<Complex*>(output.data),inverse?1:-1,82);if(!plan)throw std::runtime_error("Oracle plan");char* p=print(plan);if(!p||std::string(p).find("t1fv_15_avx2_128")==std::string::npos)throw std::runtime_error("Wrong oracle codelet");std::ofstream(out/(inverse?"inverse.plan.txt":"forward.plan.txt"))<<p;
+ for(unsigned batches:{1u,63u,64u,65u,513u,4096u}){if(argc==5&&batches!=63)continue;std::vector<float> samples(1440*batches),expected(samples.size());for(unsigned b=0;b<batches;++b){for(unsigned i=0;i<1440;++i){const float scale=b%4==0?.001f:b%4==1?1.f:b%4==2?1e4f:1e-20f;samples[1440*b+i]=b==0?1.f:b==1?(i==2?1.f:0.f):b==2?float(int(i)-3)/7.f:float(int(random()%20001)-10000)*scale;}std::memcpy(input.data,samples.data()+1440*b,1440*4);fft.execute(plan);std::memcpy(expected.data()+1440*b,output.data,1440*4);}
+ const auto actual=IQM::HDRVDP3::fft720_complex_gpu(gpu,argv[1],samples,inverse);if(actual.size()!=expected.size())throw std::runtime_error("Shape");size_t bits=0;for(size_t i=0;i<expected.size();++i)if(std::bit_cast<uint32_t>(expected[i])!=std::bit_cast<uint32_t>(actual[i]))++bits;if(batches==63){for(const auto& pair:std::initializer_list<std::pair<const char*,const std::vector<float>*>>{{"input",&samples},{"expected",&expected},{"actual",&actual}}){std::ofstream tensor(out/((inverse?std::string("inverse_"):std::string("forward_"))+pair.first+".f32"),std::ios::binary);tensor.write(reinterpret_cast<const char*>(pair.second->data()),pair.second->size()*4);}}rows<<"{\"inverse\":"<<(inverse?"true":"false")<<",\"batches\":"<<batches<<",\"bit_mismatches\":"<<bits<<"}\n";rows.flush();std::cout<<"fft720 inverse="<<inverse<<" batches="<<batches<<" bits="<<bits<<std::endl;count+=batches;values+=actual.size();mismatches+=bits;
+ }fft.destroy(plan);}
+ std::ofstream(out/"summary.json")<<"{\"exact\":"<<(mismatches?"false":"true")<<",\"transforms\":"<<count<<",\"values\":"<<values<<",\"bit_mismatches\":"<<mismatches<<",\"scope\":\"isolated720 complex transform, not4KFFT\"}";return mismatches?1:0;
+ }catch(const std::exception& e){std::cerr<<e.what()<<std::endl;return 2;}}

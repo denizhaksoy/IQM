@@ -1,0 +1,104 @@
+{
+  "date": "2026-11-08",
+  "scope": "copied compact measurements only; raw inputs, binary exports and validation directories remain local",
+  "fft_results": [
+    {
+      "artifact": "fft128_acceptance_20261107_run02",
+      "original_sha256": "af40670a5a98d068a4db2c40b0bae65e3672675abd4d1aa624914293e783c2ae",
+      "summary": {
+        "exact": true,
+        "cases": 16,
+        "values": 524288,
+        "bit_mismatches": 0,
+        "scope": "isolated128 FFT; not full metric or4K"
+      }
+    },
+    {
+      "artifact": "r2cf6_acceptance_20261107_run01",
+      "original_sha256": "62cf8013cf0d3c7bdf13a1ccbd5579764e210295c8c1146cabae3eaad32dd455",
+      "summary": {
+        "exact": true,
+        "transforms": 4802,
+        "values": 38416,
+        "bit_mismatches": 0,
+        "scope": "isolated r2cf6 leaf, not4KFFT"
+      }
+    },
+    {
+      "artifact": "n1_4_acceptance_20261107_run01",
+      "original_sha256": "cb5e2c106220f7a5fa11e7413d5eb31eb55ab96e011723c41ab55c151c18aa03",
+      "summary": {
+        "exact": true,
+        "transforms": 9604,
+        "values": 76832,
+        "bit_mismatches": 0,
+        "scope": "isolated n1_4 leaf, not4KFFT"
+      }
+    },
+    {
+      "artifact": "fft48_acceptance_20261107_run01",
+      "original_sha256": "91301e4a5bd2384821d503dc446b778ef16fa2cfeb0c851a5e14f41ea9f4ff07",
+      "summary": {
+        "exact": true,
+        "transforms": 9604,
+        "values": 921984,
+        "bit_mismatches": 0,
+        "scope": "isolated48 complex transform, not4KFFT"
+      }
+    },
+    {
+      "artifact": "fft720_acceptance_20261107_run01",
+      "original_sha256": "e8a8184b20ef7e9252f0f9c0bca070c2c6e748642323fe7ecd7b78d6862908b3",
+      "summary": {
+        "exact": false,
+        "transforms": 9604,
+        "values": 13829760,
+        "bit_mismatches": 2050572,
+        "scope": "isolated720 complex transform, not4KFFT"
+      }
+    },
+    {
+      "artifact": "fft720_acceptance_20261108_run01",
+      "original_sha256": "f0e74c00b1854fddd6725e7f3813d0cf52e7aeb6fed8349807c2ac4e545da454",
+      "summary": {
+        "exact": true,
+        "transforms": 9604,
+        "values": 13829760,
+        "bit_mismatches": 0,
+        "scope": "isolated720 complex transform, not4KFFT"
+      }
+    },
+    {
+      "artifact": "fft_t1fv6_acceptance_20261108_run01",
+      "original_sha256": "7de8b3c1568fd4427c8f945315e5149c605de5ca9682af74b82e86e3dc3e48fe",
+      "summary": {
+        "exact": true,
+        "values": 230496,
+        "bit_mismatches": 0,
+        "scope": "isolated native4K t1fv6 forward stage; not full FFT24 or4K transform"
+      }
+    },
+    {
+      "artifact": "fft_t3fv16_acceptance_20261108_run01",
+      "original_sha256": "72c7462b70bbac3b98db8ebf24fb1593f8c685f1f36f28dbaa14aac09bd48d7d",
+      "summary": {
+        "exact": false,
+        "values": 3687936,
+        "bit_mismatches": 610593,
+        "scope": "isolated native4K t3fv16 forward stage; not full FFT24 or4K transform"
+      }
+    },
+    {
+      "artifact": "fft_t3fv16_acceptance_20261108_run02",
+      "original_sha256": "5be0b685c6df4291170172c3470448158175d6cecc9281a61d12ebea65577bb8",
+      "summary": {
+        "exact": true,
+        "values": 3687936,
+        "bit_mismatches": 0,
+        "scope": "isolated native4K t3fv16 forward stage; not full FFT24 or4K transform"
+      }
+    }
+  ],
+  "full_gpu_quality_verified": false,
+  "universal_parity_claim": false
+}

@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Diagnostic ABI mirror from FFTW 3.3.10 kernel/ifftw.h, threads/ct.c,
+// dft/dftw-direct.c. Copyright 2003, 2007-14 Frigo and MIT.
+// Only this disposable probe uses internal layouts; no production API change.
+#include <IQM/hdrvdp3/fftw_single_provider.h>
+#include <windows.h>
+#include <fstream>
+#include <iostream>
+struct Plan{void*adt;double ops[4];double pcost;int awake,prune;};
+struct Dft{Plan super;void*apply;};
+struct CT{Dft super;void*child;void**twiddles;int threads;ptrdiff_t radix;};
+struct Twid{float*W;ptrdiff_t n,r,m;int refs;void*instr;void*next;int awake;};
+struct Direct{Dft super;void*k;ptrdiff_t r,rs,m,ms,v,vs,mb,me,extra,brs;Twid*td;void*solver;};
+void check(const void*p,size_t bytes){MEMORY_BASIC_INFORMATION x{};if(!p||!VirtualQuery(p,&x,sizeof(x))||x.State!=MEM_COMMIT||(x.Protect&(PAGE_NOACCESS|PAGE_GUARD))||reinterpret_cast<uintptr_t>(p)+bytes>reinterpret_cast<uintptr_t>(x.BaseAddress)+x.RegionSize)throw std::runtime_error("Unexpected internal pointer");}
+int main(int argc,char**argv){try{if(argc!=3)throw std::runtime_error("Usage DLL fresh-out");std::filesystem::path out=argv[2];if(std::filesystem::exists(out))throw std::runtime_error("Fresh output required");std::filesystem::create_directories(out);IQM::HDRVDP3::FFTWProviderSingle fft(argv[1]);using C=IQM::HDRVDP3::FFTWProviderSingle::Complex;IQM::HDRVDP3::FFTWProviderSingle::Memory a(fft,5760),b(fft,5760);auto make=fft.symbol<void*(*)(int,C*,C*,int,unsigned)>("fftwf_plan_dft_1d");auto print=fft.symbol<char*(*)(void*)>("fftwf_sprint_plan");fft.forget();auto api=make(720,(C*)a.data,(C*)b.data,-1,82);if(!api)throw std::runtime_error("Plan failed");std::string text=print(api);std::ofstream(out/"plan.txt")<<text;if(text.find("dft-thr-ct-dit-x3/15")!=0&&text.find("(dft-thr-ct-dit-x3/15")!=0)throw std::runtime_error("Unexpected plan");check(api,sizeof(void*));auto root=*(CT**)api;check(root,sizeof(CT));if(root->radix!=15||root->threads!=3||root->super.super.ops[0]!=10032)throw std::runtime_error("Internal root layout guard failed");check(root->twiddles,3*sizeof(void*));std::ofstream meta(out/"tables.txt");for(int i=0;i<3;i++){auto d=(Direct*)root->twiddles[i];check(d,sizeof(Direct));if(d->r!=15||d->m!=48||d->mb<0||d->me>48||d->me<=d->mb)throw std::runtime_error("Direct layout guard failed");check(d->td,sizeof(Twid));auto t=d->td;if(t->n!=720||t->r!=15||t->m!=48)throw std::runtime_error("Twiddle layout guard failed");check(t->W,1344*4);HMODULE module=nullptr;GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,(LPCWSTR)d->k,&module);meta<<"kernel_rva="<<std::hex<<(reinterpret_cast<uintptr_t>(d->k)-reinterpret_cast<uintptr_t>(module))<<std::dec<<" ";meta<<i<<" mb="<<d->mb<<" me="<<d->me<<" n="<<t->n<<" r="<<t->r<<" m="<<t->m<<"\n";std::ofstream(out/(std::to_string(i)+".f32"),std::ios::binary).write((char*)t->W,1344*4);}fft.destroy(api);return 0;}catch(const std::exception&e){std::cerr<<e.what()<<std::endl;return 1;}}

@@ -1,0 +1,8 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer L {float l[];};
+layout(set=0,binding=1,std430) readonly buffer M {float m[];};
+layout(set=0,binding=2,std430) writeonly buffer O {float output_value[];};
+layout(push_constant) uniform P {uint count;} p;
+void main(){uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;
+ if(i>=p.count)return;precise float sum=l[i]+m[i];output_value[i]=sum;}

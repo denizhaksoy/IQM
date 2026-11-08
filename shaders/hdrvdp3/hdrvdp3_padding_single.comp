@@ -1,0 +1,10 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint v[];} inputImage;
+layout(set=0,binding=2,std430) writeonly buffer Output {uint v[];} padded;
+layout(push_constant) uniform P {uint count;uint width;uint height;uint symmetric;} p;
+void main(){uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(i>=p.count)return;
+ uint x=i/(2*p.height),y=i%(2*p.height);
+ uint sx=x<p.width?x:(p.symmetric!=0?2*p.width-1-x:p.width-1);
+ uint sy=y<p.height?y:(p.symmetric!=0?2*p.height-1-y:p.height-1);
+ padded.v[i]=inputImage.v[sy*p.width+sx];}

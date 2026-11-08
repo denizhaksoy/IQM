@@ -1,6 +1,503 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-11-07 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-11-08 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Publication preparation 2026-11-08 (user-authorized)
+
+User explicitly requested GitHub update. Selected112files: optionalGPUfrontend
+runtime integration, FFT/clock/media diagnostic tools, scope docs, compact pass
+ANDfailed summaries under tests/results/hdrvdp3_checkpoint_20261108. Dataset,
+rawvalidationexports, binaries, unrelatedbackups,AGENTS.md anddirtyVkFFT excluded.
+Pre-existing staged corrdnshader remains excluded; baselineblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7, worktreeSHA03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6.
+AllnewCJSsyntaxchecks, clockgrid tests anddiff--checkpassed. Prior numerical
+results reused without re-running expensiveLIVEjobs. Publiccheckpoint explicitly
+states25videos/433frames, fullGPUfalse, originalpaperreproductionfalse, Light3
+andhistoricalfootball150blockers. Localartifacts neededforseveraldiagnostics
+areexplicitlydocumented. Publicationreceipt willbevalidation/github_publish_20261108_run01.
+
+
+## Latest 2026-11-08: actual4K t3fv16 GPU stage exact after8FMA fix
+
+Readhandoff. Main LIVErun01 controller7928 remains onNighTraffic: frames0,30,60,90,
+120EXACT; frame150reference+C++active lastlog. Completedvideo baseline25/433 unchanged.
+Light3 explicitblocker retained; frozen controller/decoder/scorer/audit unchanged.
+
+Extended actual4K fixture extractor inspect_fft4k_subplans.cpp forradix16/m24.
+Guardednative callback atRVA28fcf0 withrs[j]=48*j,mb0,me24,ms2,v1,vs0;4802disjoint
+inputgroups16x24complex, seed7616/fourfinite scales+constant/impulse. Artifact
+fft4k_t3fv16_fixtures_20261108_run01 includesfullplan,192Float32twiddles, input/output
+/source snapshot/provenance. No full4K transform executed, callbackABItest-only.
+Firstbuild bracketerrorcorrected, successfulstrictbuild retained.
+
+New generate_fft_t3fv16_shader.cjs,fft_t3fv16_gpu.h/.cpp,verify_fft_t3fv16_gpu.cpp,
+CMake tests/fft_t3fv16_gpu. InitialGPUrun failed610593/3687936 components at
+fft_t3fv16_acceptance_20261108_run01; failedsource snapshots andnative_kernel.asm
+retained. Correct192coefficients exact independently. Disassembly shows8additional
+FMA contractions consumingTL,TZ,T1o,T1t,2each. Generator nowexplicitlyreproduces
+those. Freshshader fft_t3fv16_shader_20261108_run02 compile+spirv-valpassed.
+GPUrun02 PASSED4802groups/3687936Float32values ZERO bits; noVulkanerrorsreported.
+Acceptance fft_t3fv16_acceptance_20261108_run02/provenance.json recordshashes,
+source snapshots,layout,precision/padding/DCconditions,failedrun. Copiedsummary
+hasstaleFFT24wording; provenancecorrects scope:onlyradix16/m24stage,notcomplete384.
+Doc FFT4K_SCALAR_LEAF_VALIDATION.md updated.
+
+Next port actualt3fv20(r20,m384,RVA291b10), rootpowers1/3/9/19 forsize7680.
+Use actualcallback oracle, canonical20x384complex groups;limitbatchmemory (15360
+floats/group;4096wouldexceedcommon128MBbufferlimit). Preservehistoricalfixtures
+and FMAfailures. Then compose n1_4+t1fv6+t3fv16+t3fv20 onGPU; real4320+inverse
+remain. No fullGPU/fullpaper claim, no commit/push/outside messages.
+
+
+## Latest 2026-11-08: actual4K t1fv6 GPU stage exact; Light4 complete
+
+Light4 completed16/16frame Q/Q_JOD and ordered Single mean7.732987403869629
+EXACT. Main run01 now25accepted videos/433frames, active1080p_1M_NighTraffic;
+firstframe0EXACT, frame30active last log. Controller7928 persists; no runner
+dependency edits. Light3 stays blocked; all diagnostic evidence preserved.
+
+New actual4K plan extractor tests/inspect_fft4k_subplans.cpp uses guarded ABI
+mirrors and fake read-only sprint-plan wrappers; source verifies printer only
+reads pln. Actual7680x4320 R2C/flags82/3threads subplans located: t3fv20r20/m384
+RVA291b10; t3fv16r16/m24 RVA28fcf0; t1fv6_avx2 r6/m4 RVA226510. Artifact
+fft4k_subplans_20261108_run01. Standalone7680x7/x8 layouts selected different
+algorithms (fft7680_layouts_20261108_run01), so NOT used as parity oracle.
+
+Extended extractor calls actual selected forward t1fv6 kernel for4802independent
+fixture groups, m4/rs[0,8,16,24,32,40], finite random four scales +constant/impulse;
+canonical24complex/group. Artifact fft4k_subplan_fixtures_20261108_run01 with
+source/exe/DLL/fixtures SHA256, original4Kplan. It allocates originalplan buffers
+but does NOT execute full4K transform. Callback ABI test-only, no productionuse.
+
+New shader generator generate_fft_t1fv6_shader.cjs, hostfft_t1fv6_gpu.h/.cpp,
+verify_fft_t1fv6_gpu.cpp, CMake tests/fft_t1fv6_gpu. Compile/spirv-val/strictbuild
+passed. Vulkan test PASSED4802disjoint groups/230496Float32components, ZERObits,
+noVulkan validationerrors. Artifact fft_t1fv6_acceptance_20261108_run01 with
+source snapshots+provenance. Forwardtwiddle stage only, NOT full24FFT or4KFFT.
+40coefficients exactvsnative withAVX2-256 interleavedlayout. Initial incorrectly
+AVX2-128packed coefficient report preserved/superseded byinterleavedreport.
+Firstbuild failed missingfilesystemheader, corrected+rebuilt. No failed numerical
+GPUrun. Next port actualt3fv16 then t3fv20 using extractedshape/callback oracle,
+and real4320 recombination; preserve720acceptedFMAcontractions.
+
+No commit/push/outside messages. FullGPU and fullpaper reproduction unfinished.
+
+
+## Latest 2026-11-08: Light3 edit-list cause narrowed; ignoring edits is NOT safe fix
+
+Read handoff and preserved running dependencies. Light4 run01 latest frames0..270
+(step30,10frames) EXACT, frame300 official+C++ active. Controller7928/runner8152
+and octave9828 verified elevated. No new completed full video yet (24/417).
+
+New inspect_live_hdr_sparse_clock.cjs identifies missing nominal slots359,361,
+363,364,365 in default reference; nominal360 maps decoded359 versus test360.
+Diagnostic only, no pipeline alignment change. Artifact light3_sparse_clock_20261108_run01.
+MP4 box parser inspect_live_hdr_mp4_editlist.cjs reads exact edit lists/source
+SHA256: ref media_time10997/90000; test empty66ms edit then2002/60000. Artifact
+light3_mp4_boxes_20261108_run01. ffprobe ignore_editlist1 gives367 ref frames
+(startPTS4505); flags2+showall still362. Ignoring edits retains final PTS gaps
+indices364..366. Artifacts light3_editlist_20261108_run01. Invalid -discard none
+was rejected as unsupported, not treated as measurement.
+
+Completed separate diagnostic diagnose_live_hdr_light3_content.cjs, PID7284
+exited after success. Output validation/live_hdr_light3_content_20261108_run01:
+64x36 encoded-domain gray16le thumbnails, no metric inputs modified. ALL362
+reference-default thumbnails byte-identical to ignore-editlist index+5. Thus
+restored5frames are leading content; disabling edits changes content alignment.
+Best test correlation at same decoded index337/362 default frames, versus -5
+for337/367 ignore-editlist. Small margins and slow motion make final pairing
+ambiguous; not exact content/phase acceptance. Full raw/commands/correlations/
+source hashes and exact same-reference thumbnail map retained. Blocker docupdated.
+Do NOT bypass guard using equal367 counts or PTS-nearest substitution.
+
+GPU research: native standalone24/96/384 plans and24layouts(1/3threads,1/2/4/7/8/16
+batch,contiguous/interleaved) do NOT select desired4K t1fv6 codelet. Artifacts
+fft_next_plans_20261108_run01 /fft24_layouts_20261108_run01. These are plan-inspection
+results only, no new GPU acceptance. Existing FFT720 exact pass retained. Next
+4K kernel validation needs actual4K/buffered stage contract, not standalone24oracle.
+New diagnostic tools are tests/inspect_fft_next_plans.cpp,inspect_fft24_layouts.cpp
+with targets in tests/fft_plan_single/CMakeLists. No fullGPU or paper equalityclaim.
+
+No commit/push/outside messages. Next monitor run01, use actual4K plan shapes for
+remaining GPU kernels; Light3 requires verified content mapping/original decoding
+policy or corrected media. Do not alter active frozen decoder/scorer/audit files.
+
+
+## Latest 2026-11-08: FFT720 exact after native FMA contraction fix
+
+GPU720 now PASSED9604forward/inverse transforms /13829760Float32components,
+ZERO bitmismatches. validation/fft720_acceptance_20261108_run01/summary.json and
+provenance.json contain exact scope/source snapshots/DLL and executable hashes.
+Shader fft720_shader_20261108_run01 compile+spirv-val passed; Vulkan validation
+reported no errors. Existing uncontracted failed artifacts remain unchanged.
+
+Diagnosis: native48 plan_many stride15 matches standalone inner results; still
+13149 native720 mismatches/90720forward components (fft720_strided_graph_20261108_run01).
+Guarded disposable ABI mirror inspect_fft720_plan_twiddles.cpp successfully read
+native plan tables (3 threads, radix15,m48 guarded); all1344Float32 coefficients
+match current GPU table exactly. No production internal ABI dependency introduced.
+Native kernel RVA284dd0 disassembled in fft720_plan_twiddles_20261108_run02:
+TI and TY multiplication each fused into add/sub consumers; T1d likewise.
+Six explicit contractions in generate_fft720_complex_shader.cjs fix those.
+Contracted CPU graph native bitsZERO vs previous GPU13149, artifact
+fft720_contracted_graph_20261108_run01. GPU full suite then exact. Proof and limits
+added FFT4K_SCALAR_LEAF_VALIDATION.md. Not full4KFFT/fullGPU quality yet.
+
+LIVE run01 controller7928 remains intended active; latest log Light4 frames0,30,
+60,90 EXACT and frame120 official+C++ in progress. Full accepted video checkpoint
+still24/417 until Light4 completes. Light3 blocker retained. Frozen controller,
+clockgrid/audit/decoder/scorer files unchanged. Duplicate run02 intentionally
+stopped earlier, do not restart. Next verify actual elevated live processes and
+continue composing remaining actual4K FFT codelets/strides using accepted720.
+No commit/push/outside messages. Protected pre-existing staged shader/VkFFT intact.
+
+
+## Latest 2026-11-08: Light2 passed; Light3 missing decoded frames; eligible continuation / FFT720 diagnosis
+
+Read prior handoff. Light2 completed 12/12 exact Q/Q_JOD and ordered Single mean
+6.320251941680908. run03 independently accepted 24 videos / 417 frames, then stopped
+BEFORE quality at Light3: reference 362 decoded versus header/metadata 367, distorted
+367. Reference PTS gaps near end; avg rate differs from nominal. Do not infer simple
+clock-origin difference, corruption, or safe index pairing. Evidence and exact counts:
+validation/live_hdr_light3_alignment_20261108_run01/findings.json; doc
+ tests/LIVE_HDR_LIGHT3_ALIGNMENT_BLOCKER.md. Old failures/outputs preserved.
+
+New tests/resume_live_hdr_eligible_clockgrid.cjs re-audits the 24 accepted outputs,
+records Light3 as blocked, continues other cases in fresh
+validation/live_hdr_full_scores_20261108_run01. Terminal state deliberately has
+complete=false/passed=false even if eligible subset finishes. No full279 success.
+Controller PID7928, child8152 observed with experimental15720 and octave9064.
+Restricted Get-Process intermittently hid live jobs: elevated read confirmed alive.
+A mistakenly duplicated controller23028/run02 was stopped WITH its tree (child27540)
+and operator_stop.json records reason; do not resume duplicate run02. Latest known
+active run01 Light4/frame0000 reference+C++; check elevated actual processes/logs.
+No watcher claims eligible-subset full-archive acceptance. Frozen old dependencies
+unchanged. New controller .cjs hash snapshot in run01; preserve running sources.
+
+Prior-turn GPU48 result now recorded: 9604 transforms / 921984 Float32 components
+EXACT, artifact fft48_acceptance_20261107_run01. GPU720 FAILED 2050572 bit mismatches
+of13829760 components /9604 transforms. Preserve fft720_acceptance_20261107_run01.
+63-batch diagnostics: 26473 mismatches /181440 components both directions.
+CPU reconstructed ordinary t1fv15 graph with native48 inner FFT matches GPU with
+ZERO bit differences /90720 forward values but differs native720 by13149 bits:
+fft720_cpu_graph_20261107_run01. Native flop counts support ordinary graph branch.
+Direct octant-reduced and simulated double SQRTN twiddles differ by ZERO Float32
+bits from current shader weights (fft720_reduced_twiddles_20261108_run01 and
+fft720_sqrtn_twiddles_20261108_run01). This rules out those coefficient variants,
+NOT every possible native implementation detail. Native mktriggen symbol is NOT
+exported; inspect_fft_native_twiddles tool builds but cannot invoke internal ABI.
+Added GPL attribution to CPU diagnostic source; arithmetic unchanged.
+No 720/4K FFT pass or fullGPU claim. Next isolate native strided inner48 versus
+standalone48 or extract actual native720 intermediate/twiddle behavior.
+
+No commit/push/outside messages this session. Next check run01 actual progress,
+continue eligible cases, investigate Light3 original timestamp/content pairing;
+retain missing alignment as explicit blocker. FullGPU and original paper recreation
+remain unfinished. All pre-existing dirty/staged files and VkFFT preserved.
+
+
+## Latest 2026-11-07: fullrun02 stopped atLight2 clockorigin; exact-grid pilot/recovery active; n1_4accepted
+
+Atstartfoundactualfailure (notrunningoldjob): fullrun02 completed23videos405frames,
+thenLight2 exitedbeforequalitywithDecodedtiming/countmismatch. Oldfailure,
+watcherfailure,outputsallpreserved. Freshdiagnostic
+validation/live_hdr_light2_alignment_20261107_run01 containsoriginalmetadataand
+bothdecodedtimestamps:352frames each,rate60000/1001; refPTSstarts16200 at1/90000
+(.18s),teststarts0at1/60000. Relativetimestampsmax6microsecondsdifference from
+clockquantization; theseareNOTqualityscoremismatches.
+
+Added tests/live_hdr_clock_grid.cjs: exactBigInt/rationalCFRgrid aftereachstartPTS,
+requireidenticalrationalFPS,metadata/header/decodedcounts,startPTSfirstframe,
+monotonicPTS andONEfixedfloor/ceil/nearest-evenquantizationrule throughout.
+NOfloatingtime/scoretolerance. tests/check_live_hdr_clock_grid.cjs PASS accept
+originoffset/timebases andREJECTmissingframe,wholeframejump,1tickjitter,wrongrate.
+Certificate supportsindexsamplingonly, NOTindependentpixelphaseproof nor
+originalauthorconfirmation. PolicyexplicitlyrecordedwithrawintegerPTSJSON.
+
+Newseparaterunner run_live_hdr_compact_video_clockgrid.cjs (oldrunnerunchanged),
+newaudit audit_live_hdr_full_clockgrid.cjs rechecksrawPTScertificates; retainsold
+strictabsolutetimingforlegacyplans. Newresume_live_hdr_full_clockgrid.cjs root
+live_hdr_full_scores_20261107_run03 gateson12frameLight2pilot, re-audits/references
+23oldcompletedvideos, nooverwrite. Freezesclock/audit/decoder/scorer hashes and
+refusesdependencyedits pervideo. Newwatch_live_hdr_full_clockgrid_audit.cjs awaits
+full279/4716 thenindependentstatisticaudit. Nooldwatcherfiles/sourceoverwritten.
+Hiddenprocessesstarted/observed: Light2pilot27456 root
+validation/live_hdr_light2_clockgrid_20261107_run01; controller23800 andwatcher18916
+rootlive_hdr_full_scores_20261107_run03. Logs in validation/live_hdr_light2_clockgrid_
+{stdout,stderr}.log andfull_clockgrid_run03/full_clockgrid_audit logs.
+LATESTpilotfirstframe0 EXACT (Q404576fd/JOD4073a2e0);frame30official+C++active.
+Raw352frameclockcertificatePASSED referencefloor/testexactgrid. NOclaimpilot
+complete orfullarchiveactivebeyondthisgate. Nextmonitoractualprocesses/logs.
+
+GPUworkparallel: portedn1_4ordinaryFFTWleaf withgenerate_fft_n1_4_shader.cjs,
+fft_n1_4_gpu.h/.cpp,verify_fft_n1_4_gpu.cpp,CMake tests/fft_n1_4_gpu. Shaderand
+spirv-valpassed; strictbuild57229exit0. ActualFFTW1d4forward/inverseoracleasserts
+n1_4. PASSED9604transforms/76832Float32values,ZERObitmismatches,6batchsizes per
+direction incltails/randomscales.NVIDIARTXA500/noVulkanerrors. Artifact
+n1_4_acceptance_20261107_run01;n1_4_shader_20261107_run01 sources/shader/exehashes.
+FFT4K_SCALAR_LEAF_VALIDATION.md recordspreviousr2cf6andnewn1_4; neitherisfull4KFFT.
+Correctedstaler2cf6hostcomments/errornames afteroriginalsnapshot; arithmetic
+unchanged, originalacceptancehashesstillrefertopreservedsource/binary.
+
+NextpriorityfinishLight2pilot/auditgate thenfullrun03continuation; GPUportother
+11distinct4Kcodelets/composeactualplan. Keepfrozennewclock/audit/runnersunchanged
+whilejobsactive. Nooutsidemessages/commit/push thissession. Priorweeklyreport
+23/405 remainsaccuratecompletedcount; itsrunningclaimpredatesthisfailure.
+UsergoalGPUallstages andpaperfaithfulvalidationpersists. FullGPUstillfalse.
+
+## Latest 2026-11-07: weekly report prepared; HDRVDP2datasetroles verified
+
+Userprovidedactualpreviousweeklyreport; preparedsameformatupdatedEnglish draft
+at tests/HDRVDP3_WEEKLY_REPORT_2026-11-07.md. Not sentexternally. Reportstates
+fullGPUunfinished, full279evalunfinished, originalfootballanomalyopen, public
+LIVEHDRvsUPIQcalibrationdistinction andquestiontothesisprofaboutrequiredscope.
+Checkedactualrun02checkpoint23videos405framescomplete,activeLight2. No status
+inferencebeyondthisreportingcheckpoint. GPUresultsinclude529realpairs,27local
+subjectiveanalysisSROCC.935287/rawPLCC.901651,maskresize1.456866bDoublevalues,
+combinedL+M/padding16cases,FFT128isolated524288components, no4KFFTclaim.
+
+BrowsedprimaryHDRVDP2PDF https://www.cl.cam.ac.uk/~rkm38/pdfs/mantiuk11hdrvdp2.pdf
+Section6.1/6.2andFigure13: LIVEimagequalitydatasetusedtofitlogisticmappingand
+bandweights; TID2008testonly. ThisLIVEisNOTLIVEHDRvideo. Neitherolderpaper
+resolves2023privatetestIDs; doNOTsubstituteHDRVDP2tabletargetsforHDRVDP3JOD.
+UserconfirmedonlyLIVE_HDR_MP4.zip available; noUPIQarchive,noquestionpending.
+Nooutboundemail orothercontact. GPUimplementationgoalpersists; lastcompletednew
+leafr2cf6exact4802transforms/38416values (priorsessiontop). Mainjobsunchanged.
+
+## Latest 2026-11-07: r2cf6 4Kleaf accepted; clarifiedUPIQvsLIVE/userdatasetlocation
+
+Implementedtests/generate_fft_r2cf6_shader.cjs translatingordinaryscalar r2cf_6
+fromhash-verified4Ksources, preservingGPLnotices/source/COPYING. New
+fft_r2cf6_gpu.h/.cpp,verify_fft_r2cf6_gpu.cpp,tests/fft_r2cf6_gpu/CMakeLists.
+Shader/spirv-valpassed; strictMSVCbuild65931exit0. ActualFFTW r2c1d6planasserts
+r2cf_6;4802transforms /38416Float32components ZERO bitmismatches,6batchsizes
+1/63/64/65/513/4096 includingconstant/impulse/ramp/randommultiplescales.
+Artifactvalidation/r2cf6_acceptance_20261107_run01; shader/probe/oracleplan/
+sourcehashes inr2cf6_shader_20261107_run01. This isonly1leaf of4Kplan, NOTfullFFT.
+Copiedhostfilecontainsstalepaddingerrornames/comments; correctthosebeforefurther
+integration (no newclaimbitpreservingsubnormalarithmetic fromthosecomments).
+Mainfullarchivefrozenruntimeunaltered; latest22complete/golf2active.
+
+UserrequestedexplanationwhyUPIQbecameLIVE. RecheckedoriginalHDRVDP3paper and
+CambridgeUPIQproject: UPIQ=imagequalitycalibration dataset, Section6LIVEHDR=video
+evaluation. Samepaper, differentroles; UPIQexperimentsaredistinctfromoriginal
+WACVprivatefinalevaluation. DownloadsqueryfoundLIVE_HDR_MP4.zip andhdrvdp3files,
+noUPIQ-namedarchive. DoesNOTproveuserdidnotprovideUPIQunderanothername/path.
+AsyncquestionpendingasksUPIQarchive/folderfullpath; continueindependentGPUwork
+whilewaiting, neverrequireanotherdownloadunlessactuallymissing. Usergoalboth
+fullGPUimplementationandpaperfaithfulvalidation persists. Nooutboundmessages.
+
+## Latest 2026-11-07: exactGPUFFT128+filter+inverse+crop provider accepted;4Ksourceprep
+
+Responded touserfullGPUcompletion instructionwithactualFFTimplementationwork,
+notonlyplanning. Newtests/fft128_single_gpu.h/.cpp fixed128GPUinterface using
+existingFFTW-derivedtestshader (originalGPLnotices/COPYING retained). Newstrict
+CMake tests/fft_single_gpu, verify_fft128_single_gpu.cpp. Build12003exit0. Oracle
+actualinstalledFFTW3threads/estimate/unalignedflags82, columnmajorreal->complex,
+complexinverse/16384 once, noDCprocessing. Initialrun01 FAILED107861bits in
+forward whileallinverseexact; tensors/logspreserved. Causehistoricalshader's
+22threadselection(63main+2tail) differsactual3threadbuffer5/groups2+2+1.
+Observedmismatchfrequencycountsconfirm every5thfrequencyalreadyexact.
+Newgenerate_fft128_threads3_shader.cjs producesFRESHderivedshader selecting
+first4of5directn1fv_128 then1compositen2fv_16/t3fv_8. Oldshadertests/fftw_reference/
+fft_codelet_test.comp unchanged. Freshrun02 PASSED16forward/inversecases,
+524288Float32components,ZERObitmismatchesincl signedzero; constant/impulse/pattern/
+randommultiplescales,NVIDIARTXA500. Artifacts fft128_acceptance_20261107_run02,
+fft128_shader_20261107_run02 source/shader/DLL/exehashes andderivation/probelog.
+
+Newfft_filter_single_gpu.h/.cpp andfft_single_gpu/fft_filter_single.comp reproduce
+Doublecoefficient->Single thencomplexSingleproduct usingFP64/integerrounding,
+preserves signedzero/subnormals/ties. Coefficientsfinite[-1,1]. Standalone5cases/
+232972Float32values EXACT, build91776exit0,shader/spirv-valpassed. Artifact
+fft_filter_acceptance_20261107_run01 andfft_filter_shader_20261107_run01.
+Newfft128_crop_single_gpu.cpp/fft128_crop_single.comp GPUintegercopy normalized
+complexreal->columnmajorcrop. Combinedforward/filter/inverse/crop4cases28671
+Float32values EXACT vs CPUFFTWconvolve, includingunity/zerofilter/Gaussian,odd/
+full/squarecrops. Build5441exit0; fft128_convolution_acceptance_20261107_run01
+containsoldsuccessfulsource/exeshaderprovenance. NoVulkanerrorsreported.
+
+Addedtests/fft128_single_provider_gpu.h implementingFFTBackendSingle forfixed128,
+unsupportedsize throwsNOCPUfallback. Freshprovider4caseconvolutiontest+64shape
+rejectionPASSED, artifactfft128_provider_acceptance_20261107_run01, build14886
+exit0afterremovingBOM accidentallymovedtomiddleonincludeinsertion. Failedbuild
+notnumericalfailure. Stagebuffersstillroundtriphost; filtercoefficientsCPUfixture;
+NOTintegratedfullquality, NOT4KFFT, full_gpu remainsfalse. NewFFT128_SINGLE_GPU_
+VALIDATION.md recordsallscope/failure/fixresults.
+
+Next4Ksupport:actual7680x4320FFTWgraphrequires13distinctcodelets. New
+prepare_fft4k_codelet_sources.cjs verifiedlocalFFTWarchiveSHA56c93254... and
+extracted22originalsource/wrapper/COPYINGfilesintoFRESH
+validation/fftw_4k_sources_20261107_run01 withmanifest+planmapping+SHA. Preparation
+only, NOTport. Nexttranslate/validate13codelets andcomposeactualmixedradixplan;
+also240x135base/oddneedseparateplans. DoNOTreplacewithtoleranceVkFFTandcallexact.
+
+Fullarchivefrozenrun02stillactive,22completed/279,golf2active lastchecked.
+OriginalcorrDnstagedblob1cf7baed... andworkingSHA03dcac86... unchangedverified;
+dirtyVkFFT/oldreferences retained. No commit/push/outboundmessages thisturn.
+
+## Latest 2026-11-07: combined GPU L+M+padding integration COMPLETE16/16; defaults retained
+
+Session40462 completed16/16 EXACT and runtimeposthash auditpassed. ActualGPU
+frontend includes2L+M +8padding dispatches perpair inadditiontopriorGPUstages.
+Artifact validation/padding_integration_20261107_run01/checkpoint.json and
+completion_audit.json, currentAPI/host/CLI/CMake/launcher sourcesnapshots+SHA.
+Cases14syntheticsettings(12uniquePNGpairs)+2real4Kpairs. Q/QJODexact vs preserved
+independentofficialscores; nofreshofficialcalls orfullGPUclaim. Newprofile still
+CPUFFTW/MTFfilter/modelLUT/JND/pyramid/remainingquality. NoVulkanerrorsobserved.
+PADDING_SINGLE_GPU_VALIDATION.md andFULL_GPU_COMPLETION.md nowrecordcompleted
+integration. ADAPTATION_INPUT_GPU_VALIDATION.md recordsprior16cases separately;
+theseareoverlappinginputs, NOT32distinctpairs.
+
+Added reusable tests/verify_gpu_frontend_compatibility.cjs; session78069 PASSED
+all4legacyCLI modes ononeportraitpair withnewoptionsABSENT,0L+M/0paddingGPU
+calls andexactreferenceQ/QJOD. Artifact gpu_frontend_compatibility_20261107_run02.
+All4CLItargetsbuiltwithnewpaddingAPI (30560exit0); whitespacecheckpassed.
+ActualFFTplans nowexportedcorrectly/run02exit0 for4shapes; originalprobeallocator
+failure preserved and corrected as detailedbelow. This doesNOTimplementGPUFFT.
+
+Nextconcretework: portactualcapturedFFTWcodelet/operationgraphs forSingleFFT,
+starting128x128forward+inverse matchedtoinstalledDLL, thenmixedradix4K/base/odd.
+Inspect existingtinyreferenceFFTshaders butdontassumealigned/scalargraphs equal
+currentAVX2plans. Requireisolatedbitcomparisons beforefullqualityintegration.
+Keepfull_gpu=false andnoCPUfallback in eventualfullGPUmode. Fullarchivejobfrozen
+runtime intact; latestcheckpoint15/279football5active. NewstageintegrationCPU/
+GPUjobfinished; no backgroundcodingagentclaimed. ProtectedcorrDn/VkFFTretained;
+no commit/push/outboundmessages. Userdoesnotneedapproveeachroutineport/test.
+
+## Latest 2026-11-07: L+M integrated16/16 exact; GPU padding20cases accepted/integration15/16
+
+User explicitlyrequestsautonomousGPUcompletion withoutcontinueprompts. Added
+SingleAdaptationInputBackend optionalfrontend provider, requiresmatrices, checks
+callback/shape/finite/domain withoutfallback. CLI --adaptation-input-shader and
+adaptation_input_dispatches. MainCMake includesnewsource. All4CLItargetsbuilt
+session26193exit0. New tests/verify_adaptation_input_integration.cjs frozeexe/
+shaders/models/FFTWandcompared14syntheticsettings+2real4Kpairs vs preserved
+independentofficialscores:16/16EXACT,2GPU L+M dispatches,allothercountschecked,
+noVulkanerrors. Artifact adaptation_input_integration_20261107_run01. Legacy
+4modes(nooption) passedoneportraitpair inadaptation_input_compatibility_run01.
+This isnotfreshofficialgeneration orfullGPU; originalfootballoutlierretained.
+
+Implemented padding_single_gpu.h/.cpp +hdrvdp3_padding_single.comp: integerbit
+copy row-majorFloat32->column-major2Wx2Hpostpad, symmetric/replicate,signedzero/
+subnormalpreserving, <=4Ksource. Actualshaderbindings0and2, unused4bytebinding1
+buffer; synchronoushosttransferstage. Strictbuild80085andshader/spirv-valpassed.
+Standalone20cases /66,680,056values EXACT incl1D/odd/portrait/landscape/full4K,
+noVulkanerrors. Artifacts padding_acceptance_20261107_run01 andpadding_shader_
+20261107_run01 (sources/hashes/probelog). AddedSinglePaddingBackend tofft_single.h
+andoptionalpadding tooptical/generalAPIs,shape/finite/emptyprovidererrors;
+CPUdefaultsunchanged. CLI --padding-shader counts8dispatches/pair; all4CLI
+build30560exit0. full_gpu staysfalse, backendstringexplicitgpu-padding suffix.
+
+New tests/verify_padding_integration.cjs clonesindependent16casematrix using
+frozennewexe+newpadding+L+M pluspriorvalidatedGPUstages. ACTIVESession40462 root
+validation/padding_integration_20261107_run01. Latest15/16exact (all14synthetic+
+football150laterstock); Daylight0pending. DoNOTclaim16passuntilcheckpointcomplete
+andposthashes. Integrationusingpreservedofficialscores,notnewOctavecalls.
+ADAPTATION_INPUT_GPU_VALIDATION.md completed; PADDING_SINGLE_GPU_VALIDATION.md
+correctlymarksintegrationpending. FULL_GPU_COMPLETION.md updatedinventory.
+
+PreparedactualFFTportinspection instead ofsubstitutingnondeterministicFFT:
+newinspect_fft_single_plan.cpp andtests/fft_plan_single/CMakeLists. Build73234
+passed. Initialrun01heapfailure afterforwardtext: sprint_planstringsuseDLLCRT
+malloc notfftw_malloc. Oldpartialoutputsretained; fixedshortlivedprobe retains
+smalltextstrings untilprocessexit, correctedbuildpassed. Fresh4run02probes all
+exit0 exportedforward/inverseplans for7680x4320(4Kpad),240x135base,128square,
+254x190odd. ActualmixedAVX2/scalarcodeletlists/hashes/DLLfingerprintin
+validation/fft_plan_provenance_20261107_run01/plans.json. Planinspectiononly,
+NOFFTvaluescomputedandNOGPUFFTacceptanceclaimed. Note4Kneedsradices6/15/12/4/
+20/16andAVX2specificoperationgraphs; existingtiny32/64checkpointnot4Ksolution.
+
+Nextfinishpadding16matrix+posthash,recordresult,validatelegacydefaultsafternew
+paddingbuild then beginreferenceFFTcodeletport fromcapturedgraphs. Preserve
+frozenfull279run02 scripts/binaries; stillactive15completed/football5lastcheck.
+ProtectedstagedcorrDnblob/workingSHAunchangedverified; dirtyVkFFTpreserved.
+No commit/push inthisturn. Noexternalmessages or universal/fullGPUclaim.
+
+## Latest 2026-11-07: explicit FULL GPU target; first new adaptation GPU stage accepted
+
+User explicitlyrequiresallmetricprocessingonGPU. Previoushybridready statement
+isNOTfullGPUcompletion. Added tests/HDRVDP3_FULL_GPU_COMPLETION.md withactual
+CPUremaininginventory andacceptancegates. HostfileI/O/submission distinguished
+fromnumericprocessing; no silentCPUfallback permitted in futurefullGPUprofile.
+Existingfull279referencejob frozenruntime/scripts unchanged; latest15complete,
+football5active. DoNOTportbyeditingactivefrozenfiles orclaimfull_gpu=true.
+
+Implemented standalone adaptation_input_single_gpu.h/.cpp and
+hdrvdp3_adaptation_input_single.comp: L/M finiteclamped[1e-8,1e10]planes,upto4K,
+onepreciseFloat32addition/pixel,2Ddispatchandseparatebuffers. Synchronoushost
+transfer retained; NOT integratedgeneralqualitybackend yet. Shadercompiledand
+spirv-valpassed. Newtests/adaptation_input_gpu CMake/probe compiledMSVC19.51
+Release /fp:strict; build3451exit0 (existingvulkan_res conversionwarnings).
+RealNVIDIARTXA500execution passed9sizes incltailworkgroups/full4K:
+8,394,980Float32values EXACT,invaliddomainrejected. Artifact
+validation/adaptation_input_acceptance_20261107_run01/summary.json; shader/log/
+source snapshots+SHAprovenance adaptation_input_shader_20261107_run01.
+No validationerror observedinprobe log. Scopeisstageonly, nofreshendtoendclaim.
+
+NextintegrateoptionalGPUadaptationinputprovider inindependentdevelopmentprofile,
+validatePNG-to-score againstfrozenquality beforeenabling; thenportremaining
+adaptation/optical/JND/pyramid/FFT/quality andmodelpreparation, preservingexact
+operationorder/transcendentals/reductions. LargestunresolvedfullGPUrequirement
+remainsreference-exactFFT andmath; no tolerancepass relabeledexact. FullGPU
+stillfalse. ExistingmainCMake/activeapp/runner untouched. Nocommit/pushthisturn;
+protectedcorrDnshader/VkFFT/oldrefs preserved.
+
+## Latest 2026-11-07: historical2022 template verified; machine-readable paperprotocol audit
+
+User requires finishpaperfaithfulvalidation, not arbitraryarchiveclaim. Retrieved
+publicGitHubAPIcommitbefore2023May andtree/README viaapprovedcurl afterlocalTLS
+failure. Fixedhistoricalcommit0c8ce3ef1d69240d3f43b2cf1061a47dd83e9b5f dated
+2022-11-29. Artifactroot validation/hdrvdp3_original_protocol_20261107_run01
+contains commits_before_paper.json,tree_20221129.json,README_20221129.md.
+Tree12entries no train_video_info.csv orauthorpredictions; template isNOTauthor
+algorithm submission. READMEconfirmsprivatefinalevaluation/V100p3.2xlarge/MP4
+10bitHEVC. OriginalCodalabURL fetch502; exactCSVsearch foundonlyofficialpage.
+PublicLIVEsiteconfirms310/31 release butnotidentitywithprivatefinalset.
+
+Added tests/audit_hdrvdp3_paper_protocol.cjs; syntaxpassed andrealpositiveaudit
+completed validation/hdrvdp3_paper_protocol_acceptance_20261107_run01/report.json.
+Checks historicalcommit/tree, officialexampleSHA, compact16gate, all16Daylight
+framebits/hash/runtime/timing anddisplayprofile. local_reconstruction_passed=true;
+original_paper_reproduction_verified=false. Explicit6unresolveditems include
+originalprivateIDs/files,authorpredictions/labels,originaltrainCSV,decoder/depth/
+fixedfilename executedsampling,originalbackend/mapping,historicalfootballoutlier.
+DoNOTcounttheexample'sfixedframe asauthoractualexecutionproof. DoNOTfitonLIVE.
+Full279teststillrunning latest14complete,football4active; liveprocessesverified
+atstart. Noactivejobs/sourcesmodified orrestarted. Nooutboundmessages/commit/push.
+Nextoriginalsubmissionreproductionrequiresprivateartifacts/authorclarifications;
+currentfullarchivecomparisonmayfinishindependently, notclosemissingpaperproof.
+
+## Latest 2026-11-07: primary2023challenge scope distinguishes243/public27/privatefinal
+
+Inspected original competitionpage andreleaseexample, withoutchangingactivejobs.
+Primary https://sites.google.com/view/wacv2023-workshop-quality-va/competition
+states27SRC/243PVS in datasetdescription,27FRpublicleaderboard entries excluding
+3namedrefs, andreservedprivatefinaltest. These MUSTNOTbeconflated with our
+31SRC/279archive, or originalauthorsfinalsubmission. No inferredremoval4contents.
+OriginalGitHubtemplateURL redirects tocurrentEasoncyx/vqm_challenge and current
+READMEhardwareL40S differsfrom2023p3.2xlarge; needdatedGitrevision beforeusing.
+Newdoc tests/HDRVDP3_PAPER_COHORT_FINDINGS_2026-11-07.md preservesfindings/sources.
+Next investigateoriginaltrain_video_info.csv andhistoricaltemplate; original
+privatefinalpredictions/data stillnotavailable. Priorlocal27candidatecanonlybe
+calledsimilarpublicgrouping, notexactIDsetwithoutCSV. Nooutboundmessages.
+Fullrun02active14completed/279,football4processing; actualnode/Octaveobserved.
+Alloldfiles/frozenruntime andtestprocessespreserved. Nocommit/pushthisturn.
+
+## Latest 2026-11-07: user prioritizes original paper protocol over arbitrary archive scope
+
+User clarified: reproduce how paper authors evaluated, including279onlyIFthat
+was their actualscope. Re-read official paperSection6 directly online:
+https://www.cl.cam.ac.uk/~rkm38/pdfs/mantiuk2023hdrvdp3.pdf lines216-237/page4.
+It specifies quality task, independent every30thFFmpegPNG frames, averagevideo
+scores, inversePQ absoluteBT2020 plus200*.005/pi ambient, noLIVErecalibration,
+UPIQmodel and3.0.7example. It doesNOTenumerate279videos ororiginalIDs/split,
+norreport numericalcorrelation target/predictionvector inSection6. Thus archive
+279count mustNOTbe attributedtopaper. Existing protocolaudit/authordraftalready
+record these gaps. Currenttestnotstopped; priority isoriginalcohort/protocol
+verification, not treating fullarchivepass as originalpaperreproduction.
+Also doNOTinvent a battery of originalpaper numericaltables/experiments: this
+shortpaper describes tasks/overview andSection6submission, referringtootherpapers
+forcalibrationdetails. Need distinguish those earlierpapers fromthispaper scope.
+No outboundauthorcontact authorized. Currentchanges documentationonly.
 
 ## Latest 2026-11-07: selective GitHub publication verified
 

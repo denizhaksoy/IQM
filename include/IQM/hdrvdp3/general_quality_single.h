@@ -22,6 +22,10 @@ struct GeneralQualityResultSingle {
 struct SingleMatrixBackend {
     std::function<std::vector<float>(std::span<const float>,std::span<const float>,SingleProjectionKind)> project;
 };
+// Optional GPU L+M input provider; requires an explicit matrix provider.
+struct SingleAdaptationInputBackend {
+    std::function<std::vector<float>(std::span<const float>,std::span<const float>)> sum;
+};
 // Experimental explicit native comparison-mask provider. Values must be 0/1.
 // Remaining quality operations keep their existing CPU implementation.
 struct SingleComparisonBackend {
@@ -46,7 +50,9 @@ GeneralQualityResultSingle evaluate_quality_single(const QualitySideSingle& refe
 QualitySideSingle prepare_quality_side_single(std::span<const float> linear_bt2020,
     unsigned width,unsigned height,double ppd,const XYZDisplaySamples& xyz,
     const RGBSpectralSamples& spectral,const FFTBackendSingle& backend,
-    const SingleMatrixBackend* matrices=nullptr);
+    const SingleMatrixBackend* matrices=nullptr,
+    const SingleAdaptationInputBackend* adaptationInput=nullptr,
+    const SinglePaddingBackend* padding=nullptr);
 GeneralQualityResultSingle evaluate_general_quality_single(
     std::span<const float> reference,std::span<const float> test,
     unsigned width,unsigned height,double ppd,const XYZDisplaySamples& xyz,
@@ -54,5 +60,7 @@ GeneralQualityResultSingle evaluate_general_quality_single(
     const SingleMatrixBackend* matrices=nullptr,
     const SingleComparisonBackend* comparison=nullptr,
     const SingleMutualBackend* mutual=nullptr,
-    const SingleComparisonResizeBackend* resize=nullptr);
+    const SingleComparisonResizeBackend* resize=nullptr,
+    const SingleAdaptationInputBackend* adaptationInput=nullptr,
+    const SinglePaddingBackend* padding=nullptr);
 }

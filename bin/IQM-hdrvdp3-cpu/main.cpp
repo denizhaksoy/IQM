@@ -20,6 +20,8 @@
 #ifdef IQM_HDRVDP3_MUTUAL
 #include <IQM/hdrvdp3/mutual_single_gpu.h>
 #include <IQM/hdrvdp3/comparison_resize_gpu.h>
+#include <IQM/hdrvdp3/adaptation_input_single_gpu.h>
+#include <IQM/hdrvdp3/padding_single_gpu.h>
 #endif
 #endif
 #endif
@@ -38,6 +40,8 @@ std::cout<<"Hybrid executable additionally REQUIRES --projection-shader PATH:\nV
 std::cout<<"Experimental mask profile also REQUIRES --comparison-shader PATH and shaderFloat64.\nNative comparison mask executes on Vulkan; remaining quality arithmetic stays CPU.\n";
 #ifdef IQM_HDRVDP3_MUTUAL
 std::cout<<"Mutual profile additionally REQUIRES --mutual-shader PATH; per-band mutual activity executes on Vulkan.\n";
+std::cout<<"Optional --padding-shader PATH runs optical/adaptation padding on Vulkan.\n";
+std::cout<<"Optional --adaptation-input-shader PATH runs L+M on Vulkan.\n";
 std::cout<<"Optional --comparison-resize-shader PATH also runs Double comparison-mask resizing on Vulkan.\n";
 #endif
 #endif
@@ -59,6 +63,8 @@ int main(int argc,char**argv){try{
  auto acceptedKeys=keys;
 #ifdef IQM_HDRVDP3_MUTUAL
  acceptedKeys.push_back("--comparison-resize-shader");
+ acceptedKeys.push_back("--adaptation-input-shader");
+ acceptedKeys.push_back("--padding-shader");
 #endif
  for(int i=1;i<argc;i+=2){std::string key=argv[i];if(std::find(acceptedKeys.begin(),acceptedKeys.end(),key)==acceptedKeys.end()||i+1>=argc||!argv[i+1][0]||std::string(argv[i+1]).starts_with("--")||!options.emplace(key,argv[i+1]).second)throw std::invalid_argument("Unknown, missing or duplicate argument: "+key);}
  for(const auto& key:keys)if(!options.contains(key))throw std::invalid_argument("Required argument: "+key);
@@ -67,8 +73,11 @@ int main(int argc,char**argv){try{
  fs::path data=options.at("--model-data"),out=options.at("--output");if(fs::exists(out)||!fs::create_directories(out))throw std::invalid_argument("Fresh output directory required");
  FFTWProviderSingle fft(options.at("--fftw"));auto backend=fft.backend();
  const SingleMatrixBackend* matrices=nullptr;
- const char* backendName="cpu-fftw";
+ std::string backendName="cpu-fftw";
  unsigned matrixDispatches=0;
+ unsigned adaptationInputDispatches=0;
+ const SingleAdaptationInputBackend* adaptationInput=nullptr;
+ const SinglePaddingBackend* padding=nullptr;unsigned paddingDispatches=0;
  const SingleComparisonBackend* comparison=nullptr;
  unsigned comparisonDispatches=0;
  const SingleMutualBackend* mutual=nullptr;
@@ -85,6 +94,10 @@ int main(int argc,char**argv){try{
  mutual=&gpuMutual;
  SingleComparisonResizeBackend gpuResize{[&](auto mask,unsigned h,unsigned w,unsigned nh,unsigned nw){++comparisonResizeCalls;auto result=resize_comparison_gpu(*gpu,options.at("--comparison-resize-shader"),mask,h,w,nh,nw);comparisonResizeDispatches+=result.dispatches;return std::move(result.values);}};
  if(options.contains("--comparison-resize-shader"))comparisonResize=&gpuResize;
+ SingleAdaptationInputBackend gpuAdaptationInput{[&](auto l,auto m){auto values=adaptation_input_single_gpu(*gpu,options.at("--adaptation-input-shader"),l,m);++adaptationInputDispatches;return values;}};
+ if(options.contains("--adaptation-input-shader"))adaptationInput=&gpuAdaptationInput;
+ SinglePaddingBackend gpuPadding{[&](auto input,unsigned w,unsigned h,bool symmetric){auto values=padding_single_gpu(*gpu,options.at("--padding-shader"),input,w,h,symmetric);++paddingDispatches;return values;}};
+ if(options.contains("--padding-shader"))padding=&gpuPadding;
 #endif
 #else
  auto gpu=std::make_unique<IQM::Bin::VulkanInstance>(true);
@@ -97,6 +110,8 @@ int main(int argc,char**argv){try{
 #ifdef IQM_HDRVDP3_MUTUAL
  backendName="experimental-vulkan-matrices-comparison-mutual-cpu-fftw";
  if(comparisonResize)backendName="experimental-vulkan-matrices-comparison-mutual-resize-cpu-fftw";
+ if(adaptationInput)backendName=comparisonResize?"experimental-vulkan-matrices-comparison-mutual-resize-adaptation-input-cpu-fftw":"experimental-vulkan-matrices-comparison-mutual-adaptation-input-cpu-fftw";
+ if(padding)backendName+="-gpu-padding";
 #endif
 #endif
 #endif
@@ -112,14 +127,14 @@ int main(int argc,char**argv){try{
    std::vector<float> encoded(3*sn);for(size_t c=0;c<3;++c)for(size_t i=0;i<sn;++i)encoded[c*sn+i]=normalize_pq_u16_single(raw.get()[3*i+c]);raw.reset();
    if(sw!=w||sh!=h){std::vector<float> resized(3*n);for(size_t c=0;c<3;++c){std::vector<float> plane(encoded.begin()+c*sn,encoded.begin()+(c+1)*sn);auto values=resize_bicubic(plane,int(sh),int(sw),int(h),int(w));for(size_t i=0;i<n;++i)resized[c*n+i]=std::clamp(values[i],0.f,1.f);}encoded=std::move(resized);}
    auto linear=pq_to_display_single(encoded,{200.,.005,2000.});encoded.clear();encoded.shrink_to_fit();
-   auto result=prepare_quality_side_single(linear,w,h,ppd,xyz,spectral,backend,matrices);log<<side<<" ready\n"<<std::flush;return result;
+   auto result=prepare_quality_side_single(linear,w,h,ppd,xyz,spectral,backend,matrices,adaptationInput,padding);log<<side<<" ready\n"<<std::flush;return result;
  };
  auto reference=prepare(options.at("--ref"),"reference"),test=prepare(options.at("--input"),"test");
  auto result=evaluate_quality_single(reference,test,w,h,ppd,backend,comparison,mutual,comparisonResize);
  double elapsed=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
  std::ofstream f(out/"score.json");f.precision(17);f<<"{\"scope\":\"IQM public Single quality with explicit backend\",\"backend\":\""<<backendName<<"\",\"encoding\":\"pq-bt2020-rgb16\",\"width\":"<<w<<",\"height\":"<<h<<",\"ppd\":"<<ppd<<",\"gpu_matrix_dispatches\":"<<matrixDispatches<<",\"age\":24,\"display\":\"oled\",\"ambient_lux\":200,\"reflectivity\":0.005,\"peak\":2000,\"fftw_threads\":3,\"fftw_planner\":\"estimate\",\"elapsed_seconds\":"<<elapsed<<",\"Q_text\":\""<<result.scores.Q<<"\",\"Q_JOD_text\":\""<<result.scores.Q_JOD<<"\",\"Q_hex\":\""<<std::hex<<std::setw(8)<<std::setfill('0')<<std::bit_cast<uint32_t>(result.scores.Q)<<"\",\"Q_JOD_hex\":\""<<std::setw(8)<<std::bit_cast<uint32_t>(result.scores.Q_JOD)<<std::dec<<"\",\"base_frequency\":"<<result.base_frequency<<"}\n";
  if(!f)throw std::runtime_error("Score output failed");
- std::ofstream stages(out/"gpu_stages.json");stages<<"{\"matrix_dispatches\":"<<matrixDispatches<<",\"comparison_dispatches\":"<<comparisonDispatches<<",\"mutual_dispatches\":"<<mutualDispatches<<",\"comparison_resize_calls\":"<<comparisonResizeCalls<<",\"comparison_resize_dispatches\":"<<comparisonResizeDispatches<<",\"full_gpu\":false}";
+ std::ofstream stages(out/"gpu_stages.json");stages<<"{\"matrix_dispatches\":"<<matrixDispatches<<",\"comparison_dispatches\":"<<comparisonDispatches<<",\"mutual_dispatches\":"<<mutualDispatches<<",\"comparison_resize_calls\":"<<comparisonResizeCalls<<",\"comparison_resize_dispatches\":"<<comparisonResizeDispatches<<",\"adaptation_input_dispatches\":"<<adaptationInputDispatches<<",\"padding_dispatches\":"<<paddingDispatches<<",\"full_gpu\":false}";
  if(!stages)throw std::runtime_error("GPU stage report failed");
  std::cout<<std::setprecision(17)<<"Q="<<result.scores.Q<<" Q_JOD="<<result.scores.Q_JOD<<'\n';return 0;
 }catch(const std::exception&e){std::cerr<<"HDR-VDP-3 quality error: "<<e.what()<<'\n';return 1;}}

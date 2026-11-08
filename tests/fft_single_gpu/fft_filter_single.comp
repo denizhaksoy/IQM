@@ -1,0 +1,13 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Spectrum {uint v[];} spectrum;
+layout(set=0,binding=1,std430) readonly buffer Filter {double v[];} filterImage;
+layout(set=0,binding=2,std430) writeonly buffer Output {uint v[];} result;
+layout(push_constant) uniform P {uint count;} p;
+double decode(uint a){if(a<0x00800000u)return double(a)*1.4012984643248170709237295832899e-45;return double(uintBitsToFloat(a));}
+uint rounded(double x){if(x<1.1754943508222875079687365372222e-38){precise double scaled=x*7.1362384635297994052914298472475e44;uint n=uint(scaled);double f=scaled-double(n);if(f>0.5||(f==0.5&&(n&1u)!=0u))n++;return n;}return floatBitsToUint(float(x));}
+void main(){uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(i>=p.count)return;
+ double coefficient=filterImage.v[i/2];uint sign=(unpackDouble2x32(coefficient).y^spectrum.v[i])&0x80000000u;
+ uint a=spectrum.v[i]&0x7fffffffu,b=rounded(abs(coefficient));
+ precise double product=decode(a)*decode(b);result.v[i]=rounded(product)|sign;}
