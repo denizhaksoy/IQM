@@ -2,6 +2,21 @@
 
 Last updated: 2026-11-08 (Europe/Prague). Branch: `feature/hdr-vdp3`.
 
+## Publication completed 2026-11-08
+
+User-authorized112file update committed/pushed and remoteverified:
+0b8b482d49a85f4b85f5774bff9b5b01436bc281 onorigin/feature/hdr-vdp3.
+Includes optionalGPUfrontend, FFTstages, testtools, protocol/alignmentdocs and
+compact pass/fail result summaries. See tests/HDRVDP3_VALIDATION_CHECKPOINT_2026-11-08.md.
+NineC++trailing-whitespace cleanups only; arithmeticunchanged. Historical
+source snapshots retainoriginalhashes. NewCJSsyntax,clockgrid andstageddiffchecks
+passed. Publicationreceipt validation/github_publish_20261108_run01/publication.json.
+Protectedcorrdn stagedblob/worktreeSHA unchanged; dirtyVkFFT andotherlocalartifacts
+remain. Datasets/validation/binaries notpublished. Maincheckpoint25videos/433frames,
+NighTraffic active inexistingjob; no runningdependencies changed. Nextportt3fv20
+and compose4KGPU; Light3/originalpaper/football150 blockers remainexplicit.
+
+
 ## Publication preparation 2026-11-08 (user-authorized)
 
 User explicitly requested GitHub update. Selected112files: optionalGPUfrontend
