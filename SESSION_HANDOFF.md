@@ -1,6 +1,228 @@
 # IQM HDR-VDP-3 session handoff
 
-Last updated: 2026-11-08 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+Last updated: 2026-11-12 (Europe/Prague). Branch: `feature/hdr-vdp3`.
+
+## Authorized delivery commit preparation - 2026-11-12
+
+User explicitly authorized the reviewed33-file path-limited delivery commit with message: Deliver numerically validated HDR-VDP-3 live-hybrid profile. NO PUSH authorized. Branch/expected parent feature/hdr-vdp3 /a25e0082cee14530ae0c00b2a8bbbc46aea8a09d. Historical no-commit statements below are superseded only for this delivery scope.
+
+Documentation-only updates: final delivery report now gives complete daylight0 decode -> fresh official score -> manifest fields/hashes -> smoke verifier instructions. No algorithm, preprocessing, accepted source or numerical evidence changed; recipe reviewed, not rerun. This handoff retains technical history but replaces unnecessary user/download/reference/SDK/Octave absolute locations with placeholders; original bytes preserved in excluded local validation evidence. Credential/private-IP/email pattern scan found none.
+
+Commit procedure: stage exactly the33reviewed paths and git commit --only those paths. Preserve pre-existing corrdn stagedblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 and workingSHA03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6, dirty VkFFT, FFT experiments and every unrelated file. Confirm commit contains exactly33paths and no others; compare unrelated status/content before/after. No reset/clean/discard.
+
+After successful commit: report actual hash/list and preserved state to user; WAIT for review. Do not push or start new numerical/FFT work. Accepted219frame/12video exact results, benchmark hybrid35.5percent longer and Light3/originalfootball150 OPEN limitations remain unchanged.
+
+## Final benchmark and delivery review - 2026-11-12
+
+User authorized benchmark/docs/audit, NOT commit/push or new FFT/full-dataset work. Completed isolated CPU baseline build from SAME accepted source snapshot, Release MaxSpeed/Strict/MSVC19.51.36260. Existing final IQM/package/algorithm/preprocessing/acceptance selection unchanged. Added tools/hdrvdp3_cpu_baseline/{CMakeLists.txt,main.cpp}; tests/benchmark_hdrvdp3_delivery.cjs and audit_hdrvdp3_delivery.cjs.
+
+Sequential benchmark Daylight1 4k_3M frame0: one warmup +3 measured/backend, alternating paired order. CPU wall76.3830368/78.3598316/66.3350298s; median76.3830368. Hybrid99.803391/103.4989621/104.965641s; median103.4989621. Hybrid35.5percent LONGER; ratio CPU/hybrid0.7380077563; NO GPU speedup claim. Internal medians76.1837503 CPU /100.0693962 hybrid. All8outputs EXACT40826c85/409d6d04; hybrid29dispatches/run, CPUzero, validationzero. Kernel/transfer/sync separate times unavailable: no timestamp instrumentation. Internal elapsed includes synchronous overhead, process-minus-internal is NOT transfer overhead. Same unchanged Balanced plan, hardware/driver recorded; clocks/thermals/background/AC not locked; one-input n3 limitation explicit.
+
+Artifacts validation/hdrvdp3_delivery_benchmark_20261112_run01/: protocol/results.json, all8runs, hardware_conditions{,_after}.txt, compiler_settings.json, baseline_build_receipt.json, source_comparison.json. New isolated build validation/hdrvdp3_benchmark_cpu_build_20261112_run01; no old build outputs changed. Benchmark unified exec session19616 exited0; no background benchmark pending.
+
+Independent post-timing acceptance audit PASSED:29frozen files,155source snapshot files,16MP4sources,438PNGs,219exact scores,12recomputed orderedSingle means,6351recorded dispatches,0validationerrors, officialtreeunchanged. Receipt final_evidence_audit.json in benchmarkroot. Workingtree155deliverysources equal accepted snapshot (zero differences).
+
+Delivery docs tests/HDRVDP3_FINAL_DELIVERY_2026-11-12.md and HDRVDP3_DELIVERY_COMMIT_REVIEW_2026-11-12.md; profile doc appended final checkpoint. Explicit33file commit proposal, sixshader sources alreadytracked/unchanged; all binaries/datasets/generated validation/FFT experiments/dirty VkFFT excluded. Existing staged corrdn shader indexblob1cf7baedb1d54be0ca8ad02d14485e510b0434e7 and workingSHA03dcac86ed49ade71c804061c66bb5f382bc754b69b0bd9f0354b6d9024450c6 preserved. No staging/commit/push/reset/clean/reference edits. Light3 and originalfootball150 remain OPEN.
+
+Exact next step: user reviews final benchmark/delivery report and33file list. Do not commit/push, optimize FFT, alter quality algorithm or launch more dataset evaluations until explicitly authorized. Approved hybrid delivery scope is now documented; no universal/fullGPU/speedup/private-paper claim.
+
+## Latest acceptance status — 2026-11-12
+
+Bounded acceptance COMPLETE/PASS per checkpoint and detailed report: 219/219 frames exact Q/Q_JOD, 12/12 videos with exact ordered Float32 mean Q_JOD, zero mismatches and zero reported Vulkan validation errors. Wall23205.699sec (~6h26m46s). Runner24612 and watcher23572 no longer present. No evaluation remains running under those PIDs. All previous partial-progress statements below are historical.
+
+Light3 alignment and original football540p frame150 reference discrepancy remain OPEN; frame150 was included in this passing current run. This validates only the frozen live-hybrid profile and declared12-pair subset, not universal/fullGPU/paper-wide parity. No benchmark, commit or push. Next: review final per-frame evidence and frozen input/package hashes for delivery sign-off; do not launch broader evaluations without approval.
+
+## Live acceptance latest observed progress ? 2026-11-12
+
+All12exactclock/count preflight gates PASSED; certificate resultroot/preflight_acceptance.json.
+Runner24612 stillactive. FIRSTqualityframe540p_2.2M_Bonfire/frame0000 EXACT Q/QJOD.
+Lastcheckpoint1/219evaluated,1exact,0mismatch,0completevideos; frame0030scoring.
+DO NOTclaimacceptancecomplete; boundedjobcontinuesautomatically withoutnewcommands.
+
+Report-onlywatcher33208 was replaced by23572 toretry transientpartialJSONreads
+whileproducerwrites. Numericalrunner/manifest/allfrozenfiles unchanged; original
+reporterscriptscopiedintoresultroot as .initial. Newwatcher/reporter hashesandPIDs
+injob_receipt.json. PrimaryreportACCEPTANCE_REPORT.md anddetailedreport
+DETAILED_ACCEPTANCE_REPORT.md updateautomatically andendatcomplete/failure.
+Usefinalperframeinput/score/dispatch/logevidence andindependentlyauditbeforefinal
+claim; ifanynewmismatch, localizefirstdivergentstage BEFOREfix,neverautofix/vote.
+
+Frozen selectionSHA65bde31ffe3aee7840ad5b15f5cf464a2b58fbebf43fa494c330e979ad7d58db
+unchanged.12pairs only:4contentsBonfire/CargoBoat/Daylight1/football1 x540p2.2M/
+1080p1M/4k3M.219samples. Light3andoriginalfootball150remainOPEN; selectedfootball
+frame150notremoved. No full279/performancebenchmark/commit/push.
+
+
+## ACTIVE bounded12-pair acceptance ? 2026-11-12
+
+USERAPPROVED cleanbuild checkpoint and exactly4contentsx3distortedvideos. No
+benchmark/full279/fix/commit/push. Currenttarget frozenfinalIQM.exe live-hybrid,
+notfullyGPU. Needcomplete/reportacceptance; NEVERinferpassfrompartialprogress.
+
+Frozen BEFORE anyqualityscores: Bonfire,CargoBoat,Daylight1,football1 eachwith
+540p_2.2M /1080p_1M /4k_3M. Totals18/22/16/17selectedframes percontent x3=219.
+All4Kreferencegeometry, metadataactualbitrate andsourcecodec/PQ/BT2020/headerFPS
+pinned. Phase0,stride30; PPD62.729130063099447,quality/sp0,age24/OLED/ambient200/
+reflectivity.005/peak2000,Single images,3threadFFTWestimate, samepreprocessing.
+ExplicitorderedSinglevideoQJODmeans; noaggregationprecisioninferenceaboutpaper.
+Light3OUTSIDE4declaredcontents andremainsOPEN; no replacementbasedonresults.
+football540p frame150 INCLUDED, original40ec4f50/41037c75 vslater40ec7071/41038aea
+remainsOPEN evenifnewfrozenreferenceagrees. Sidecarhistorical_context.json retains
+originalartifacthashandinputPNGhashes.
+
+Manifest validation/hdrvdp3_live_acceptance_frozen_20261112_run01/manifest.json
+SHA25665bde31ffe3aee7840ad5b15f5cf464a2b58fbebf43fa494c330e979ad7d58db.
+Protocoltests/HDRVDP3_LIVE_ACCEPTANCE_SELECTION_2026-11-12.md.16sourceMP4headers
+(mediahashes) +17packagefiles/manifest +tool/script hashes andofficialtree hash.
+NEW tests/freeze_hdrvdp3_live_acceptance.cjs andrun_hdrvdp3_delivery_acceptance.cjs.
+Do NOTedit anymanifest.frozen_files whilejobactive; runnerguardsbeforeeachframe.
+Firstfreezeattempt failed locatingffprobe viaNodePATH beforecreatinganyfreeze.
+Retriedusingexplicit IQM_FFPROBE/IQM_FFMPEG fromGet-Command; pinned9.0.2 paths.
+DecodechildPATH explicitlyprependsfrozenFFmpegdir; noencoder/decoderoptionchange.
+
+RUNNING intendedrunnerPID24612 (hidden/elevated), resultroot
+validation/hdrvdp3_live_acceptance_20261112_run01. stdout/stderr
+validation/hdrvdp3_live_acceptance_20261112_{stdout,stderr}.log. Jobcurrently
+preflightingallexactrelativeCFRtimelines/countsBEFOREquality; latestcheckpoint
+phasepreflight/540p_2.2M_Daylight1,0evaluated,0mismatch,~180s. Mustinspectactual
+process/checkpoint nexttime; DO NOTlaunchduplicaterunner. Eachframefreshdecode,
+NEWofficial andNEWfinalIQM concurrently; oneframeatatime. Firstmismatchstops
+wholeboundedrun andpreservesPNG/reference/IQMoutputs/logs/basefrequency; first
+divergentstage thenrequiresdiagnosticlocalization BEFOREfix. No automaticfixes or
+reference-sourceinstrumentation. Availableintermediates retained; nofulltrace
+claimfromscore-onlyexecutable.
+
+NEW reporter tests/report_hdrvdp3_delivery_acceptance.cjs andwatch...cjs; watcher
+PID33208 updatespervideoframes/means/bits/process times/GPUdispatchtotals/error
+counts every15s, endsatcompleteorfailure (48hguard). ItdoesNOTstartnumericalruns.
+ReportsACCEPTANCE_REPORT.md andDETAILED_ACCEPTANCE_REPORT.md +JSON inresultroot.
+Checkreport_watcher_failure.txt if needed. job_receipt.jsonrecordsPIDs/hashes.
+No qualityresults yet atthischeckpoint. Userrequestsfinalacceptancereview after
+run; do not callstartedjob acompletedacceptance. No commit/push.
+
+
+## CLEAN BUILD / RUNTIME PACKAGE REVIEW GATE COMPLETE ? 2026-11-11
+
+User approved CLI and authorized isolatedcleanbuild/runtimepackaging,14synthetics,
+ONErealLIVEsmoke only. NO full12-pairevaluation/benchmark/commit/push untilreview.
+ManualFFT/newGPUfreeze persists. This requestedstep is COMPLETE; reportnow and
+waitforreview before nextdeliverytask. Existing builds/artifacts/references and
+protectedstagedshader/VkFFT preserved.
+
+Added opt-in root IQM_HDRVDP3_DELIVERY_ONLY(OFFbydefault) ->
+cmake/HDRVDP3Delivery.cmake. SAME bin/IQM/main.cpp, delivery-only compileguards;
+no alternative numericalentry. Compilesonlyacceptedlive-hybrid+requiredsources;
+no legacyshader.inc,VkFFT,glslang,GLFW,oldvalidationdeps. Defaultmultimetricpath
+retainedbutnotrebuiltthischeckpoint. Actual155sourcefile snapshot (including
+uncommittedCLIwork) hashmanifest at
+validation/hdrvdp3_clean_delivery_20261111_run01/source/source_manifest.json;
+freshbuildsubdir, no .git/build/shaders_out/validation copiedintothesnapshot.
+MSVC19.51/VulkanSDK1.4.363.0/CMake4.4.4/shaderc2026.4: buildPASS,6shadercompiles
+-O0/targetvulkan1.2+spirv-valPASS. Oldtracking/GLFWerrorsabsent; existingstb and
+buffer-sizewarningsremain. No arithmeticorofficialreferencechanges.
+
+Tools: snapshot_hdrvdp3_delivery.cjs,package_hdrvdp3_delivery.cjs,
+package_hdrvdp3_regression.cjs, modelhashJSON. Package relocated-package17hashed
+files+manifest: actualIQM.exe,6newSPV,4pinnedmodels fromofficialdata,FFTWDLL+
+libwinpthread,notices/README/relativePSlauncher. FFtwSHA2dda2...b55e preserved.
+RuntimeprereqsWindowsx64/UCRT/MSVCruntime/Vulkanloader+FP64driver/installedKhronos
+validationlayer. TestsNVIDIARTXA500. NoOctave/build/source/oldvalidationPATHneeded
+forIQMrun. ALLpackagehashes unchanged. DLLimportreports retained. Model/DLL
+inputs to packagingexplicit+hashchecked. Modelnames/hashes inrepoJSON.
+
+Cleanpackage14syntheticsettings/12distinctpairs EXACT. Repeated SAME14 using
+portable-regression/cases.json relativePNG/goldenpaths (NOT28newcases); fresh
+officialportrait alsoEXACT. Tests launch frompackagecwd, PATHSystem32 only,
+VULKAN_SDK/OCTAVE_HOMEremoved; layerloadsfromsystemregistrySDKinstall.
+RelativePSlauncher portrait alsoEXACT. Evidence hdrvdp3_clean_synthetic_20261111_run01,
+hdrvdp3_portable_synthetic_20261111_run01,delivery_launcher root.
+
+ONErealframe smokecomplete:4k_ref_Daylight1 vs4k_3M_Daylight1 frame0 PNGbytes
+hashesverified,3840x2160/ppd62.729130063099447. PackageIQM Q40826c85/JOD409d6d04
+(4.075747013092041 /4.9195575714111328) EXACT vsNEWofficialv3.0.7Octaveexecution.
+Dispatch4matrix/1compare/6mutual/8resize/2L+M/8pad. NoVulkanerrorsreported.
+CPUFFT/JND/pyramid/remainingquality intentionalhybrid, notfallback. IQMwall58.384s,
+referencewall64.953s singleexecutionlogsONLY, NOTbenchmark/speedupclaim. Evidence
+hdrvdp3_delivery_smoke_20261111_run01 (freshreferenceacceptance+percaseVulkanlogs).
+
+Acceptance/commands/sourcebefore-after/manifest/DLLauditlogs: clean_deliveryroot.
+Docs tests/HDRVDP3_CLEAN_DELIVERY_2026-11-11.md andupdateddeliveryprofile.
+Newtests verify_hdrvdp3_clean_delivery.cjs and verify_hdrvdp3_delivery_smoke.cjs.
+ThisiscleansourceSNAPSHOT oncurrenthost, not baresecondmachine/publishedcommit.
+Full12-paircohortandperformanceworkNOTstarted. Light3andfootball150stillopen.
+NextONLYAFTERUSERREVIEW: predefinedLIVEsubset (declarecases/exclusions upfront).
+
+
+## ACTIVE SCOPE FREEZE / CLI review gate ? 2026-11-11
+
+LATEST USER OVERRIDES earlier fullGPU/autonomousFFT plans: deliver reproducible
+validated HYBRID CPU/Vulkan HDRVDP3 byNov20, secondmetricNov23. No newmanualFFT
+orunrelatedGPU implementations. No commit/push until review. Workincrementally;
+CLIintegration is complete and must be reported/reviewed BEFORE nexttask.
+Privatecompetitiondataset no longerpriority; publicLIVE+officialreference suffice
+subjecttoadvisor discussion. Exactnumericalcriteria unchanged.
+
+MainIQM now supports --hdrvdp3-profile live-hybrid with explicitPQBT2020RGB16
+encoding/runtime/FFTW/PPD/freshexport. Existing shared numericalbody moved unchanged
+frombin/IQM-hdrvdp3-cpu/main.cpp tobin/shared/hdrvdp3_single_cli.cpp/.h. Standalone
+thinentry preservesCPU/hybrid/mask/mutual compileprofiles. New adapter
+bin/IQM/hdrvdp3_live_quality.cpp/.h; args.h/.cpp/main.cpp andbin/CMakeLists.txt changed.
+All6existingGPUbackends enabled; FFTW/JND/pyramid/remainingqualityCPU. Fixedage24
+OLEDambient200lux reflectivity.005 peak2000; explicitPPD range26..256 retained
+for existingregressions, LIVEppd62.729130063099447. VulkanFP64needed. NoCPUfallback.
+
+All5targets built inexistingbuild-vs2026. InitialmaskFTK1011trackinglogexists;
+resolvedwithoutdeletion using /p:TrackFileAccess=false fortworemainingtargets.
+OldGLFWandcompilerwarnings retained; NOTacleanbuildacceptance. MainIQM14synthetic
+settings/12distinctpairs EXACT Q/Q_JOD againstpreservedofficial; freshofficial
+portrait alsoEXACT Q411fadeb/JOD411ff1c9. NoVulkanerrors;4matrix/1compare/2L+M/8pad
+andbanddependentmutual/resize countschecked. Aggregateprocesswall26.129seconds,
+notaspeedupclaim. 9CLIcontractchecksPASS. 4legacyprofiles exactportraitwithnew
+optionsabsent. Evidence hdrvdp3_cli_numeric_20261111_run01,cli_contract,cli_legacy_
+compatibility roots; integration root hdrvdp3_cli_integration_20261111_run01/review.json
+hassourcesnapshots/binaryhashes/extractionproof. Officialhdrvdp3SHA andprotected
+corrdnworktree/stagedblob unchanged. Pre-existing experiments/VkFFTpreserved.
+
+Docs tests/HDRVDP3_DELIVERY_PROFILE.md and HDRVDP3_CLI_INTEGRATION_2026-11-11.md.
+Do NOT silentlycontinuepackaging orfullLIVEcohortnow: useraskedreportbefore nexttask.
+Nextafterreview: clean-build/runtimegeneration (removeundocumentedlocaldeps),
+thenpredefinedbalancedLIVEsubset. MainCLIrealHDRnotyettestedthisincrement. Light3
+andhistoricalfootball150remainopen. No filescommitted/pushed.
+
+
+## Latest 2026-11-09: t3fv20 exact; composed four-dispatch GPU7680 exact
+
+User authorized autonomous continuation. Read handoff. Mainrun01 at28videos/479
+completedframes, active1080p_1M_Skyscraper; first0,30EXACT, frame60active latestlog.
+No frozen runner/audit/decoder/scorer modifications. Light3 remains explicitblocker.
+
+Completed prior-turn t3fv20 (artifact names20261108). Native extractor extended
+forradix20,m384,690disjointgroups seed7620; fixture fft4k_t3fv20_fixtures_20261108_run01.
+3072coefficients exact. Initialshader missingVFMShelper corrected inrun02; initial
+numericalrun failed1513487/10598400values, preservedfft_t3fv20_acceptance_20261108_run01
+withsource snapshots/native_kernel.asm. Eight FMAcontractions forT2c,T1Z,T1n,T1f
+fixed; shader run03 and acceptance run02 PASSED10598400values/690groups ZERO bits.
+NoVulkanerrors. Testbatches1,15,16,17,129,512 keepbufferfootprintwithinlimits.
+
+NEW composedGPU forward7680: tests/fft7680_forward_gpu.h/.cpp,fft7680_gather4.comp,
+verify_fft7680_forward_gpu.cpp,CMake tests/fft7680_forward_gpu. Fourdispatches
+gather+n1_4 ->t1fv6 ->t3fv16 ->t3fv20, pingpongGPUbuffers+barriers. No intermediate
+host transfers/numericalFFT; oneGPUsubmit/wait. Initial/finalcopiesonly, allocations
+stillhost-visible coherent. Pipeline exact90disjointtransforms/1382400Float32values
+in6batches1,3,4,5,13,64 inclconstant/impulse/random4scales seed7680. Nativeoracle
+fromactual4KCT20 apply callback, guardedleafinputstride8298240floats/output2;
+nativeinputfrequencystride2161complex vsGPUcanonicalcontiguoussamevalues.
+Extractor tests/inspect_fft7680_native_fixtures.cpp; fixture
+fft7680_native_fixtures_20261109_run01; acceptancefft7680_forward_acceptance_20261109_run01.
+Source/exe/DLL/shader/fixture hashes+snapshots inprovenance.json. Shaders+spirv-val
++strictbuild+Vulkanvalidation passed/noerrorsreported. Full2D4KFFT/fullGPU quality
+stillfalse. CPUoracle internalABI diagnostics only. DocFFT4K_SCALAR_LEAF_VALIDATION updated.
+
+Next implement real4320 forwardaxis recombination (r2cfII6/hc2c6 plusaccepted720)
+and inverse actual4Kaxisgraphs; connectfull2DFFT onlyafterstageexactness. Existing
+720FMAcontractions and acceptedforward7680 preserved. No commit/push thissession;
+lastremotea25e008. Protectedstagedshader/VkFFT/artifacts retained.
+
 
 ## Publication completed 2026-11-08
 
@@ -1741,7 +1963,7 @@ bitwiseacceptance. No blindshadercompilation/reset/cleanup/commit/push.
 
 Source/report commit65ffb11 (Add HDR-VDP-3 reference-parity runtimes and LIVE HDR
 evaluation) was successfully pushed to origin/feature/hdr-vdp3 at
-https://github.com/denizhaksoy/IQM. It contains452selected files (~3.3MB),
+<PROJECT_REPOSITORY_URL>. It contains452selected files (~3.3MB),
 covering accumulated validated runtime dependencies, SingleCPU CLI, GPU4K
 matrix stages, reproduction tools and scoped reports. User explicitly authorized
 commit/push. Dataset media, validation outputs, binaries, logs, backups, local
@@ -2114,7 +2336,7 @@ VkFFT preserved. Python Windows alias unusable; metadata audit uses Node instead
 
 ## Latest checkpoint: user-supplied LIVE HDR archive identified and staged (2026-10-31)
 
-User supplied C:/Users/DenizAksoy/Downloads/LIVE_HDR_MP4.zip (not UPIQ).
+User supplied <USER_DOWNLOADS>/LIVE_HDR_MP4.zip (not UPIQ).
 Read-only inspected archive,nevermodified/moved sourceDownload. It is LIVE HDR
 Video Quality Assessment Database,2022 Shang/Ebenezer/Bovik/Wu/Wei/Sethuraman,
 matching README and officialLIVEHDRwebpage. Useful forHDRVDP3paperWACVvideo
@@ -2176,7 +2398,7 @@ Official3.0.7ZIP downloaded freshly fromSourceForge (10875321bytes),SHA256
 BAA5C25CCA2E38176345A2A5423793459FBF571282396640C5E4AC85BF8381B3;
 cleanextractedunderofficial_clean/hdrvdp-3.0.7. Cleanhdrvdp3.mSHA256
 0F9F267F68B042C167EF03F41DAAF07388AE192AB30F81B243766863F9A5402A.
-OldC:/HDR-VDP-3_Ref hasextra diagnosticprinting/inspection inhdrvdp3.m and
+Old<OFFICIAL_REFERENCE> hasextra diagnosticprinting/inspection inhdrvdp3.m and
 hdrvdp_visual_pathway.m;diffssaved,allotherstock.mfilesmatch. Oldrefsnotchanged.
 DoNOTcallolderlocaldirectorybyte-identical/unmodifieddistribution. Newbaseline
 usescleanstockQscores,theninstrumentedcopywhoseQ/QJODcheckedagainststockeachcase.
@@ -2307,7 +2529,7 @@ Get-UPIQ.ps1 -OutputDirectory <fresh> (networkescalationapproved;returns2on500);
 Build-EXR-Decoder.ps1 -OutputDirectory <fresh-build>;
 node tests/upiq/prepare_exr_inputs.cjs <manifest> <decoder> <fresh-prepared>;
 octave-cli.exe --no-gui --quiet tests/upiq/run_reference_manifest.m
- C:/HDR-VDP-3_Ref <manifest> <fresh-out>;
+ <OFFICIAL_REFERENCE> <manifest> <fresh-out>;
 node tests/upiq/check_comparison_contract.cjs <root>;
 node tests/upiq/audit_setup.cjs <root> PASS. Build/run91710/22052exit0.
 Sources/exes/metadatahashesfrozen. ProtectedcorrDnSHA/stagedblobunchanged and
@@ -2437,7 +2659,7 @@ rejectionsbeforeGPUcreation. Vulkanlogsclean. Samefixed96/30ppd/age24/defaultsp0
 RTXA500andhistorical2distortedpairs+identityacross3displays. No fullGPU claim.
 
 Commands/artifacts:
-- build_srgb96_double_runtime.ps1 -GPULogarithm -RawData C:/HDR-VDP-3_Ref/data
+- build_srgb96_double_runtime.ps1 -GPULogarithm -RawData <OFFICIAL_REFERENCE>/data
   -OutputDirectory <root>/accepted_pack/runtime_repro;package.log;session85202exit0.
 - cmake -S tests/hdrvdp3_double_gpu -B <root>/build -G 'Visual Studio 18 2026' -A x64;
   build targetdouble96-log-test then mainIQM;session54991exit0.
@@ -2698,7 +2920,7 @@ nativearrays/counts/9qualitybands/scores/CPUboundaryflags/regressions/logs/
 negativecounts;results.json/final_audit_PASS.txt. validate_csf_runtime.cjs
 createsfreshv8_rejections. CMaketargetdouble96-csf-test args<v8runtime>
 <nativecpu-root> <fresh-output>. Packagebuildercommand -OutputDirectory
-<fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUCSF. Defaultprofile96sq/30ppd/age24/
+<fresh> -RawData <OFFICIAL_REFERENCE>/data -GPUCSF. Defaultprofile96sq/30ppd/age24/
 qualitysp0,NVIDIARTXA500Float64/RTE64/signedzero64,denorm64unavailable.
 
 Frozenmain/test/source/runtime/hashinventory. No commit/push/reset/clean/
@@ -2768,7 +2990,7 @@ negativecounts/logs. results.json/final_audit_PASS.txt. Runtime negative tool
 validate_jnd_runtime.cjs createsfreshv7_rejections. CMake targetdouble96-jnd-test
 args<v7runtime> <nativecpu-root> <fresh-out>. Build package via
 build_srgb96_double_runtime.ps1 -OutputDirectory <fresh> -RawData
-C:/HDR-VDP-3_Ref/data -GPUJND. Scopefixed96sq/30ppd/age24/defaultsp0,NVIDIA
+<OFFICIAL_REFERENCE>/data -GPUJND. Scopefixed96sq/30ppd/age24/defaultsp0,NVIDIA
 RTXA500Float64/RTE64/signedzero64;denorm64unavailable. Priorcorpusreused.
 
 Frozenmain/test/sources/runtime/hashinventory. No commit/push/reset/clean/
@@ -2842,7 +3064,7 @@ negativecounts;results.json/final_audit_PASS.txt. Runtimevalidator
 validate_comparison_runtime.cjs createsfreshv6_rejections. CLIvalidator reused
 withbackend=<root>/final_pack. Builderpowershell -NoProfile -ExecutionPolicy
 Bypass -File tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1
--OutputDirectory <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUComparison.
+-OutputDirectory <fresh> -RawData <OFFICIAL_REFERENCE>/data -GPUComparison.
 
 All88834initialpkg/68874finalpkg/31706stage+mainbuild/41364stage/39068CLI/
 39222legacy sessionsCOMPLETE0. Tenrejectionscomplete0. Nojobsrunning. Frozen
@@ -2916,7 +3138,7 @@ negativecounts;results.json/final_audit_PASS.txt. Runtimevalidator
 validate_pyramid_runtime.cjs createsfreshv5_rejections. Publicvalidator reused
 withbackend=<root>/accepted_pack. Builderpowershell -NoProfile
 -ExecutionPolicy Bypass -File tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1
--OutputDirectory <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUPyramid.
+-OutputDirectory <fresh> -RawData <OFFICIAL_REFERENCE>/data -GPUPyramid.
 
 All54316package/43520stage+mainbuild/77831CLI/50426legacy sessionsCOMPLETE0;
 stageand9rejectionscomplete0. Nojobsrunning. Frozenmain/test/sources/model/
@@ -2988,7 +3210,7 @@ results.json/final_audit_PASS.txt. validate_neighbor_runtime.cjs createsfresh
 v4_rejections. ExistingCLIvalidator reusedwithbackend=<root>/accepted_pack.
 Buildercommandpowershell -NoProfile -ExecutionPolicy Bypass -File
  tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1 -OutputDirectory
- <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUNeighbor.
+ <fresh> -RawData <OFFICIAL_REFERENCE>/data -GPUNeighbor.
 
 All28173package/35928stage+mainbuild/34231stage/93308CLI sessionsCOMPLETE0.
 V1V2V3regressionsand8runtimechecksCOMPLETE0. Nojobsrunning. Frozenmain/test/
@@ -3057,7 +3279,7 @@ validator usedwithbackend=<root>/accepted_pack. Targetargs <v3-runtime>
 <nativecpu-root> <fresh-output>. Sourcepackagebuilder fullfreshcommand:
 powershell -NoProfile -ExecutionPolicy Bypass -File
  tests/hdrvdp3_double_gpu/build_srgb96_double_runtime.ps1 -OutputDirectory
- <fresh> -RawData C:/HDR-VDP-3_Ref/data -GPUMasking.
+ <fresh> -RawData <OFFICIAL_REFERENCE>/data -GPUMasking.
 
 All18800stage/mainbuild,13544initialpkg/5357acceptedpkg,95278legacyregression,
 64868CLI sessionsCOMPLETE0. Stageand7rejectionscomplete0. Nojobsrunning.
@@ -3204,7 +3426,7 @@ PUBLICCOMMAND: build-vs2026/bin/Release/IQM.exe --method HDRVDP3 --input
 --hdrvdp3-display oled --hdrvdp3-runtime <Double96-package/runtime>
 --enable-validation. --hdrvdp3-device NVIDIA optional;no spectraloverride.
 Packagebuilder build_srgb96_double_runtime.ps1 -OutputDirectory <fresh>
--RawData C:/HDR-VDP-3_Ref/data. ProfileONLY96sq/30ppd/age24/defaultsp0/quality.
+-RawData <OFFICIAL_REFERENCE>/data. ProfileONLY96sq/30ppd/age24/defaultsp0/quality.
 FFT/convolution/cropGPU;visual/pyramid/masking/poolingCPU;notfullGPU/allmetric.
 Float64RTE64/signedzero64 acceptedNVIDIA;no denorm64/generaldeviceguarantee.
 
@@ -3402,7 +3624,7 @@ checks binary convolution/crop oracles,24stage rows,visual/quality counts,
 score doubles,validation logs and optional recorded FFTW module sample.
 Reproduction runner validate_srgb_gpu_frontend.ps1 parameters Executable,
 CpuRoot,EncodedRoot,ChainRoot,BaseRoot,OutputDirectory(fresh),RawData(default
-C:/HDR-VDP-3_Ref/data). Parser syntax PASS;acceptance used equivalent direct
+<OFFICIAL_REFERENCE>/data). Parser syntax PASS;acceptance used equivalent direct
 commands. Positional executable: <native-oracles> <fresh-out> unaligned
 <raw-data> <encoded-inputs> <forwardfirst> <forwardsecond> <multiply>
 <inversefirst> <inversesecond> <crop> <base12>. 'unaligned' is reservedlegacy
@@ -4816,7 +5038,7 @@ COMMANDS: sourcebuildfromrepo root,usefreshshortoutput:
 powershell -NoProfile -ExecutionPolicy Bypass -File
 tests/hdrvdp3_evaluation/generate_square128_runtime.ps1
 -OutputDirectory validation/my_square128_runtime
--VulkanBin C:/VulkanSDK/1.4.363.0/Bin
+-VulkanBin <VULKAN_SDK>/Bin
 Ready=<output>/runtime. Sharedtesttargetsbase256-pipeline-test,
 base256-spyr-test in tests/hdrvdp3_residual144;optionaltrailingcasecount6
 forstressmanifests(default5). IQM-base256-limit-test inevaluationproject,
@@ -4917,7 +5139,7 @@ Commandfromrepo root(usefresh,shortdirectory):
 powershell -NoProfile -ExecutionPolicy Bypass -File
 tests/hdrvdp3_evaluation/generate_square80_runtime.ps1
 -OutputDirectory validation/my_square80_runtime
--VulkanBin C:/VulkanSDK/1.4.363.0/Bin
+-VulkanBin <VULKAN_SDK>/Bin
 Readypackage=<output>/runtime.
 
 FAILURES PRESERVED/RESOLVED:
@@ -5025,7 +5247,7 @@ assertedagainstfullreference trace. Native80/rectanglecaptures retained.
 Compilecommands four scripts in tests/hdrvdp3_dimensions:
 compile_mean_general,compile_mean_general_difference_pack,
 compile_residual_general_extended,compile_base_general (all.ps1),freshoutputs,
--VulkanBin C:/VulkanSDK/1.4.363.0/Bin. CMake targets above in
+-VulkanBin <VULKAN_SDK>/Bin. CMake targets above in
 tests/hdrvdp3_residual144 exceptlimit in tests/hdrvdp3_evaluation.
 Pipeline exe args:mean.spv pack.spv fft.spv fixtures/manifest.txt fresh-output
 --pathway-difference. SPYRexe args:spyr_goldens/manifest.txt quality_assets
@@ -5120,7 +5342,7 @@ REPRODUCTION: cmake -S tests/hdrvdp3_residual144 -B <fresh-build>
 general-mean-quality-test,mean144-test --config Release -j4. Compile shader:
 powershell -NoProfile -ExecutionPolicy Bypass -File
 tests/hdrvdp3_dimensions/compile_mean_general.ps1 -OutputDirectory <fresh>
--VulkanBin C:/VulkanSDK/1.4.363.0/Bin.
+-VulkanBin <VULKAN_SDK>/Bin.
 Octave11.3 --quiet tests/export_native_mean_general.m <fresh-native>.
 node tests/hdrvdp3_evaluation/validate_mean_general.cjs <exe> <spv>
 <native> <fresh-results>. Fullchain usevalidate_square_quality.ps1 with
@@ -5194,7 +5416,7 @@ Source generation does not need native installation or prior numeric exports.
 Command from repo root:
 powershell -NoProfile -ExecutionPolicy Bypass -File
 tests/hdrvdp3_evaluation/generate_square_runtime.ps1
--OutputDirectory <fresh-output> -VulkanBin C:/VulkanSDK/1.4.363.0/Bin
+-OutputDirectory <fresh-output> -VulkanBin <VULKAN_SDK>/Bin
 Ready runtime=<fresh-output>/runtime.
 
 BINARY LINEAGE: full_suite_binaries freezes full-suite cohort. Subsequent
@@ -5810,7 +6032,7 @@ stage/Q/Q_JOD comparisons before enabling general public shapes. No commit/push.
   and executable are frozen separately in the new pathway checkpoint.
 - New `tests/generate_general_pathway_reference.m` creates a licensed traced
   COPY of installed hdrvdp3.m in a fresh validation directory, never edits
-  C:/HDR-VDP-3_Ref. Function rename/base_dir adjustment/trace assignments only;
+  <OFFICIAL_REFERENCE>. Function rename/base_dir adjustment/trace assignments only;
   source hashes recorded. Checkpoint
   `validation/general_pathway_639284244350897941`, original and traced native
   calls both fresh wisdom/3threads/ESTIMATE. For80x96 and96x80 asymmetric
@@ -6586,7 +6808,7 @@ remain separate work;no claim that the entire metric/product scope is complete.
 - Docs:tests/RECTANGULAR_STRESS_VALIDATION.md,MASKING_QUALITY_VALIDATION.md.
   Reproduce from workspace using validate_rectangular_stress.ps1
   -OutputDirectory <fresh-root>;package using generate_assets_rectangular.ps1
-  -OutputDirectory <fresh-root> -VulkanBin C:/VulkanSDK/1.4.363.0/Bin.
+  -OutputDirectory <fresh-root> -VulkanBin <VULKAN_SDK>/Bin.
   No reset/clean/commit/push/submodule changes or blanket shader compilation.
 
 Exact next step: expose only64x128/128x64 at30ppd/age24 through public
@@ -7368,7 +7590,7 @@ unfinished; no measured overall completion percentage is available.
 - Validation-only prepare_hdr_luminance uses bundled stb float HDR decoding,
   explicit binary32 Rec709 numeric Y andone cd/m2 perderivedY unit assumption.
   Source primaries/photometric calibration are not independently verified.
-  External source C:/HDR-VDP-3_Ref/examples/nancy_church.hdr is768x1024.
+  External source <OFFICIAL_REFERENCE>/examples/nancy_church.hdr is768x1024.
   Center crops32@(368,496),64@(352,480);no resizing. This is shared luminance
   input validation,not full RGB-native metric parity or whole-frame validation.
 - Full wrapper accepts IQM_LUMINANCE_REFERENCE / IQM_LUMINANCE_TEST;both required
@@ -8194,9 +8416,9 @@ authorized publishing verified changes; the scoped test checkpoint below is
 committed/pushed. Other unfinished work remains local.
 The earlier every-session handoff request was superseded by updates on GitHub publication.
 
-Original handoff read from `C:/Users/DenizAksoy/Downloads/AGENTS.md`.
-Official local reference: `C:/HDR-VDP-3_Ref` (`hdrvdp_version()` reports 3.07).
-Do not edit official reference files or overwrite old `C:/temp` references.
+Original handoff read from `<USER_DOWNLOADS>/AGENTS.md`.
+Official local reference: `<OFFICIAL_REFERENCE>` (`hdrvdp_version()` reports 3.07).
+Do not edit official reference files or overwrite old `<PRESERVED_REFERENCE_DIRECTORY>` references.
 
 ## Validated so far
 
@@ -8705,7 +8927,7 @@ max=0.00016022, RMSE=0.00002903. See `tests/FFT_PREPROCESSING_VALIDATION.md`.
 - Confirmed exact release source: `validation/oct-fftw-release-11-3-0.cc`,
   SHA256 `DB730C34E2C6DDB5FB078D569FA8A6A259903FA14DE278B8374668658B7545B6`.
   Default-branch inspection copy had the same hash. Source URL is recorded in
-  `tests/FFTW_PLAN_VALIDATION.md`. Official C:/HDR-VDP-3_Ref was untouched.
+  `tests/FFTW_PLAN_VALIDATION.md`. Official <OFFICIAL_REFERENCE> was untouched.
 - Added `tests/inspect_fftw_native.cc`: builds as an Octave extension, calls
   native public single FFT wrappers, prints their exact plans and thread count.
   `tests/validate_native_fft_probe.m` verifies returned results equal ordinary
@@ -8817,10 +9039,10 @@ $env:IQM_FFT_AXIS_ORDER='column' # row is the baseline/default
 $env:IQM_FFT_TWIDDLES='lut' # native is the baseline/default
 & './build-vs2026/bin/Release/IQM.exe' --method HDRVDP3 --enable-validation
 # Use this run's printed export directory, not a guessed old reference:
-& 'C:/Program Files/GNU Octave/Octave-11.3.0/mingw64/bin/octave-cli.exe' --quiet --no-gui tests/diagnose_fft_stages.m '<directory>'
-& 'C:/Program Files/GNU Octave/Octave-11.3.0/mingw64/bin/octave-cli.exe' --quiet --no-gui tests/validate_fft_preprocessing.m '<directory>' --strict
+& '<OCTAVE_CLI>' --quiet --no-gui tests/diagnose_fft_stages.m '<directory>'
+& '<OCTAVE_CLI>' --quiet --no-gui tests/validate_fft_preprocessing.m '<directory>' --strict
 & './build-vs2026/bin/Release/IQM-jnd-single-test.exe' '<directory>'
-& 'C:/Program Files/GNU Octave/Octave-11.3.0/mingw64/bin/octave-cli.exe' --quiet --no-gui tests/validate_spyr_spatial.m '<directory>'
+& '<OCTAVE_CLI>' --quiet --no-gui tests/validate_spyr_spatial.m '<directory>'
 ```
 
 The full-chain script without `--strict` reports mismatches (exit 0 is NOT
@@ -10057,3 +10279,7 @@ itsupdatedmetadatahashes refreshed inartifactinventory. Full69-stageauditPASS.
 An audit attempted toreadcompletedpointerbeforebackgroundhashingfinished;
 itfailedonlypathresolution,ran noGPUwork,thenpassedafterfreezecompleted.
 No remainingprocesses. Nextworkispublicprofile/packageintegration asabove.
+
+Latest checkpoint observed 2026-11-12: 2/219 evaluated, 2 exact, 0 mismatches, 0 Vulkan validation errors; active 540p_2.2M_Bonfire/frame0060, score phase. Acceptance incomplete. Frozen runner continues; do not launch a duplicate.
+
+Status check 2026-11-12: runner24612 and watcher23572 confirmed alive. Checkpoint173/219 frames exact, zero mismatches and Vulkan validation errors; 9/12 videos complete with bitwise equal ordered Float32 mean Q_JOD. Active540p_2.2M_football1/frame0150 score phase; historical discrepancy remains OPEN. Wall18640.043sec. No duplicate run or algorithm changes.

@@ -38,12 +38,26 @@
 #include "../shared/wrappers/lpips.h"
 #endif
 
-#if COMPILE_HDRVDP3
+#if COMPILE_HDRVDP3 && !defined(IQM_HDRVDP3_DELIVERY_ONLY)
 #include "../shared/wrappers/hdrvdp3.h"
 #include "srgb_quality.h"
+#ifdef IQM_HDRVDP3_LIVE_CLI
+#include "hdrvdp3_live_quality.h"
+#endif
 #endif
 
+#ifdef IQM_HDRVDP3_DELIVERY_ONLY
+#include "../shared/io.h"
+#include "hdrvdp3_live_quality.h"
+#endif
 void printHelp() {
+#ifdef IQM_HDRVDP3_DELIVERY_ONLY
+    std::cout<<"IQM HDR-VDP-3 hybrid delivery (CPU/Vulkan; not fully GPU)\n"
+      <<"--method HDRVDP3 --input TEST.png --ref REFERENCE.png\n"
+      <<"--hdrvdp3-profile live-hybrid --hdrvdp3-encoding pq-bt2020-rgb16\n"
+      <<"--hdrvdp3-runtime DIR --hdrvdp3-fftw DLL --hdrvdp3-ppd NUMBER\n"
+      <<"--hdrvdp3-export FRESH_DIR [--enable-validation]\n";
+#else
     std::cout << "IQM - Application for computing image quality metrics.\n"
     << "Usage: IQM --method METHOD --input INPUT --ref REF [--output OUTPUT]\n\n"
     << "Arguments:\n"
@@ -77,6 +91,11 @@ void printHelp() {
     << "    Encoded sRGB: --hdrvdp3-encoding srgb-display --hdrvdp3-runtime <DOUBLE96_DIR>\n"
     << "    Requires96x96 colorPF in[0,1],30ppd/age24;model data is inside runtime.\n"
     << "    --hdrvdp3-device <SUBSTRING>: optional Float64 GPU selection for sRGB.\n"
+    << "HDRVDP3 validated hybrid profile (Windows, RGB16 PQ BT2020 PNGs):\n"
+    << "    --hdrvdp3-profile live-hybrid --hdrvdp3-encoding pq-bt2020-rgb16\n"
+    << "    --hdrvdp3-runtime DIR --hdrvdp3-fftw DLL --hdrvdp3-ppd NUMBER\n"
+    << "    --hdrvdp3-export FRESH_DIR; age24/OLED, ambient200lux, peak2000cd/m2.\n"
+    << "    Vulkan matrices/masks/resize/L+M/padding; CPU FFT/JND/pyramid/quality.\n"
     << "PSNR:\n"
     << "    --psnr-variant <VAR> : One of `rgb`, `luma` or `yuv`\n"
     << "FLIP:\n"
@@ -84,6 +103,7 @@ void printHelp() {
     << "    --flip-res <RES>           : Resolution of display in pixels\n"
     << "    --flip-distance <DISTANCE> : Distance to display in meters\n"
     << std::endl;
+#endif
 }
 
 int main(const int argc, const char **argv) {
@@ -108,11 +128,24 @@ int main(const int argc, const char **argv) {
     std::cout << "[DEBUG] Method parsed: " << static_cast<int>(args->method) << std::endl;
 
 #if COMPILE_HDRVDP3
+    if(args->hdrvdp3Quality&&args->hdrvdp3Quality->profile=="live-hybrid"){
+#ifdef IQM_HDRVDP3_LIVE_CLI
+        try{return IQM::Bin::run_hdrvdp3_live_quality_cli(*args);}
+        catch(const std::exception& e){std::cerr<<e.what()<<'\n';return -1;}
+#else
+        std::cerr<<"live-hybrid is not available in this build\n";return -1;
+#endif
+    }
+#ifndef IQM_HDRVDP3_DELIVERY_ONLY
     if(args->hdrvdp3Quality&&args->hdrvdp3Quality->encoding=="srgb-display"){
         try{return IQM::Bin::run_srgb_quality96_cli(*args);}
         catch(const std::exception& e){std::cerr<<e.what()<<'\n';return -1;}
     }
 #endif
+#endif
+#ifdef IQM_HDRVDP3_DELIVERY_ONLY
+    std::cerr<<"This delivery build requires --method HDRVDP3 --hdrvdp3-profile live-hybrid\n";return -1;
+#else
     IQM::Bin::FileMatcher matcher;
     const auto matches = matcher.match(args.value());
 
@@ -189,4 +222,5 @@ int main(const int argc, const char **argv) {
     }
 
     return 0;
+#endif
 }

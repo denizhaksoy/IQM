@@ -12,6 +12,8 @@
 
 namespace IQM::Bin {
     struct HDRVDP3QualityArgs {
+        std::string profile = "legacy";
+        std::optional<std::string> fftwLibrary;
         std::string runtimeDirectory;
         std::optional<std::string> spectralDirectory;
         std::optional<std::string> exportDirectory;

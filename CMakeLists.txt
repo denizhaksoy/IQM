@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.29)
 project(IQM LANGUAGES CXX)
 
+option(IQM_HDRVDP3_DELIVERY_ONLY "Build main IQM with the scope-frozen live-hybrid profile only" OFF)
+if(IQM_HDRVDP3_DELIVERY_ONLY)
+    include(cmake/HDRVDP3Delivery.cmake)
+    return()
+endif()
+
 # option only ever useful for debugging/visualization of intermediate results
 option(ENABLE_RENDERDOC "Enable RenderDoc capture support" OFF)
 

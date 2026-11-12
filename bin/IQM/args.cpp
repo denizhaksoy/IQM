@@ -19,14 +19,16 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
     while (i < argc)  {
         const std::string key(argv[i]);
         if(key.rfind("--hdrvdp3-",0)==0) {
-            if(key!="--hdrvdp3-runtime"&&key!="--hdrvdp3-spectral-data"&&key!="--hdrvdp3-export"&&key!="--hdrvdp3-ppd"&&key!="--hdrvdp3-age"&&key!="--hdrvdp3-encoding"&&key!="--hdrvdp3-display"&&key!="--hdrvdp3-device")
+            if(key!="--hdrvdp3-profile"&&key!="--hdrvdp3-fftw"&&key!="--hdrvdp3-runtime"&&key!="--hdrvdp3-spectral-data"&&key!="--hdrvdp3-export"&&key!="--hdrvdp3-ppd"&&key!="--hdrvdp3-age"&&key!="--hdrvdp3-encoding"&&key!="--hdrvdp3-display"&&key!="--hdrvdp3-device")
                 throw std::runtime_error("Unknown HDRVDP3 option: "+key);
             if(!hdrOptions.insert(key).second)throw std::runtime_error("Duplicate option: "+key);
             if(i+1>=argc||!argv[i+1][0]||std::string(argv[i+1]).rfind("--",0)==0)
                 throw std::runtime_error("Missing value for "+key);
             if(!hdrvdp3Quality)hdrvdp3Quality.emplace();
             const std::string value(argv[i+1]);
-            if(key=="--hdrvdp3-runtime")hdrvdp3Quality->runtimeDirectory=value;
+            if(key=="--hdrvdp3-profile")hdrvdp3Quality->profile=value;
+            else if(key=="--hdrvdp3-fftw")hdrvdp3Quality->fftwLibrary=value;
+            else if(key=="--hdrvdp3-runtime")hdrvdp3Quality->runtimeDirectory=value;
             else if(key=="--hdrvdp3-spectral-data")hdrvdp3Quality->spectralDirectory=value;
             else if(key=="--hdrvdp3-export")hdrvdp3Quality->exportDirectory=value;
             else if(key=="--hdrvdp3-encoding")hdrvdp3Quality->encoding=value;
@@ -139,6 +141,16 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
         if(!hdrvdp3Quality||hdrvdp3Quality->runtimeDirectory.empty())throw std::runtime_error("HDRVDP3 luminance input requires --hdrvdp3-runtime");
         if(outputPath)throw std::runtime_error("HDRVDP3 quality uses --hdrvdp3-export, not --output");
         const auto& quality=*hdrvdp3Quality;
+        if(quality.profile=="live-hybrid") {
+            if(quality.encoding!="pq-bt2020-rgb16")throw std::runtime_error("live-hybrid requires explicit --hdrvdp3-encoding pq-bt2020-rgb16");
+            if(!quality.fftwLibrary||!quality.exportDirectory||!hdrOptions.contains("--hdrvdp3-ppd"))throw std::runtime_error("live-hybrid requires --hdrvdp3-fftw, --hdrvdp3-export and explicit --hdrvdp3-ppd");
+            if(quality.pixelsPerDegree<26||quality.pixelsPerDegree>256)throw std::runtime_error("live-hybrid PPD must be in [26,256]");
+            if(quality.observerAge!=24||quality.spectralDirectory||quality.device||(quality.rgbDisplay&&*quality.rgbDisplay!="oled"))throw std::runtime_error("live-hybrid fixes age24/OLED and model data from its runtime; no spectral/device override");
+            if(colorize)throw std::runtime_error("live-hybrid produces numerical quality outputs, not a colorized image");
+            if(!options.empty())throw std::runtime_error("Unsupported option for live-hybrid");
+            return;
+        }
+        if(quality.profile!="legacy"||quality.fftwLibrary)throw std::runtime_error("Unsupported HDRVDP3 profile or FFTW option for legacy profile");
         if(quality.encoding!="luminance"&&quality.encoding!="rgb-native"&&quality.encoding!="rgb-bt.709"&&quality.encoding!="rgb-bt.2020"&&quality.encoding!="xyz"&&quality.encoding!="srgb-display")throw std::runtime_error("Unsupported HDRVDP3 encoding");
         if(quality.device&&quality.encoding!="srgb-display")throw std::runtime_error("Device override requires srgb-display encoding");
         if(quality.encoding=="srgb-display"&&quality.spectralDirectory)throw std::runtime_error("sRGB model data must come from the Double96 runtime"  );

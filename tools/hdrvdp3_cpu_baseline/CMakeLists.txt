@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.29)
+project(HDRVDP3CpuBaseline LANGUAGES CXX)
+if(NOT WIN32 OR NOT DEFINED IQM_SOURCE)
+  message(FATAL_ERROR "Windows and -DIQM_SOURCE=<delivery source snapshot> required")
+endif()
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(names pq_single linear_color_single optical_response_single optical_single
+ sp0_single sp0_model_double general_quality_single general_single_pathway mtf jnd
+ jnd_single spectral spectral_loader csf resize quality)
+set(sources main.cpp "${IQM_SOURCE}/bin/shared/hdrvdp3_single_cli.cpp")
+foreach(name IN LISTS names)
+ list(APPEND sources "${IQM_SOURCE}/src/hdrvdp3/${name}.cpp")
+endforeach()
+add_executable(IQM-hdrvdp3-cpu-baseline ${sources})
+target_include_directories(IQM-hdrvdp3-cpu-baseline PRIVATE
+ "${IQM_SOURCE}/include" "${IQM_SOURCE}/lib/stb" "${IQM_SOURCE}/bin/shared")
+if(MSVC)
+ target_compile_options(IQM-hdrvdp3-cpu-baseline PRIVATE /fp:strict /EHsc /W4)
+endif()
