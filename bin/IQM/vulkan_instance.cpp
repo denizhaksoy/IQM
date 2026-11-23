@@ -22,11 +22,45 @@ IQM::Bin::VulkanInstance::VulkanInstance(bool enableValidation,
 
     auto layers = getLayers();
 
-    std::vector extensions = {
+    std::vector<const char*> extensions = {
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
     };
 
-    const vk::InstanceCreateInfo instanceCreateInfo{
+    bool enableSyncValidation = false;
+    if (enableValidation) {
+        const char* env = std::getenv("IQM_VULKAN_SYNC_VALIDATION");
+        enableSyncValidation = env && std::string(env) == "1";
+        if (enableSyncValidation) {
+            uint32_t ec = 0;
+            vkEnumerateInstanceExtensionProperties(LAYER_VALIDATION.c_str(), &ec, nullptr);
+            std::vector<VkExtensionProperties> exts(ec);
+            vkEnumerateInstanceExtensionProperties(LAYER_VALIDATION.c_str(), &ec, exts.data());
+            bool hasValFeatures = false;
+            for (const auto& e : exts) if (std::string(e.extensionName) == VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME) hasValFeatures = true;
+            if (!hasValFeatures) {
+                uint32_t gec = 0;
+                vkEnumerateInstanceExtensionProperties(nullptr, &gec, nullptr);
+                std::vector<VkExtensionProperties> gexts(gec);
+                vkEnumerateInstanceExtensionProperties(nullptr, &gec, gexts.data());
+                for (const auto& e : gexts) if (std::string(e.extensionName) == VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME) hasValFeatures = true;
+            }
+            if (hasValFeatures) {
+                extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+            } else {
+                std::cerr << "WARNING: IQM_VULKAN_SYNC_VALIDATION=1 requested but VK_EXT_validation_features not available; sync validation not enabled." << std::endl;
+                enableSyncValidation = false;
+            }
+        }
+    }
+
+    vk::ValidationFeatureEnableEXT syncEnable = vk::ValidationFeatureEnableEXT::eSynchronizationValidation;
+    vk::ValidationFeaturesEXT validationFeatures{
+        .enabledValidationFeatureCount = 1,
+        .pEnabledValidationFeatures = &syncEnable,
+    };
+
+    vk::InstanceCreateInfo instanceCreateInfo{
+        .pNext = enableSyncValidation ? &validationFeatures : nullptr,
         .pApplicationInfo = &appInfo,
         .enabledLayerCount = static_cast<uint32_t>(layers.size()),
         .ppEnabledLayerNames = layers.data(),
@@ -36,7 +70,11 @@ IQM::Bin::VulkanInstance::VulkanInstance(bool enableValidation,
 
     this->instance = vk::raii::Instance{this->context, instanceCreateInfo};
 
+    this->syncValidationEnabled = enableSyncValidation;
     this->initDebugMessenger(enableValidation);
+    if (this->syncValidationEnabled) {
+        std::cout << "Vulkan synchronization validation enabled (VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT)." << std::endl;
+    }
     this->initQueues(preferredDevice, requireFloat64);
 }
 

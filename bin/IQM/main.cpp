@@ -13,6 +13,9 @@
 #include "args.h"
 #include "file_matcher.h"
 #include "vulkan_instance.h"
+#if COMPILE_DEEPJSD
+#include "../shared/wrappers/deepjsd.h"
+#endif
 
 #if COMPILE_SSIM
 #include "../shared/wrappers/ssim.h"
@@ -56,12 +59,12 @@ void printHelp() {
       <<"--method HDRVDP3 --input TEST.png --ref REFERENCE.png\n"
       <<"--hdrvdp3-profile live-hybrid --hdrvdp3-encoding pq-bt2020-rgb16\n"
       <<"--hdrvdp3-runtime DIR --hdrvdp3-fftw DLL --hdrvdp3-ppd NUMBER\n"
-      <<"--hdrvdp3-export FRESH_DIR [--enable-validation]\n";
+      <<"--hdrvdp3-export FRESH_DIR [--hdrvdp3-cpu-sp0] [--enable-validation]\n";
 #else
     std::cout << "IQM - Application for computing image quality metrics.\n"
     << "Usage: IQM --method METHOD --input INPUT --ref REF [--output OUTPUT]\n\n"
     << "Arguments:\n"
-    << "    --method <METHOD> : selects method to compute, one of SSIM, FSIM, FLIP, PSNR, LPIPS, HDRVDP3, LOCAL_ADAPT\n"
+    << "    --method <METHOD> : selects method to compute, one of SSIM, FSIM, FLIP, PSNR, LPIPS, HDRVDP3, LOCAL_ADAPT, DEEPJSD (when compiled)\n"
     << "    --input <INPUT>   : path to tested image\n"
     << "    --ref <REF>       : path to reference image\n"
     << "    --output <OUTPUT> : path to output image, optional\n\n"
@@ -70,6 +73,10 @@ void printHelp() {
     << "    --enable-validation : enable Vulkan validation layers\n"
     << "    -h, --help        : prints help\n\n"
     << "Method specific arguments:\n"
+    << "DEEPJSD (8-bit RGB PNG only, lower score means less difference):\n"
+    << "    --deepjsd-model DIR --deepjsd-shaders DIR [--deepjsd-device SUBSTRING]\n"
+    << "    --deepjsd-repeat N : sequential evaluations with one model instance (default 1)\n"
+    << "    CPU RGB/255 and reference box downsample; Vulkan VGG19 and metric.\n"
     << "HDRVDP3 luminance quality (positive absolute-luminance PFM pair):\n"
     << "    --input <TEST.pfm> --ref <REFERENCE.pfm> --hdrvdp3-runtime <DIR>\n"
     << "    --hdrvdp3-ppd <30|60>       : defaults to 30\n"
@@ -126,6 +133,16 @@ int main(const int argc, const char **argv) {
         std::cout << "Selected method: " << IQM::method_name(args->method) << std::endl;
     }
     std::cout << "[DEBUG] Method parsed: " << static_cast<int>(args->method) << std::endl;
+
+    if(args->method==IQM::Method::DEEPJSD) {
+#if COMPILE_DEEPJSD
+        try { IQM::Bin::FileMatcher matcher;
+            return IQM::Bin::deepjsd_run(*args,matcher.match(*args));
+        } catch(const std::exception& e) {std::cerr<<e.what()<<'\n';return -1;}
+#else
+        std::cerr<<"DeepJSD support is not compiled\n";return -1;
+#endif
+    }
 
 #if COMPILE_HDRVDP3
     if(args->hdrvdp3Quality&&args->hdrvdp3Quality->profile=="live-hybrid"){

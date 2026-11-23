@@ -22,6 +22,7 @@ namespace IQM::Bin {
 
         std::string selectedDevice;
         bool float64Enabled = false;
+        bool syncValidationEnabled = false;
 
         vk::raii::Context context;
         vk::raii::Instance instance = VK_NULL_HANDLE;

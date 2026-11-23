@@ -28,6 +28,9 @@ add_library(IQM-HDRVDP3 STATIC
     optical_response_single.cpp
     optical_single.cpp
     sp0_single.cpp
+    sp0_single_gpu.cpp
+    sp0_resident_gpu.cpp
+    mutual_mask_resident_gpu.cpp
     general_quality_single.cpp
     general_single_pathway.cpp
     projection_single_gpu.cpp
@@ -37,6 +40,17 @@ add_library(IQM-HDRVDP3 STATIC
     adaptation_input_single_gpu.cpp
     comparison_resize_gpu.cpp
     srgb_display.cpp
+    local_adaptation_resident_gpu.cpp
+    optical_narrowing_gpu.cpp
+    narrowing_resident_gpu.cpp
+    optical_resident_gpu.cpp
+    fft_inverse2d_gpu.cpp
+    fft_inverse2d_inplace_gpu.cpp
+    fft_inverse4320_inplace_gpu.cpp
+    fft_inverse7680_gpu.cpp
+    fft4320_gpu.cpp
+    fft_gpu_single.cpp
+    fft2d_gpu.cpp
 )
 add_library(IQM::HDRVDP3 ALIAS IQM-HDRVDP3)
 

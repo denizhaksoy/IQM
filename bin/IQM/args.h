@@ -22,6 +22,7 @@ namespace IQM::Bin {
         std::optional<std::string> device;
         double pixelsPerDegree = 30;
         double observerAge = 24;
+        bool cpuSp0 = false;
     };
     class Args {
     public:

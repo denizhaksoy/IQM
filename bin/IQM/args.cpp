@@ -18,9 +18,21 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
     unsigned i = 1;
     while (i < argc)  {
         const std::string key(argv[i]);
+        if(key.rfind("--deepjsd-",0)==0) {
+            if(i+1>=argc || !argv[i+1][0] || std::string(argv[i+1]).rfind("--",0)==0)
+                throw std::runtime_error("Missing value for "+key);
+            if(!options.emplace(key,argv[i+1]).second) throw std::runtime_error("Duplicate option: "+key);
+            i+=2;continue;
+        }
         if(key.rfind("--hdrvdp3-",0)==0) {
-            if(key!="--hdrvdp3-profile"&&key!="--hdrvdp3-fftw"&&key!="--hdrvdp3-runtime"&&key!="--hdrvdp3-spectral-data"&&key!="--hdrvdp3-export"&&key!="--hdrvdp3-ppd"&&key!="--hdrvdp3-age"&&key!="--hdrvdp3-encoding"&&key!="--hdrvdp3-display"&&key!="--hdrvdp3-device")
+            if(key!="--hdrvdp3-profile"&&key!="--hdrvdp3-fftw"&&key!="--hdrvdp3-runtime"&&key!="--hdrvdp3-spectral-data"&&key!="--hdrvdp3-export"&&key!="--hdrvdp3-ppd"&&key!="--hdrvdp3-age"&&key!="--hdrvdp3-encoding"&&key!="--hdrvdp3-display"&&key!="--hdrvdp3-device"&&key!="--hdrvdp3-cpu-sp0")
                 throw std::runtime_error("Unknown HDRVDP3 option: "+key);
+            if(key=="--hdrvdp3-cpu-sp0"){
+                if(!hdrOptions.insert(key).second)throw std::runtime_error("Duplicate option: "+key);
+                if(!hdrvdp3Quality)hdrvdp3Quality.emplace();
+                hdrvdp3Quality->cpuSp0=true;
+                i+=1;continue;
+            }
             if(!hdrOptions.insert(key).second)throw std::runtime_error("Duplicate option: "+key);
             if(i+1>=argc||!argv[i+1][0]||std::string(argv[i+1]).rfind("--",0)==0)
                 throw std::runtime_error("Missing value for "+key);
@@ -47,7 +59,9 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
             if (i + 1 >= argc) {
                 throw std::runtime_error("Missing method argument");
             }
-            if (strcmp(argv[i + 1], "SSIM") == 0) {
+            if (strcmp(argv[i + 1], "DEEPJSD") == 0) {
+                this->method = Method::DEEPJSD;
+            } else if (strcmp(argv[i + 1], "SSIM") == 0) {
                 this->method = Method::SSIM;
             } else if (strcmp(argv[i + 1], "CW_SSIM_CPU") == 0) {
                 this->method = Method::CW_SSIM_CPU;
@@ -135,6 +149,9 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
     if (!parsedMethod) {
         throw std::runtime_error("missing method");
     }
+    for(const auto& [key,value]:options)
+        if(key.rfind("--deepjsd-",0)==0 && method!=Method::DEEPJSD)
+            throw std::runtime_error("DeepJSD options require --method DEEPJSD");
     if(hdrvdp3Quality&&method!=Method::HDRVDP3)throw std::runtime_error("HDRVDP3 options require --method HDRVDP3");
     if(method==Method::HDRVDP3&&(parsedInput||parsedReference||hdrvdp3Quality)) {
         if(!parsedInput||!parsedReference||inputPath.empty()||refPath.empty())throw std::runtime_error("HDRVDP3 luminance input requires both --input and --ref PFM files");
@@ -150,6 +167,7 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
             if(!options.empty())throw std::runtime_error("Unsupported option for live-hybrid");
             return;
         }
+        if(quality.cpuSp0)throw std::runtime_error("--hdrvdp3-cpu-sp0 requires --hdrvdp3-profile live-hybrid");
         if(quality.profile!="legacy"||quality.fftwLibrary)throw std::runtime_error("Unsupported HDRVDP3 profile or FFTW option for legacy profile");
         if(quality.encoding!="luminance"&&quality.encoding!="rgb-native"&&quality.encoding!="rgb-bt.709"&&quality.encoding!="rgb-bt.2020"&&quality.encoding!="xyz"&&quality.encoding!="srgb-display")throw std::runtime_error("Unsupported HDRVDP3 encoding");
         if(quality.device&&quality.encoding!="srgb-display")throw std::runtime_error("Device override requires srgb-display encoding");
