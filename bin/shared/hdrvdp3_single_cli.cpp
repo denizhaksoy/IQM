@@ -14,6 +14,8 @@
 #include <IQM/hdrvdp3/adaptation_input_single_gpu_device.h>
 #include <IQM/hdrvdp3/jnd_single_gpu.h>
 #include <IQM/hdrvdp3/sp0_single_gpu.h>
+#include <IQM/hdrvdp3/mutual_mask_resident_gpu.h>
+#include <optional>
 #include "vulkan_res.h"
 #include <vulkan/vulkan.hpp>
 #include <IQM/hdrvdp3/resize.h>
@@ -175,6 +177,18 @@ acceptedKeys.push_back("--padding-shader");
     d.write(reinterpret_cast<const char*>(v.data()),static_cast<std::streamsize>(v.size_bytes()));
     if(!d) throw std::runtime_error("Diagnostic export failed");
   };
+  unsigned residentMutualDispatches=0, residentMutualInputUploads=0;
+  unsigned residentMutualOutputReadbacks=0;
+  bool residentMutual=false;
+#ifdef IQM_HDRVDP3_HYBRID
+#ifdef IQM_HDRVDP3_MUTUAL
+  const char* residentEnv=getenv("IQM_HDRVDP3_RESIDENT_MUTUAL");
+  residentMutual=fullGpu && !cpuSp0 && residentEnv && std::string(residentEnv)=="1";
+  if(residentMutual && !gpu->float64Enabled) throw std::runtime_error("Resident mutual requires shaderFloat64");
+#endif
+  std::optional<SP0PyramidGpuSingle> refPyramid,testPyramid;
+      auto readback=[&](const GpuFloatBuffer& b){ auto staging=IQM::Bin::VulkanResource::createBuffer(*gpu->device(),*gpu->physicalDevice(),b.bytes,vk::BufferUsageFlagBits::eTransferDst,vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent); staging.first.bindMemory(staging.second,0); gpu->cmdBuf()->reset(); gpu->cmdBuf()->begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit}); vk::BufferMemoryBarrier rb{.srcAccessMask=vk::AccessFlagBits::eMemoryWrite,.dstAccessMask=vk::AccessFlagBits::eTransferRead,.srcQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.dstQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.buffer=*b.buffer,.offset=0,.size=b.bytes}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands,vk::PipelineStageFlagBits::eTransfer,{},{},{rb},{}); gpu->cmdBuf()->copyBuffer(*b.buffer,*staging.first,vk::ArrayProxy<const vk::BufferCopy>{vk::BufferCopy{0,0,b.bytes}}); vk::MemoryBarrier hr{.srcAccessMask=vk::AccessFlagBits::eTransferWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,vk::PipelineStageFlagBits::eHost,{},{hr},{},{}); gpu->cmdBuf()->end(); vk::CommandBuffer c=*gpu->cmdBuf(); vk::raii::Fence f(*gpu->device(),vk::FenceCreateInfo{}); gpu->queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&c},f); gpu->waitForFence(f); std::vector<float> out(b.count); void* p=staging.second.mapMemory(0,b.bytes); std::memcpy(out.data(),p,b.bytes); staging.second.unmapMemory(); gpu->cmdBuf()->reset(); return out; };
+#endif
   auto prepare=[&](const std::string& file,const char* side){
     log<<side<<" start\n"<<std::flush;std::cout<<side<<' '<<(fullGpu?"full-gpu-optical":"cpu-prep")<<' '<<backendName<<" Single\n"<<std::flush;
     if(!stbi_is_16_bit(file.c_str()))throw std::invalid_argument("Explicit RGB16 PNG required");int iw,ih,channels;
@@ -185,7 +199,7 @@ acceptedKeys.push_back("--padding-shader");
     if(sw!=w||sh!=h){std::vector<float> resized(3*n);for(size_t c=0;c<3;++c){std::vector<float> plane(encoded.begin()+c*sn,encoded.begin()+(c+1)*sn);auto values=resize_bicubic(plane,int(sh),int(sw),int(h),int(w));for(size_t i=0;i<n;++i)resized[c*n+i]=std::clamp(values[i],0.f,1.f);}encoded=std::move(resized);}
     if(fullGpu){
 #ifdef IQM_HDRVDP3_HYBRID
-      auto readback=[&](const GpuFloatBuffer& b){ auto staging=IQM::Bin::VulkanResource::createBuffer(*gpu->device(),*gpu->physicalDevice(),b.bytes,vk::BufferUsageFlagBits::eTransferDst,vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent); staging.first.bindMemory(staging.second,0); gpu->cmdBuf()->reset(); gpu->cmdBuf()->begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit}); vk::BufferMemoryBarrier rb{.srcAccessMask=vk::AccessFlagBits::eMemoryWrite,.dstAccessMask=vk::AccessFlagBits::eTransferRead,.srcQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.dstQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.buffer=*b.buffer,.offset=0,.size=b.bytes}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands,vk::PipelineStageFlagBits::eTransfer,{},{},{rb},{}); gpu->cmdBuf()->copyBuffer(*b.buffer,*staging.first,vk::ArrayProxy<const vk::BufferCopy>{vk::BufferCopy{0,0,b.bytes}}); vk::MemoryBarrier hr{.srcAccessMask=vk::AccessFlagBits::eTransferWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,vk::PipelineStageFlagBits::eHost,{},{hr},{},{}); gpu->cmdBuf()->end(); vk::CommandBuffer c=*gpu->cmdBuf(); vk::raii::Fence f(*gpu->device(),vk::FenceCreateInfo{}); gpu->queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&c},f); gpu->waitForFence(f); std::vector<float> out(b.count); void* p=staging.second.mapMemory(0,b.bytes); std::memcpy(out.data(),p,b.bytes); staging.second.unmapMemory(); gpu->cmdBuf()->reset(); return out; };
+
       // PQ encoded -> GPU PQ display (device-resident display-linear RGB)
       auto gpuLinear=pq_to_display_single_gpu(*gpu,options.at("--pq-display-shader"),encoded,{200.,.005,2000.});++gpuPqDispatches;
       if(diagRun) dump(side,"pq",readback(gpuLinear));
@@ -229,11 +243,17 @@ acceptedKeys.push_back("--padding-shader");
       auto gpuJndBuf=rgb_to_jnd_response_single_gpu_device(*gpu,options.at("--jnd-shader"),*gpuLmsr.buffer,*gpuAdapt.buffer,w,h,double(nn)/(ppd*ppd),24.); ++gpuJndDispatches;
       const bool gpuSp0Enabled = !cpuSp0;
       if(gpuSp0Enabled){
-        auto gpuSp0=build_sp0_pyramid_single_gpu(*gpu,options.at("--sp0-corrdn-shader"),options.at("--sp0-base-mean-shader"),*gpuJndBuf.buffer,w,h,ppd);
+        auto gpuSp0=build_sp0_pyramid_single_gpu(*gpu,options.at("--sp0-corrdn-shader"),options.at("--sp0-base-mean-shader"),*gpuJndBuf.buffer,w,h,ppd,!residentMutual);
         gpuSp0Dispatches += gpuSp0.dispatches;
         gpuSp0HostReadbacks += gpuSp0.hostReadbacks;
+        if(residentMutual){
+          if(diagRun) dump(side,"jnd",readback(gpuJndBuf));
+          auto& slot=std::string(side)=="reference"?refPyramid:testPyramid;
+          slot.emplace(std::move(gpuSp0));
+        }else{
         result.pyramid=std::move(gpuSp0.host);
         if(diagRun){ auto jndHost=readback(gpuJndBuf); dump(side,"jnd",jndHost); dump(side,"sp0_base",std::span<const float>(&result.pyramid.base_mean,1)); for(size_t bi=0;bi<result.pyramid.bands.size();++bi){ dump(side,(std::string("sp0_b")+std::to_string(bi)).c_str(), result.pyramid.bands[bi].values); } std::ofstream sd(out/(std::string("diag_")+side+"_sp0_gpu_stats_run"+std::to_string(diagRun)+".txt")); sd<<"dispatches="<<gpuSp0.dispatches<<" host_readbacks="<<gpuSp0.hostReadbacks<<"\n"; }
+        }
       } else {
         auto jndHost=readback(gpuJndBuf);
         if(diagRun){ dump(side,"jnd",jndHost); }
@@ -251,11 +271,72 @@ acceptedKeys.push_back("--padding-shader");
     if(diagRun){dump(side,"sp0_base",std::span<const float>(&result.pyramid.base_mean,1));for(size_t bi=0;bi<result.pyramid.bands.size();++bi)dump(side,(std::string("sp0_b")+std::to_string(bi)).c_str(),result.pyramid.bands[bi].values);}log<<side<<" ready\n"<<std::flush;return result;
   };
  auto reference=prepare(options.at("--ref"),"reference"),test=prepare(options.at("--input"),"test");
+#if defined(IQM_HDRVDP3_HYBRID) && defined(IQM_HDRVDP3_MUTUAL)
+ std::vector<std::vector<float>> residentMasks;
+ size_t nextMask=0;
+ SingleMutualBackend residentProvider;
+ if(residentMutual){
+   if(!refPyramid || !testPyramid) throw std::runtime_error("Missing resident pyramids");
+   auto& r=*refPyramid; auto& t=*testPyramid;
+   if(r.bands.size()!=t.bands.size()) throw std::runtime_error("Resident pyramid count mismatch");
+   unsigned bw=w,bh=h;
+   for(size_t b=0;b<r.bands.size();++b){
+     auto& a=r.bands[b]; auto& z=t.bands[b];
+     if(a.count!=size_t(bw)*bh || z.count!=a.count) throw std::runtime_error("Resident band shape mismatch");
+     auto mem=IQM::Bin::VulkanResource::createBuffer(*gpu->device(),*gpu->physicalDevice(),a.bytes,
+       vk::BufferUsageFlagBits::eStorageBuffer|vk::BufferUsageFlagBits::eTransferSrc,
+       vk::MemoryPropertyFlagBits::eDeviceLocal);
+     mem.first.bindMemory(mem.second,0);
+     GpuFloatBuffer mask{std::move(mem.first),std::move(mem.second),a.bytes,a.count};
+     ResidentMutualMaskSingle job(*gpu->device(),*gpu->physicalDevice(),options.at("--mutual-shader"),
+       {*a.buffer,0,a.bytes},{*z.buffer,0,z.bytes},{*mask.buffer,0,mask.bytes},bw,bh);
+     gpu->cmdBuf()->reset();
+     gpu->cmdBuf()->begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+     vk::MemoryBarrier before{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eShaderRead};
+     gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eComputeShader,{},{before},{},{});
+     job.record(*gpu->cmdBuf());
+     gpu->cmdBuf()->end();
+     vk::CommandBuffer c=*gpu->cmdBuf();
+     vk::raii::Fence fence(*gpu->device(),vk::FenceCreateInfo{});
+     gpu->queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&c},fence);
+     gpu->waitForFence(fence);
+     ++residentMutualDispatches; ++mutualDispatches;
+     residentMasks.push_back(readback(mask)); ++residentMutualOutputReadbacks;
+     if(diagRun) dump("mutual",(std::string("b")+std::to_string(b)).c_str(),residentMasks.back());
+     if(b>=1){bw=(bw+1)/2;bh=(bh+1)/2;}
+   }
+   log<<"resident_mutual_complete\\n"<<std::flush;
+   auto materialize=[&](SP0PyramidGpuSingle& p,QualitySideSingle& side,const char* name){
+     unsigned bw=w,bh=h;
+     for(size_t b=0;b<p.bands.size();++b){
+       auto values=readback(p.bands[b]); ++gpuSp0HostReadbacks;
+       if(diagRun) dump(name,(std::string("sp0_b")+std::to_string(b)).c_str(),values);
+       side.pyramid.bands.emplace_back();
+       auto& band=side.pyramid.bands.back(); band.width=bw; band.height=bh; band.values=std::move(values);
+       if(b>=1){bw=(bw+1)/2;bh=(bh+1)/2;}
+     }
+     auto bm=readback(p.baseMean); ++gpuSp0HostReadbacks;
+     side.pyramid.base_mean=bm.at(0);
+     if(diagRun) dump(name,"sp0_base",bm);
+   };
+   materialize(r,reference,"reference"); materialize(t,test,"test");
+   refPyramid.reset(); testPyramid.reset();
+   residentProvider.mutual=[&](auto a,auto z,unsigned bw,unsigned bh){
+     if(nextMask>=residentMasks.size() || a.size()!=size_t(bw)*bh || z.size()!=a.size() || residentMasks[nextMask].size()!=a.size())
+       throw std::runtime_error("Resident mutual consumer mismatch");
+     return std::move(residentMasks[nextMask++]);
+   };
+   mutual=&residentProvider;
+ }
+#endif
  auto result=evaluate_quality_single(reference,test,w,h,ppd,backend,comparison,mutual,comparisonResize);
+#if defined(IQM_HDRVDP3_HYBRID) && defined(IQM_HDRVDP3_MUTUAL)
+ if(residentMutual && nextMask!=residentMasks.size()) throw std::runtime_error("Unused resident masks");
+#endif
  double elapsed=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
  std::ofstream f(out/"score.json");f.precision(17);f<<"{\"scope\":\"IQM public Single quality with explicit backend\",\"backend\":\""<<backendName<<"\",\"encoding\":\"pq-bt2020-rgb16\",\"width\":"<<w<<",\"height\":"<<h<<",\"ppd\":"<<ppd<<",\"gpu_matrix_dispatches\":"<<matrixDispatches<<",\"age\":24,\"display\":\"oled\",\"ambient_lux\":200,\"reflectivity\":0.005,\"peak\":2000,\"fftw_threads\":3,\"fftw_planner\":\"estimate\",\"elapsed_seconds\":"<<elapsed<<",\"Q_text\":\""<<result.scores.Q<<"\",\"Q_JOD_text\":\""<<result.scores.Q_JOD<<"\",\"Q_hex\":\""<<std::hex<<std::setw(8)<<std::setfill('0')<<std::bit_cast<uint32_t>(result.scores.Q)<<"\",\"Q_JOD_hex\":\""<<std::setw(8)<<std::bit_cast<uint32_t>(result.scores.Q_JOD)<<std::dec<<"\",\"base_frequency\":"<<result.base_frequency<<"}\n";
  if(!f)throw std::runtime_error("Score output failed");
-  std::ofstream stages(out/"gpu_stages.json");stages<<"{\"matrix_dispatches\":"<<matrixDispatches<<",\"comparison_dispatches\":"<<comparisonDispatches<<",\"mutual_dispatches\":"<<mutualDispatches<<",\"comparison_resize_calls\":"<<comparisonResizeCalls<<",\"comparison_resize_dispatches\":"<<comparisonResizeDispatches<<",\"adaptation_input_dispatches\":"<<adaptationInputDispatches<<",\"padding_dispatches\":"<<paddingDispatches<<",\"pq_display_dispatches\":"<<gpuPqDispatches<<",\"optical_dispatches\":"<<gpuOpticalDispatches<<",\"adaptation_dispatches\":"<<gpuAdaptDispatches<<",\"jnd_dispatches\":"<<gpuJndDispatches<<",\"sp0_dispatches\":"<<gpuSp0Dispatches<<",\"sp0_host_readbacks\":"<<gpuSp0HostReadbacks<<",\"full_gpu_stage1\":"<<(fullGpu?"true":"false")<<",\"full_gpu\":false}";
+  std::ofstream stages(out/"gpu_stages.json");stages<<"{\"matrix_dispatches\":"<<matrixDispatches<<",\"comparison_dispatches\":"<<comparisonDispatches<<",\"mutual_dispatches\":"<<mutualDispatches<<",\"comparison_resize_calls\":"<<comparisonResizeCalls<<",\"comparison_resize_dispatches\":"<<comparisonResizeDispatches<<",\"adaptation_input_dispatches\":"<<adaptationInputDispatches<<",\"padding_dispatches\":"<<paddingDispatches<<",\"pq_display_dispatches\":"<<gpuPqDispatches<<",\"optical_dispatches\":"<<gpuOpticalDispatches<<",\"adaptation_dispatches\":"<<gpuAdaptDispatches<<",\"jnd_dispatches\":"<<gpuJndDispatches<<",\"sp0_dispatches\":"<<gpuSp0Dispatches<<",\"sp0_host_readbacks\":"<<gpuSp0HostReadbacks<<",\"resident_mutual\":"<<(residentMutual?"true":"false")<<",\"resident_mutual_dispatches\":"<<residentMutualDispatches<<",\"resident_mutual_input_uploads\":"<<residentMutualInputUploads<<",\"resident_mutual_output_readbacks\":"<<residentMutualOutputReadbacks<<",\"full_gpu_stage1\":"<<(fullGpu?"true":"false")<<",\"full_gpu\":false}";
  if(!stages)throw std::runtime_error("GPU stage report failed");
  std::cout<<std::setprecision(17)<<"Q="<<result.scores.Q<<" Q_JOD="<<result.scores.Q_JOD<<'\n';return 0;
 }catch(const std::exception&e){std::cerr<<"HDR-VDP-3 quality error: "<<e.what()<<'\n';return 1;}}

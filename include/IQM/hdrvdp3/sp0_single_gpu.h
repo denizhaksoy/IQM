@@ -17,5 +17,5 @@ struct SP0PyramidGpuSingle {
 };
 SP0PyramidGpuSingle build_sp0_pyramid_single_gpu(const IQM::VulkanInstance& inst,
     const std::string& corrdnShader,const std::string& baseMeanShader,
-    vk::Buffer jndResponse,unsigned w,unsigned h,double ppd);
+    vk::Buffer jndResponse,unsigned w,unsigned h,double ppd,bool readHost=true);
 }

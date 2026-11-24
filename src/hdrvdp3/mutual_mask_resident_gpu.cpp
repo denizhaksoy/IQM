@@ -67,7 +67,7 @@ struct ResidentMutualMaskSingle::Impl {
 ResidentMutualMaskSingle::ResidentMutualMaskSingle(const vk::raii::Device& d,const vk::raii::PhysicalDevice& p,const std::filesystem::path& s,FFTBufferRegion ref,FFTBufferRegion tst,FFTBufferRegion out,unsigned w,unsigned h)
 :impl_(std::make_unique<Impl>(d,p,s,ref,tst,out,w,h)){
     const auto limits=p.getProperties().limits;
-    uint32_t total=uint32_t(size_t(w)*h);
+    uint32_t total=uint32_t((size_t(w)*h+63)/64);
     impl_->gxDisp=(std::min)(total,limits.maxComputeWorkGroupCount[0]);
     impl_->gyDisp=(total+impl_->gxDisp-1)/impl_->gxDisp;
     if(impl_->gyDisp>limits.maxComputeWorkGroupCount[1]) throw std::runtime_error("Mutual resident dispatch limit");

@@ -33,6 +33,8 @@ struct IsoCmd {
 static std::vector<float> readbackIso(const IQM::VulkanInstance& inst,IsoCmd& iso,vk::Buffer buf,size_t count){
   auto staging=IQM::Bin::VulkanResource::createBuffer(*inst.device(),*inst.physicalDevice(),unsigned(count*4),vk::BufferUsageFlagBits::eTransferDst,vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent); staging.first.bindMemory(staging.second,0);
   iso.cmd.begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+  vk::MemoryBarrier before{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eTransferRead};
+  iso.cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eTransfer,{},{before},{},{});
   iso.cmd.copyBuffer(buf,*staging.first,{vk::BufferCopy{0,0,count*4}});
   vk::MemoryBarrier hb{.srcAccessMask=vk::AccessFlagBits::eTransferWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead};
   iso.cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,vk::PipelineStageFlagBits::eHost,{},{hb},{},{});
@@ -41,7 +43,7 @@ static std::vector<float> readbackIso(const IQM::VulkanInstance& inst,IsoCmd& is
 }
 SP0PyramidGpuSingle build_sp0_pyramid_single_gpu(const IQM::VulkanInstance& inst,
     const std::string& corrdnShader,const std::string& baseMeanShader,
-    vk::Buffer jndResponse,unsigned w,unsigned h,double ppd){
+    vk::Buffer jndResponse,unsigned w,unsigned h,double ppd,bool readHost){
   if(!jndResponse||w<16||h<16) throw std::invalid_argument("sp0 gpu bad input");
   unsigned maxLevels=0; for(unsigned a=w,b=h;a>=13&&b>=13;a/=2,b/=2) ++maxLevels;
   unsigned levels=std::min(unsigned(std::ceil(std::log2(ppd))-2),maxLevels);
@@ -66,6 +68,7 @@ SP0PyramidGpuSingle build_sp0_pyramid_single_gpu(const IQM::VulkanInstance& inst
   iso.submitWait(inst);
   SP0PyramidGpuSingle out; out.levels=levels; out.bands=std::move(bandBufs); out.baseMean=std::move(baseMean);
   out.dispatches=pyr.dispatchCount();
+  if(!readHost) return out;
   SP0PyramidSingle host; host.bands.resize(out.bands.size());
   bw=w; bh=h; for(size_t b=0;b<out.bands.size();++b){ host.bands[b].width=bw; host.bands[b].height=bh; host.bands[b].values=readbackIso(inst,iso,*out.bands[b].buffer,size_t(bw)*bh); ++out.hostReadbacks; if(b>=1){bw=(bw+1)/2; bh=(bh+1)/2;} }
   auto bm=readbackIso(inst,iso,*out.baseMean.buffer,1); host.base_mean=bm[0]; ++out.hostReadbacks;
