@@ -1,0 +1,156 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+
+const double LN2 =
+    0.693147180559945309417232121458176568LF;
+
+double log64(double x) {
+    int exponent;
+
+    precise double m = frexp(x, exponent);
+
+    m = m * 2.0LF;
+    exponent -= 1;
+
+    precise double z =
+        (m - 1.0LF) / (m + 1.0LF);
+
+    precise double z2 = z * z;
+    precise double term = z;
+    precise double sumValue = z;
+
+    for (int k = 3; k <= 61; k += 2) {
+        term = term * z2;
+        sumValue = sumValue + term / double(k);
+    }
+
+    precise double result =
+        2.0LF * sumValue + double(exponent) * LN2;
+
+    return result;
+}
+
+double exp64(double x) {
+    if (x < -745.0LF)
+        return 0.0LF;
+
+    int exponent = int(floor(x / LN2 + 0.5LF));
+
+    precise double r =
+        x - double(exponent) * LN2;
+
+    precise double term = 1.0LF;
+    precise double sumValue = 1.0LF;
+
+    for (int k = 1; k <= 24; ++k) {
+        term = term * r / double(k);
+        sumValue = sumValue + term;
+    }
+
+    return ldexp(sumValue, exponent);
+}
+
+double pow64(double x, double y) {
+    if (x == 0.0LF)
+        return y == 0.0LF ? 1.0LF : 0.0LF;
+
+    return exp64(y * log64(x));
+}
+
+
+
+layout(local_size_x=1) in;
+
+layout(std430,set=0,binding=0)
+readonly buffer Band0 {
+    float v[];
+} band0;
+
+layout(std430,set=0,binding=1)
+readonly buffer Band1 {
+    float v[];
+} band1;
+
+layout(std430,set=0,binding=2)
+readonly buffer Band2 {
+    float v[];
+} band2;
+
+layout(std430,set=0,binding=3)
+readonly buffer Band3 {
+    float v[];
+} band3;
+
+layout(std430,set=0,binding=4)
+readonly buffer Band4 {
+    float v[];
+} band4;
+
+layout(std430,set=0,binding=5)
+readonly buffer Band5 {
+    float v[];
+} band5;
+
+layout(std430,set=0,binding=6)
+writeonly buffer QualityOutput {
+    float v[];
+} qualityOutput;
+
+layout(push_constant) uniform Push {
+    uint bandCount;
+} pc;
+
+float scorePower(float x,float y) {
+    if(isnan(x)) return x;
+    if(isinf(x)) return x;
+    if(x==0.0) return 0.0;
+    return float(pow64(double(x),double(y)));
+}
+
+void main() {
+
+    if(pc.bandCount!=6u) return;
+
+    precise float error=0.0;
+
+    precise float divisor=float(pc.bandCount);
+
+    precise float term0=band0.v[0]/divisor;
+    precise float term1=band1.v[0]/divisor;
+    precise float term2=band2.v[0]/divisor;
+    precise float term3=band3.v[0]/divisor;
+    precise float term4=band4.v[0]/divisor;
+    precise float term5=band5.v[0]/divisor;
+
+    error=error+term0;
+    error=error+term1;
+    error=error+term2;
+    error=error+term3;
+    error=error+term4;
+    error=error+term5;
+
+    const float expMinusFour=
+        float(0.018315638888734180293936LF);
+
+    precise float logInput=
+        expMinusFour+error;
+
+    precise float logValue=
+        float(log64(double(logInput)));
+
+    precise float Q=6.0-logValue;
+
+    precise float lossInput=
+        max(10.0-Q,0.0);
+
+    precise float loss=
+        scorePower(lossInput,1.2812);
+
+    precise float product=0.5200*loss;
+
+    precise float Q_JOD=10.0-product;
+
+    qualityOutput.v[0]=error;
+    qualityOutput.v[1]=Q;
+    qualityOutput.v[2]=Q_JOD;
+}

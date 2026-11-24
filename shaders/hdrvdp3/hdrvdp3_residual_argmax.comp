@@ -1,0 +1,8 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer F {vec2 f[];};
+layout(set=0,binding=1,std430) writeonly buffer O {uint selected;uint invalid;float maximum;};
+layout(push_constant) uniform P {uint count;} p;
+shared float mags[64];shared uint ids[64];shared uint bad[64];
+void main(){uint l=gl_LocalInvocationID.x;float m=0.0;uint idx=0,b=0;for(uint i=l;i<p.count;i+=64){if(i==0)continue;vec2 v=f[i];if(any(isnan(v))||any(isinf(v))){b=1;continue;}dvec2 d=dvec2(v);float a=float(sqrt(d.x*d.x+d.y*d.y));if(isinf(a)){b=1;continue;}if(a>m||(a==m&&i<idx)){m=a;idx=i;}}mags[l]=m;ids[l]=idx;bad[l]=b;barrier();for(uint s=32;s>0;s/=2){if(l<s){float a=mags[l+s];uint j=ids[l+s];if(a>mags[l]||(a==mags[l]&&j<ids[l])){mags[l]=a;ids[l]=j;}bad[l]|=bad[l+s];}barrier();}if(l==0){selected=ids[0];invalid=bad[0];maximum=mags[0];}}

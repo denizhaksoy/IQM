@@ -44,7 +44,10 @@ GeneralQualityResultSingle evaluate_quality_single(const QualitySideSingle& refe
     const QualitySideSingle& test,unsigned width,unsigned height,double ppd,
     const FFTBackendSingle& backend,const SingleComparisonBackend* comparison=nullptr,
     const SingleMutualBackend* mutual=nullptr,
-    const SingleComparisonResizeBackend* resize=nullptr);
+    const SingleComparisonResizeBackend* resize=nullptr,const double* residentFrequency=nullptr,
+    const std::vector<std::vector<float>>* residentSensitivity=nullptr,
+    const double* residentNoise=nullptr,
+    const std::vector<std::vector<float>>* residentRaw=nullptr);
 // Full independent front-end for calibrated linear BT2020 Single RGB.
 // Initial profile is quality/sp0, age24; caller supplies OLED model samples.
 QualitySideSingle prepare_quality_side_single(std::span<const float> linear_bt2020,

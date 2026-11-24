@@ -6,7 +6,9 @@ layout(push_constant) uniform P {uint count; float ambient; float limit; uint pa
 void main(){
  uint i=gl_GlobalInvocationID.x;
  if(i>=p.count) return;
- float unit=inputBuf.v[i];
+  precise float unit=inputBuf.v[i];
+ if(p.pad==1u)
+     unit=unit/65535.0;
  float t=pow(unit,1.0/78.84375);
  float numerator=max(t-0.8359375,0.0);
  float denominator=18.8515625-18.6875*t;

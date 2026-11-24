@@ -14,7 +14,12 @@ int run_hdrvdp3_live_quality_cli(const Args& args){
     std::ostringstream ppd;ppd<<std::setprecision(17)<<q.pixelsPerDegree;
     std::vector<std::string> values{"IQM live-hybrid","--input",args.inputPath,"--ref",args.refPath,
         "--encoding","pq-bt2020-rgb16","--ppd",ppd.str(),"--model-data",(runtime/"model").string(),
-        "--fftw",*q.fftwLibrary,"--output",*q.exportDirectory};
+        "--output",*q.exportDirectory};
+
+    if(q.fftwLibrary){
+        values.emplace_back("--fftw");
+        values.push_back(*q.fftwLibrary);
+    }
     const char* noCmpEnv=getenv("IQM_HDRVDP3_NO_COMPARISON");
     const bool noCmp = (noCmpEnv && std::string(noCmpEnv)=="1");
     for(const auto& pair:{std::pair{"--projection-shader","projection.spv"},std::pair{"--comparison-shader","mask.spv"},

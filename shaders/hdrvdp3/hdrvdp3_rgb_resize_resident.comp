@@ -1,0 +1,126 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+
+layout(local_size_x = 64,
+       local_size_y = 1,
+       local_size_z = 1) in;
+
+layout(std430, binding = 0) readonly buffer InputBuffer {
+    float v[];
+} inputBuf;
+
+layout(std430, binding = 1) readonly buffer IndexBuffer {
+    int v[];
+} indexBuf;
+
+layout(std430, binding = 2) readonly buffer WeightBuffer {
+    float v[];
+} weightBuf;
+
+layout(std430, binding = 3) readonly buffer NormBuffer {
+    float v[];
+} normBuf;
+
+layout(std430, binding = 4) writeonly buffer OutputBuffer {
+    float v[];
+} outputBuf;
+
+layout(push_constant) uniform Push {
+    uint count;
+    uint inputWidth;
+    uint inputHeight;
+    uint outputWidth;
+    uint outputHeight;
+    uint taps;
+    uint mode;
+    uint clampOutput;
+} pc;
+
+void main()
+{
+    uint groupIndex =
+        gl_WorkGroupID.y * gl_NumWorkGroups.x
+        + gl_WorkGroupID.x;
+
+    uint i =
+        groupIndex * gl_WorkGroupSize.x
+        + gl_LocalInvocationID.x;
+
+    if (i >= pc.count)
+        return;
+
+    // Mode 0: exact RGB16 code normalization.
+    if (pc.mode == 0u)
+    {
+        precise float unit =
+            float(double(inputBuf.v[i]) / 65535.0LF);
+
+        outputBuf.v[i] = unit;
+        return;
+    }
+
+    // Mode 3: standalone final clamping.
+    if (pc.mode == 3u)
+    {
+        outputBuf.v[i] =
+            clamp(inputBuf.v[i], 0.0, 1.0);
+
+        return;
+    }
+
+    uint inputPixels =
+        pc.inputWidth * pc.inputHeight;
+
+    uint outputPixels =
+        pc.outputWidth * pc.outputHeight;
+
+    uint channel = i / outputPixels;
+    uint pixel = i % outputPixels;
+
+    uint x = pixel % pc.outputWidth;
+    uint y = pixel / pc.outputWidth;
+
+    bool horizontal = pc.mode == 1u;
+
+    uint d = horizontal ? x : y;
+
+    precise float sum = 0.0;
+
+    for (uint tap = 0u; tap < pc.taps; ++tap)
+    {
+        uint planIndex = d * pc.taps + tap;
+
+        uint source = uint(indexBuf.v[planIndex]);
+
+        uint sourcePixel;
+
+        if (horizontal)
+        {
+            sourcePixel =
+                y * pc.inputWidth + source;
+        }
+        else
+        {
+            sourcePixel =
+                source * pc.inputWidth + x;
+        }
+
+        precise float value =
+            inputBuf.v[
+                channel * inputPixels + sourcePixel
+            ];
+
+        precise float product =
+            value * weightBuf.v[planIndex];
+
+        sum = sum + product;
+    }
+
+    precise float result =
+        float(double(sum) / double(normBuf.v[d]));
+
+    if (pc.clampOutput != 0u)
+        result = clamp(result, 0.0, 1.0);
+
+    outputBuf.v[i] = result;
+}

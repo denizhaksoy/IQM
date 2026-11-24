@@ -36,6 +36,8 @@ add_library(IQM-HDRVDP3 STATIC
     pq_display_single_gpu.cpp
     sp0_resident_gpu.cpp
     mutual_mask_resident_gpu.cpp
+    residual_single_gpu.cpp
+    csf_single_gpu.cpp
     general_quality_single.cpp
     general_single_pathway.cpp
     projection_single_gpu.cpp

@@ -149,7 +149,7 @@ IQM::Bin::Args::Args(const unsigned argc, const char *argv[]) {
         const auto& quality=*hdrvdp3Quality;
         if(quality.profile=="live-hybrid") {
             if(quality.encoding!="pq-bt2020-rgb16")throw std::runtime_error("live-hybrid requires explicit --hdrvdp3-encoding pq-bt2020-rgb16");
-            if(!quality.fftwLibrary||!quality.exportDirectory||!hdrOptions.contains("--hdrvdp3-ppd"))throw std::runtime_error("live-hybrid requires --hdrvdp3-fftw, --hdrvdp3-export and explicit --hdrvdp3-ppd");
+            if(!quality.exportDirectory||!hdrOptions.contains("--hdrvdp3-ppd"))throw std::runtime_error("live-hybrid requires --hdrvdp3-export and explicit --hdrvdp3-ppd");
             if(quality.pixelsPerDegree<26||quality.pixelsPerDegree>256)throw std::runtime_error("live-hybrid PPD must be in [26,256]");
             if(quality.observerAge!=24||quality.spectralDirectory||quality.device||(quality.rgbDisplay&&*quality.rgbDisplay!="oled"))throw std::runtime_error("live-hybrid fixes age24/OLED and model data from its runtime; no spectral/device override");
             if(colorize)throw std::runtime_error("live-hybrid produces numerical quality outputs, not a colorized image");

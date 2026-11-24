@@ -1,0 +1,49 @@
+#version 450
+
+layout(local_size_x = 64, local_size_y = 1) in;
+
+layout(std430, binding = 0) readonly buffer Previous {
+    float previousValues[];
+};
+
+layout(std430, binding = 1) readonly buffer Next {
+    float nextValues[];
+};
+
+layout(std430, binding = 2) writeonly buffer Neighbor {
+    float neighborValues[];
+};
+
+layout(push_constant) uniform Params {
+    uint count;
+    uint hasPrevious;
+    uint hasNext;
+} pc;
+
+void main() {
+    uint i = gl_GlobalInvocationID.x +
+             gl_GlobalInvocationID.y *
+             gl_NumWorkGroups.x *
+             gl_WorkGroupSize.x;
+
+    if (i >= pc.count)
+        return;
+
+    precise float value = 0.0;
+
+    if (pc.hasPrevious != 0u) {
+        precise float previousValue =
+            max(previousValues[i], 0.0);
+
+        value = value + previousValue;
+    }
+
+    if (pc.hasNext != 0u) {
+        precise float nextValue =
+            max(nextValues[i], 0.0);
+
+        value = value + nextValue;
+    }
+
+    neighborValues[i] = value;
+}

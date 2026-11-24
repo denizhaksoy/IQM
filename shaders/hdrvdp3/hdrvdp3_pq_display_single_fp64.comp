@@ -91,7 +91,10 @@ void main()
     if (i >= p.count)
         return;
 
-    precise float unit = inputBuf.v[i];
+        precise float unit = inputBuf.v[i];
+
+    if(p.pad==1u)
+        unit=float(double(unit)/65535.0LF);
 
     precise float t = pow_high_precision(
         unit, 1.0 / 78.84375);

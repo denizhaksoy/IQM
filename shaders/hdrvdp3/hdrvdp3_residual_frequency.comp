@@ -1,0 +1,8 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=1) in;
+layout(set=0,binding=0,std430) readonly buffer I {uint selected;uint invalid;float maximum;};
+layout(set=0,binding=1,std430) writeonly buffer O {double frequency;};
+layout(push_constant) uniform P {double baseFrequency;uint w;uint h;} p;
+double axis(uint k,uint n){precise double a=0.5+double(k)/double(n);precise double b=(a-floor(a))-0.5;precise double c=b*(p.baseFrequency*2.0);return c*2.0;}
+void main(){precise double x=axis(selected/p.h,p.w),y=axis(selected%p.h,p.h);precise double s=x*x+y*y;frequency=sqrt(s);}

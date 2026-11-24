@@ -1,0 +1,78 @@
+#version 450
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(std430, binding = 0) readonly buffer Input {
+    float inputValues[];
+};
+
+layout(std430, binding = 1) readonly buffer Indices {
+    int indices[];
+};
+
+layout(std430, binding = 2) readonly buffer Weights {
+    float weights[];
+};
+
+layout(std430, binding = 3) readonly buffer Normalization {
+    float normalization[];
+};
+
+layout(std430, binding = 4) writeonly buffer Output {
+    float outputValues[];
+};
+
+layout(push_constant) uniform Params {
+    uint inputWidth;
+    uint inputHeight;
+    uint outputWidth;
+    uint outputHeight;
+    uint taps;
+    uint horizontal;
+} pc;
+
+void main() {
+    uint x = gl_GlobalInvocationID.x;
+    uint y = gl_GlobalInvocationID.y;
+
+    if (x >= pc.outputWidth ||
+        y >= pc.outputHeight)
+        return;
+
+    uint outputIndex = y * pc.outputWidth + x;
+
+    if ((pc.horizontal != 0u &&
+         pc.inputWidth == pc.outputWidth) ||
+        (pc.horizontal == 0u &&
+         pc.inputHeight == pc.outputHeight)) {
+
+        outputValues[outputIndex] =
+            inputValues[y * pc.inputWidth + x];
+
+        return;
+    }
+
+    uint d = pc.horizontal != 0u ? x : y;
+
+    precise float sumValue = 0.0;
+
+    for (uint tap = 0u; tap < pc.taps; ++tap) {
+        uint i = d * pc.taps + tap;
+
+        uint source = uint(indices[i]);
+
+        uint inputIndex = pc.horizontal != 0u
+            ? y * pc.inputWidth + source
+            : source * pc.inputWidth + x;
+
+        precise float product =
+            inputValues[inputIndex] * weights[i];
+
+        sumValue = sumValue + product;
+    }
+
+    precise float result =
+        sumValue / normalization[d];
+
+    outputValues[outputIndex] = result;
+}

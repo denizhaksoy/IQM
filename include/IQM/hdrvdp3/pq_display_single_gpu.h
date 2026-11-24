@@ -16,7 +16,12 @@ struct GpuFloatBuffer {
 // Elementwise ST2084 normalized PQ [0,1] -> absolute linear RGB + ambient, clamped to peak+reflected.
 // Device-resident output; no host readback. Caller provides already-normalized float input.
 GpuFloatBuffer pq_to_display_single_gpu(const IQM::VulkanInstance& instance,
- const std::string& shader,std::span<const float> encoded,const PQDisplaySingle& display);
+ const std::string& shader,std::span<const float> encoded,const PQDisplaySingle& display,bool rawU16Codes=false);
+GpuFloatBuffer pq_to_display_single_gpu_resident(
+    const IQM::VulkanInstance& instance,
+    const std::string& shader,
+    const GpuFloatBuffer& encoded,
+    const PQDisplaySingle& display);
 // Convenience readback for parity testing only.
 std::vector<float> pq_to_display_single_gpu_readback(const IQM::VulkanInstance& instance,
  const std::string& shader,std::span<const float> encoded,const PQDisplaySingle& display);
