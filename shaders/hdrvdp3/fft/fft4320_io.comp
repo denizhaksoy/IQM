@@ -1,0 +1,12 @@
+#version 450
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{uint v[];}src;
+layout(set=0,binding=2,std430)writeonly buffer Output{uint v[];}dst;
+layout(push_constant)uniform P{uint count;uint batches;uint unpack;uint realInput;uint first;uint step;uint batchStep;uint inverse;}p;
+void main(){
+ uint id=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(id>=p.count)return;
+ if(p.unpack!=0){uint n=p.realInput!=0?2161u:4320u,b=id/n,k=id%n,at=p.first+b*p.batchStep+k*p.step;dst.v[at]=src.v[2*id];dst.v[at+1]=src.v[2*id+1];return;}
+ uint children=p.realInput!=0?3u:6u,b=id/(children*720),j=(id/720)%children,k=id%720;
+ if(p.realInput!=0){uint at=p.first+b*p.batchStep+(6*k+2*j)*p.step;dst.v[2*id]=src.v[at];dst.v[2*id+1]=src.v[at+p.step];}
+ else{uint at=p.first+b*p.batchStep+(6*k+j)*p.step;dst.v[2*id]=src.v[at+(p.inverse!=0?1:0)];dst.v[2*id+1]=src.v[at+(p.inverse!=0?0:1)];}
+}

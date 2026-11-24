@@ -1,0 +1,25 @@
+#version 450
+#extension GL_ARB_gpu_shader_fp64 : require
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{uint v[];}src;
+layout(set=0,binding=1,std430)readonly buffer Filter{uint v[];}coeff;
+layout(set=0,binding=2,std430)writeonly buffer Output{uint v[];}dst;
+layout(set=0,binding=3,std430)buffer Status{uint v[];}status;
+layout(push_constant)uniform P{uint count;uint mode;uint unused0;uint unused1;}p;
+shared uint groupFlags;
+uint rounded(uint n,uint d){uint q=n/d,r=n%d;return q+uint(2*r>d||(2*r==d&&(q&1u)!=0u));}
+uint shiftedQuotient(uint m,uint shift){uint q=m/2025u,r=m%2025u;for(uint i=0;i<shift;++i){q<<=1;r<<=1;if(r>=2025u){q++;r-=2025u;}}return q+uint(2*r>2025u||(2*r==2025u&&(q&1u)!=0u));}
+// Exact finitebinary32 /33177600 (=2025*2^14), RTE, preserves signedzero/subnormals.
+uint normalizeWord(uint b){uint sign=b&0x80000000u,e=(b>>23)&255u,m=b&0x7fffffu;if(e==255u)return b;if(e==0u)return sign|rounded(m,33177600u);m|=0x800000u;
+ if(e<=25u)return sign|(e>=15u?shiftedQuotient(m,e-15u):rounded(m,2025u<<(15u-e)));
+ uint shift=m>=16588800u?10u:11u,ex=e-14u-shift,q=shiftedQuotient(m,shift);if(q>=0x1000000u){q>>=1;ex++;}return sign|(ex<<23)|(q&0x7fffffu);}
+double decodeF32(uint b){uint e=(b>>23)&255u,m=b&0x7fffffu;if(e==0u){double v=double(m)*1.40129846432481707092372958328991613128e-45lf;return (b&0x80000000u)!=0u?-v:v;}return double(uintBitsToFloat(b));}
+uint productRTE(uint a,uint b){precise double p=decodeF32(a)*decodeF32(b);double v=abs(p);if(v<1.17549435082228750796873653722224567782e-38lf){uint m=uint(roundEven(v*713623846352979940529142984724747568191373312.0lf));return ((a^b)&0x80000000u)|m;}return floatBitsToUint(float(p));}
+void main(){uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(gl_LocalInvocationID.x==0u)groupFlags=0u;barrier();if(i<p.count){
+ if(p.mode==0u){uint x=i/4320u,y=i%4320u,j=y<=2160u?x*2161u+y:((7680u-x)%7680u)*2161u+4320u-y;uint re=src.v[2*j],im=src.v[2*j+1];if(y>2160u)im^=0x80000000u;dst.v[2*i]=re;dst.v[2*i+1]=im;if((im&0x7fffffffu)!=0u)atomicOr(groupFlags,1u);}
+ else if(p.mode==1u){uint re=productRTE(src.v[2*i],coeff.v[i]),im=productRTE(src.v[2*i+1],coeff.v[i]);dst.v[2*i]=re;dst.v[2*i+1]=im;if((im&0x7fffffffu)!=0u)atomicOr(groupFlags,2u);}
+ else if(p.mode==2u)dst.v[i]=normalizeWord(src.v[2*i]);
+ else if(p.mode==3u){uint x=i%3840u,y=i/3840u;float v=uintBitsToFloat(src.v[x*4320u+y]);dst.v[i]=(status.v[0]&3u)==3u?floatBitsToUint(clamp(v,1e-5,1e10)):0x7fc00000u;}
+ else if(p.mode==4u)dst.v[i]=normalizeWord(src.v[i]);
+ }barrier();if(gl_LocalInvocationID.x==0u&&groupFlags!=0u)atomicOr(status.v[0],groupFlags);
+}

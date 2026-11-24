@@ -1,0 +1,53 @@
+#version 450
+// SPDX-License-Identifier: GPL-2.0-or-later
+// FFTW 3.3.10 t1fv_6; copyright2003,2007-14 Frigo/MIT. Source/COPYING retained.
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{vec2 v[];}src;
+layout(set=0,binding=2,std430)writeonly buffer Output{vec2 v[];}dst;
+layout(push_constant)uniform P{uint batches;uint a;uint b;uint c;}p;
+vec2 VADD(vec2 a,vec2 b){precise vec2 r=a+b;return r;}vec2 VSUB(vec2 a,vec2 b){precise vec2 r=a-b;return r;}vec2 VMUL(vec2 a,vec2 b){precise vec2 r=a*b;return r;}vec2 VBYI(vec2 a){return vec2(-a.y,a.x);}vec2 VFNMS(vec2 a,vec2 b,vec2 c){return fma(-a,b,c);}vec2 VZMULJ(vec2 a,vec2 b){precise vec2 t=a.y*b.yx;return vec2(fma(a.x,b.x,t.x),fma(a.x,b.y,-t.y));}
+void twiddle(inout vec2 x[6],in vec2 W[5]){const float KP500000000=+0.500000000000000000000000000000000000000000000;
+const float KP866025403=+0.866025403784438646763723170752936183471402627;
+
+	       precise vec2 T4, Ti, Te, Tk, T9, Tj, T1, T3, T2;
+	       T1 = x[0];
+	       T2 = x[3];
+	       T3 = VZMULJ(W[2],T2);
+	       T4 = VSUB(T1, T3);
+	       Ti = VADD(T1, T3);
+	       {
+		    precise vec2 Tb, Td, Ta, Tc;
+		    Ta = x[4];
+		    Tb = VZMULJ(W[3],Ta);
+		    Tc = x[1];
+		    Td = VZMULJ(W[0],Tc);
+		    Te = VSUB(Tb, Td);
+		    Tk = VADD(Tb, Td);
+	       }
+	       {
+		    precise vec2 T6, T8, T5, T7;
+		    T5 = x[2];
+		    T6 = VZMULJ(W[1],T5);
+		    T7 = x[5];
+		    T8 = VZMULJ(W[4],T7);
+		    T9 = VSUB(T6, T8);
+		    Tj = VADD(T6, T8);
+	       }
+	       {
+		    precise vec2 Th, Tf, Tg, Tn, Tl, Tm;
+		    Th = VBYI(VMUL(vec2(KP866025403), VSUB(Te, T9)));
+		    Tf = VADD(T9, Te);
+		    Tg = VFNMS(vec2(KP500000000), Tf, T4);
+		    x[3]=VADD(T4, Tf);
+		    x[1]=VADD(Tg, Th);
+		    x[5]=VSUB(Tg, Th);
+		    Tn = VBYI(VMUL(vec2(KP866025403), VSUB(Tk, Tj)));
+		    Tl = VADD(Tj, Tk);
+		    Tm = VFNMS(vec2(KP500000000), Tl, Ti);
+		    x[0]=VADD(Ti, Tl);
+		    x[4]=VADD(Tm, Tn);
+		    x[2]=VSUB(Tm, Tn);
+	       }
+	  }
+const vec2 table[20]=vec2[20](vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f7746eau),uintBitsToFloat(0x3e8483eeu)),vec2(uintBitsToFloat(0x3f5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0x3f3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0x3f000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0x3e8483eeu),uintBitsToFloat(0x3f7746eau)),vec2(uintBitsToFloat(0x3f5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0x3f000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0x00000000u),uintBitsToFloat(0x3f800000u)),vec2(uintBitsToFloat(0xbf000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0xbf5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0x3f3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0x00000000u),uintBitsToFloat(0x3f800000u)),vec2(uintBitsToFloat(0xbf3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0xbf800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0xbf3504f3u),uintBitsToFloat(0xbf3504f3u)));
+void main(){uint batch=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(batch>=p.batches)return;for(uint k=0;k<4;k++){vec2 x[6],W[5];for(uint j=0;j<6;j++)x[j]=src.v[batch*24+j*4+k];for(uint j=0;j<5;j++)W[j]=table[k*5+j];twiddle(x,W);for(uint j=0;j<6;j++)dst.v[batch*24+j*4+k]=x[j];}}

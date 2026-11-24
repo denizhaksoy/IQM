@@ -1,0 +1,105 @@
+#version 450
+// SPDX-License-Identifier: GPL-2.0-or-later
+// FFTW 3.3.10 native inverse codelets; copyright2003,2007-14 Frigo/MIT. Source/COPYING retained.
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{vec2 v[];}src;
+layout(set=0,binding=2,std430)writeonly buffer Output{vec2 v[];}dst;
+layout(push_constant)uniform P{uint batches;uint a;uint b;uint c;}p;
+vec2 VFMS(vec2 a,vec2 b,vec2 c){return fma(a,b,-c);}
+vec2 VFMA(vec2 a,vec2 b,vec2 c){return fma(a,b,c);}
+vec2 VFMAI(vec2 b,vec2 c){precise vec2 r=vec2(c.x-b.y,c.y+b.x);return r;}
+vec2 VFNMSI(vec2 b,vec2 c){precise vec2 r=vec2(c.x+b.y,c.y-b.x);return r;}
+vec2 VZMUL(vec2 a,vec2 b){precise vec2 t=a.y*b.yx;return vec2(fma(a.x,b.x,-t.x),fma(a.x,b.y,t.y));}
+vec2 VADD(vec2 a,vec2 b){precise vec2 r=a+b;return r;}vec2 VSUB(vec2 a,vec2 b){precise vec2 r=a-b;return r;}vec2 VMUL(vec2 a,vec2 b){precise vec2 r=a*b;return r;}float negateBits(float a){return uintBitsToFloat(floatBitsToUint(a)^0x80000000u);}vec2 VBYI(vec2 a){return vec2(negateBits(a.y),a.x);}vec2 VFNMS(vec2 a,vec2 b,vec2 c){return fma(-a,b,c);}vec2 VZMULJ(vec2 a,vec2 b){precise vec2 t=a.y*b.yx;return vec2(fma(a.x,b.x,t.x),fma(a.x,b.y,-t.y));}
+
+void twiddle(inout vec2 x[9],in vec2 W[8]){const float KP939692620=+0.939692620785908384054109277324731469936208134;
+const float KP296198132=+0.296198132726023843175338011893050938967728390;
+const float KP852868531=+0.852868531952443209628250963940074071936020296;
+const float KP173648177=+0.173648177666930348851716626769314796000375677;
+const float KP556670399=+0.556670399226419366452912952047023132968291906;
+const float KP766044443=+0.766044443118978035202392650555416673935832457;
+const float KP642787609=+0.642787609686539326322643409907263432907559884;
+const float KP663413948=+0.663413948168938396205421319635891297216863310;
+const float KP150383733=+0.150383733180435296639271897612501926072238258;
+const float KP342020143=+0.342020143325668733044099614682259580763083368;
+const float KP813797681=+0.813797681349373692844693217248393223289101568;
+const float KP984807753=+0.984807753012208059366743024589523013670643252;
+const float KP500000000=+0.500000000000000000000000000000000000000000000;
+const float KP866025403=+0.866025403784438646763723170752936183471402627;
+precise vec2 TuArg;
+
+	       precise vec2 T1, T6, Tu, Tg, Tf, TD, Tq, Tp, TE;
+	       T1 = x[0];
+	       {
+		    precise vec2 T3, T5, T2, T4;
+		    T2 = x[3];
+		    T3 = VZMUL(W[2],T2);
+		    T4 = x[6];
+		    T5 = VZMUL(W[5],T4);
+		    T6 = VADD(T3, T5);
+		    TuArg = VSUB(T3,T5); Tu = VMUL(vec2(KP866025403),TuArg);
+	       }
+	       {
+		    precise vec2 T9, Td, Tb, T8, Tc, Ta, Te;
+		    T8 = x[1];
+		    T9 = VZMUL(W[0],T8);
+		    Tc = x[7];
+		    Td = VZMUL(W[6],Tc);
+		    Ta = x[4];
+		    Tb = VZMUL(W[3],Ta);
+		    Tg = VSUB(Tb, Td);
+		    Te = VADD(Tb, Td);
+		    Tf = VFNMS(vec2(KP500000000), Te, T9);
+		    TD = VADD(T9, Te);
+	       }
+	       {
+		    precise vec2 Tj, Tn, Tl, Ti, Tm, Tk, To;
+		    Ti = x[2];
+		    Tj = VZMUL(W[1],Ti);
+		    Tm = x[8];
+		    Tn = VZMUL(W[7],Tm);
+		    Tk = x[5];
+		    Tl = VZMUL(W[4],Tk);
+		    Tq = VSUB(Tl, Tn);
+		    To = VADD(Tl, Tn);
+		    Tp = VFNMS(vec2(KP500000000), To, Tj);
+		    TE = VADD(Tj, To);
+	       }
+	       {
+		    precise vec2 TF, TG, TH, TI;
+		    TF = VBYI(VMUL(vec2(KP866025403), VSUB(TD, TE)));
+		    TG = VADD(T1, T6);
+		    TH = VADD(TD, TE);
+		    TI = VFNMS(vec2(KP500000000), TH, TG);
+		    x[3]=VADD(TF, TI);
+		    x[0]=VADD(TG, TH);
+		    x[6]=VSUB(TI, TF);
+	       }
+	       {
+		    precise vec2 TC, Tv, Tw, Tx, Th, Tr, Ts, T7, TB;
+		    TC = VBYI(VFNMS(vec2(KP866025403),TuArg,VFMA(vec2(KP984807753), Tf, VFMA(vec2(KP813797681), Tq, VFNMS(vec2(KP150383733), Tg, VMUL(vec2(KP342020143), Tp))))));
+		    Tv = VFMA(vec2(KP663413948), Tg, VMUL(vec2(KP642787609), Tf));
+		    Tw = VFMA(vec2(KP150383733), Tq, VMUL(vec2(KP984807753), Tp));
+		    Tx = VADD(Tv, Tw);
+		    Th = VFNMS(vec2(KP556670399), Tg, VMUL(vec2(KP766044443), Tf));
+		    Tr = VFNMS(vec2(KP852868531), Tq, VMUL(vec2(KP173648177), Tp));
+		    Ts = VADD(Th, Tr);
+		    T7 = VFNMS(vec2(KP500000000), T6, T1);
+		    TB = VFMA(vec2(KP852868531), Tg, VFMA(vec2(KP173648177), Tf, VFMA(vec2(KP296198132), Tq, VFNMS(vec2(KP939692620), Tp, T7))));
+		    x[7]=VSUB(TB, TC);
+		    x[2]=VADD(TB, TC);
+		    {
+			 precise vec2 Tt, Ty, Tz, TA;
+			 Tt = VADD(T7, Ts);
+			 Ty = VBYI(VFMA(vec2(KP866025403),TuArg,Tx));
+			 x[8]=VSUB(Tt, Ty);
+			 x[1]=VADD(Tt, Ty);
+			 Tz = VBYI(VFMA(vec2(KP866025403),TuArg,VFNMS(vec2(KP500000000), Tx, VMUL(vec2(KP866025403), VSUB(Th, Tr)))));
+			 TA = VFMA(vec2(KP866025403), VSUB(Tw, Tv), VFNMS(vec2(KP500000000), Ts, T7));
+			 x[4]=VADD(Tz, TA);
+			 x[5]=VSUB(TA, Tz);
+		    }
+	       }
+	  }
+const vec2 table[16]=vec2[16](vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0x3f441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0x3f000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0x3e31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbe31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbf000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0xbf441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0xbf708fb2u),uintBitsToFloat(0x3eaf1d44u)));
+void main(){uint batch=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(batch>=p.batches)return;for(uint k=0;k<2;k++){vec2 x[9],W[8];for(uint j=0;j<9;j++)x[j]=src.v[batch*18+j*2+k];for(uint j=0;j<8;j++)W[j]=table[k*8+j];twiddle(x,W);for(uint j=0;j<9;j++)dst.v[batch*18+j*2+k]=x[j];}}

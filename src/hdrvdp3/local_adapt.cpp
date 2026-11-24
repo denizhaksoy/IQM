@@ -1984,9 +1984,12 @@ void LocalAdaptFFT::compute(const LocalAdaptFFTInput& input) {
     const bool parity=!input.referenceShaderPath.empty();
     const bool rectangular=parity&&input.ppd==30.0f&&!input.referenceMathDirectory.empty()&&
         ((input.width==128&&input.height==64)||(input.width==64&&input.height==128));
+    const bool smallBounded=input.width<=128&&input.height<=128&&input.width>=1&&input.height>=1;
     const bool supported_size=input.width==32||input.width==64||
-        (parity&&input.width==128&&input.ppd==30.0f);
-    if(!rectangular&&(input.width!=input.height || !supported_size))
+        (parity&&input.width==128&&input.ppd==30.0f)||
+        (input.mode==FFTFilterMode::OpticalMTF && smallBounded)||
+        (input.mode==FFTFilterMode::LocalAdaptation && smallBounded);
+    if(!rectangular&&(input.width!=input.height || !supported_size) && !(smallBounded && (input.mode==FFTFilterMode::OpticalMTF || input.mode==FFTFilterMode::LocalAdaptation)))
         throw std::invalid_argument("Unvalidated FFT filter input dimensions");
     if(input.width==32&&!parity)
         throw std::invalid_argument("32x32 FFT filter currently requires the reference backend");

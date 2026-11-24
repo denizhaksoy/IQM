@@ -1,0 +1,11 @@
+#version 450
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{uint v[];}src;
+layout(set=0,binding=1,std430)buffer RawInverse{uint v[];}raw;
+layout(set=0,binding=2,std430)readonly buffer Status{uint nonreal;}status;
+layout(set=0,binding=3,std430)writeonly buffer Output{uint v[];}dst;
+layout(push_constant)uniform P{uint count;uint mode;}p;
+void main(){uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(i>=p.count)return;
+ if(p.mode==0u){if(status.nonreal==0u)raw.v[i]=src.v[i];}
+ else{uint x=i%3840u,y=i/3840u;float f=uintBitsToFloat(src.v[x*4320u+y]);dst.v[i]=status.nonreal<=1u?floatBitsToUint(clamp(f,1e-5,1e10)):0x7fc00000u;}
+}

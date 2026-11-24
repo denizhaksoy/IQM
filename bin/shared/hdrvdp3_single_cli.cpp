@@ -1,3 +1,4 @@
+#include <functional>
 #include "hdrvdp3_single_cli.h"
 #include <stb_image.h>
 #include <IQM/hdrvdp3/fftw_single_provider.h>
@@ -13,7 +14,7 @@
 #include <IQM/hdrvdp3/adaptation_input_single_gpu_device.h>
 #include <IQM/hdrvdp3/jnd_single_gpu.h>
 #include <IQM/hdrvdp3/sp0_single_gpu.h>
-#include <vulkan_res.h>
+#include "vulkan_res.h"
 #include <vulkan/vulkan.hpp>
 #include <IQM/hdrvdp3/resize.h>
 #include <algorithm>
@@ -21,6 +22,7 @@
 #include <chrono>
 #include <cmath>
 #include <fstream>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -37,6 +39,9 @@
 #endif
 #endif
 #endif
+namespace IQM::HDRVDP3 {
+QualitySideSingle prepare_quality_side_single_diagnostic(std::span<const float>,unsigned,unsigned,double,const XYZDisplaySamples&,const RGBSpectralSamples&,const FFTBackendSingle&,const SingleMatrixBackend*,const SingleAdaptationInputBackend*,const SinglePaddingBackend*,const std::function<void(const char*,std::span<const float>)>&);
+}
 namespace fs=std::filesystem;using namespace IQM::HDRVDP3;
 static void single_quality_help(){std::cout<<"IQM HDR-VDP-3 Single quality (explicit FFTW)\n"
  "Usage: <executable> --input test.png --ref reference.png\n"
@@ -165,8 +170,11 @@ acceptedKeys.push_back("--padding-shader");
   }
   unsigned gpuPqDispatches=0,gpuOpticalDispatches=0,gpuAdaptDispatches=0,gpuJndDispatches=0,gpuSp0Dispatches=0,gpuSp0HostReadbacks=0;
   int diagRun=0; const char* diagEnv=getenv("IQM_HDRVDP3_DIAG_RUN"); if(diagEnv) diagRun=std::atoi(diagEnv);
-  auto fnv=[&](std::span<const float> v){uint64_t h=1469598103934665603ull; for(float x:v){uint32_t b=std::bit_cast<uint32_t>(x); h^=b; h*=1099511628211ull;} return h;};
-  auto dump=[&](const char* side,const char* stage,std::span<const float> v){std::ofstream d(out/(std::string("diag_")+side+"_"+stage+"_run"+std::to_string(diagRun)+".txt")); d<<"n="<<v.size()<<" fnv="<<std::hex<<fnv(v)<<std::dec<<"\n"; for(size_t i=0;i<v.size();++i){ d<<std::hex<<std::bit_cast<uint32_t>(v[i]); if(i+1<v.size()) d<<","; } d<<std::dec<<"\n"; for(size_t i=0;i<v.size();++i) d<<std::setprecision(9)<<v[i]<<"\n"; };
+  auto dump=[&](const char* side,const char* stage,std::span<const float> v){
+    std::ofstream d(out/(std::string("diag_")+side+"_"+stage+".f32"),std::ios::binary);
+    d.write(reinterpret_cast<const char*>(v.data()),static_cast<std::streamsize>(v.size_bytes()));
+    if(!d) throw std::runtime_error("Diagnostic export failed");
+  };
   auto prepare=[&](const std::string& file,const char* side){
     log<<side<<" start\n"<<std::flush;std::cout<<side<<' '<<(fullGpu?"full-gpu-optical":"cpu-prep")<<' '<<backendName<<" Single\n"<<std::flush;
     if(!stbi_is_16_bit(file.c_str()))throw std::invalid_argument("Explicit RGB16 PNG required");int iw,ih,channels;
@@ -177,28 +185,47 @@ acceptedKeys.push_back("--padding-shader");
     if(sw!=w||sh!=h){std::vector<float> resized(3*n);for(size_t c=0;c<3;++c){std::vector<float> plane(encoded.begin()+c*sn,encoded.begin()+(c+1)*sn);auto values=resize_bicubic(plane,int(sh),int(sw),int(h),int(w));for(size_t i=0;i<n;++i)resized[c*n+i]=std::clamp(values[i],0.f,1.f);}encoded=std::move(resized);}
     if(fullGpu){
 #ifdef IQM_HDRVDP3_HYBRID
+      auto readback=[&](const GpuFloatBuffer& b){ auto staging=IQM::Bin::VulkanResource::createBuffer(*gpu->device(),*gpu->physicalDevice(),b.bytes,vk::BufferUsageFlagBits::eTransferDst,vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent); staging.first.bindMemory(staging.second,0); gpu->cmdBuf()->reset(); gpu->cmdBuf()->begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit}); vk::BufferMemoryBarrier rb{.srcAccessMask=vk::AccessFlagBits::eMemoryWrite,.dstAccessMask=vk::AccessFlagBits::eTransferRead,.srcQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.dstQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.buffer=*b.buffer,.offset=0,.size=b.bytes}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands,vk::PipelineStageFlagBits::eTransfer,{},{},{rb},{}); gpu->cmdBuf()->copyBuffer(*b.buffer,*staging.first,vk::ArrayProxy<const vk::BufferCopy>{vk::BufferCopy{0,0,b.bytes}}); vk::MemoryBarrier hr{.srcAccessMask=vk::AccessFlagBits::eTransferWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,vk::PipelineStageFlagBits::eHost,{},{hr},{},{}); gpu->cmdBuf()->end(); vk::CommandBuffer c=*gpu->cmdBuf(); vk::raii::Fence f(*gpu->device(),vk::FenceCreateInfo{}); gpu->queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&c},f); gpu->waitForFence(f); std::vector<float> out(b.count); void* p=staging.second.mapMemory(0,b.bytes); std::memcpy(out.data(),p,b.bytes); staging.second.unmapMemory(); gpu->cmdBuf()->reset(); return out; };
       // PQ encoded -> GPU PQ display (device-resident display-linear RGB)
       auto gpuLinear=pq_to_display_single_gpu(*gpu,options.at("--pq-display-shader"),encoded,{200.,.005,2000.});++gpuPqDispatches;
+      if(diagRun) dump(side,"pq",readback(gpuLinear));
       encoded.clear();encoded.shrink_to_fit();
       // Display-linear RGB -> GPU NativeColor projection (device-resident native RGB)
       const auto color=linear_color_transform(xyz,LinearColorEncoding::BT2020);
       std::vector<float> nativeCoeffs;for(unsigned c=0;c<3;++c)for(unsigned p=0;p<3;++p)nativeCoeffs.push_back(float(color[c][p]));
       auto gpuNative=project_rgb_single_gpu_device(*gpu,options.at("--projection-shader"),*gpuLinear.buffer,n,nativeCoeffs,SingleProjectionKind::NativeColor);++matrixDispatches;
+      if(diagRun) dump(side,"native",readback(gpuNative));
       // Native RGB -> GPU Optical MTF (device-resident optical RGB)
-      auto gpuOptical=filter_optical_rgb_single_gpu(*gpu,*gpuNative.buffer,w,h,float(ppd));++gpuOpticalDispatches;
+      const bool residentOptical = w == 3840 && h == 2160 && ppd == 62.729130063099447;
+      if (w == 3840 && h == 2160 && !residentOptical)
+          throw std::invalid_argument("Resident 4K optical requires PPD 62.729130063099447");
+      const auto opticalRuntime = fs::absolute(fs::path(options.at("--projection-shader"))).parent_path();
+      log << side << " optical_backend=" << (residentOptical ? "resident-4k" : "legacy") << '\n' << std::flush;
+      auto gpuOptical = residentOptical
+          ? filter_optical_rgb_resident_gpu(*gpu, *gpuNative.buffer, w, h, ppd, opticalRuntime)
+          : filter_optical_rgb_single_gpu(*gpu, *gpuNative.buffer, w, h, float(ppd));
+      ++gpuOpticalDispatches; // wrapper calls, not individual Vulkan dispatches
+      log << side << " optical_complete\n" << std::flush;
+      if(diagRun) dump(side,"optical",readback(gpuOptical));
       // Optical RGB -> GPU LMSR projection (device-resident)
       const auto lmsrModel=calibrate_rgb_spectral_age(spectral,24.); std::vector<float> lmsrCoeffs; for(unsigned c=0;c<4;++c)for(unsigned p=0;p<3;++p)lmsrCoeffs.push_back(float(lmsrModel.matrix[p][c]));
       auto gpuLmsr=project_rgb_single_gpu_device(*gpu,options.at("--projection-shader"),*gpuOptical.buffer,n,lmsrCoeffs,SingleProjectionKind::LMSR);++matrixDispatches;
             // Device-resident L+M, local adaptation, JND; legacy readback for SP0/quality.
-      auto readback=[&](const GpuFloatBuffer& b){ auto staging=IQM::Bin::VulkanResource::createBuffer(*gpu->device(),*gpu->physicalDevice(),b.bytes,vk::BufferUsageFlagBits::eTransferDst,vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent); staging.first.bindMemory(staging.second,0); gpu->cmdBuf()->reset(); gpu->cmdBuf()->begin(vk::CommandBufferBeginInfo{.flags=vk::CommandBufferUsageFlagBits::eOneTimeSubmit}); vk::BufferMemoryBarrier rb{.srcAccessMask=vk::AccessFlagBits::eShaderWrite,.dstAccessMask=vk::AccessFlagBits::eTransferRead,.srcQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.dstQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED,.buffer=*b.buffer,.offset=0,.size=b.bytes}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,vk::PipelineStageFlagBits::eTransfer,{},{},{rb},{}); gpu->cmdBuf()->copyBuffer(*b.buffer,*staging.first,vk::ArrayProxy<const vk::BufferCopy>{vk::BufferCopy{0,0,b.bytes}}); vk::MemoryBarrier hr{.srcAccessMask=vk::AccessFlagBits::eTransferWrite,.dstAccessMask=vk::AccessFlagBits::eHostRead}; gpu->cmdBuf()->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,vk::PipelineStageFlagBits::eHost,{},{hr},{},{}); gpu->cmdBuf()->end(); vk::CommandBuffer c=*gpu->cmdBuf(); vk::raii::Fence f(*gpu->device(),vk::FenceCreateInfo{}); gpu->queue()->submit(vk::SubmitInfo{.commandBufferCount=1,.pCommandBuffers=&c},f); gpu->waitForFence(f); std::vector<float> out(b.count); void* p=staging.second.mapMemory(0,b.bytes); std::memcpy(out.data(),p,b.bytes); staging.second.unmapMemory(); gpu->cmdBuf()->reset(); return out; };
+
       auto gpuAdaptIn=adaptation_input_single_gpu_device(*gpu,options.at("--adaptation-input-shader"),*gpuLmsr.buffer,unsigned(n)); ++adaptationInputDispatches;
-      auto gpuAdapt=local_adaptation_single_gpu(*gpu,*gpuAdaptIn.buffer,w,h,float(ppd)); ++gpuAdaptDispatches;
+      if(diagRun) dump(side,"lm",readback(gpuAdaptIn));
+      log << side << " adaptation_backend=" << (residentOptical ? "resident-4k" : "legacy") << '\n' << std::flush;
+      auto gpuAdapt = residentOptical
+          ? local_adaptation_resident_gpu(*gpu,*gpuAdaptIn.buffer,w,h,ppd,opticalRuntime)
+          : local_adaptation_single_gpu(*gpu,*gpuAdaptIn.buffer,w,h,float(ppd));
+      ++gpuAdaptDispatches; // wrapper calls
+      log << side << " adaptation_complete\n" << std::flush;
       QualitySideSingle result;
       result.native_rgb=readback(gpuNative);
       result.adaptation=readback(gpuAdapt);
       auto lmsrHost=readback(gpuLmsr);
       const size_t nn=size_t(w)*h; if(lmsrHost.size()!=4*nn) throw std::runtime_error("LMSR matrix provider shape mismatch");
-      if(diagRun){ dump(side,"lmsr",readback(gpuLmsr)); dump(side,"adapt",readback(gpuAdapt)); std::ofstream ds(out/(std::string("diag_")+side+"_jnd_params_run"+std::to_string(diagRun)+".txt")); ds<<std::setprecision(17)<<"w="<<w<<" h="<<h<<" nn="<<nn<<" ppd="<<ppd<<" area="<<(double(nn)/(ppd*ppd))<<" age=24\n"; }
+      if(diagRun){ dump(side,"lmsr",lmsrHost); dump(side,"adapt",result.adaptation); std::ofstream ds(out/(std::string("diag_")+side+"_jnd_params_run"+std::to_string(diagRun)+".txt")); ds<<std::setprecision(17)<<"w="<<w<<" h="<<h<<" nn="<<nn<<" ppd="<<ppd<<" area="<<(double(nn)/(ppd*ppd))<<" age=24\n"; }
       auto gpuJndBuf=rgb_to_jnd_response_single_gpu_device(*gpu,options.at("--jnd-shader"),*gpuLmsr.buffer,*gpuAdapt.buffer,w,h,double(nn)/(ppd*ppd),24.); ++gpuJndDispatches;
       const bool gpuSp0Enabled = !cpuSp0;
       if(gpuSp0Enabled){
@@ -219,7 +246,9 @@ acceptedKeys.push_back("--padding-shader");
 #endif
     }
     auto linear=pq_to_display_single(encoded,{200.,.005,2000.});encoded.clear();encoded.shrink_to_fit();
-    auto result=prepare_quality_side_single(linear,w,h,ppd,xyz,spectral,backend,matrices,adaptationInput,padding);log<<side<<" ready\n"<<std::flush;return result;
+    if(diagRun) dump(side,"pq",linear);
+    auto result=diagRun ? prepare_quality_side_single_diagnostic(linear,w,h,ppd,xyz,spectral,backend,matrices,adaptationInput,padding,[&](const char* stage,std::span<const float> v){dump(side,stage,v);}) : prepare_quality_side_single(linear,w,h,ppd,xyz,spectral,backend,matrices,adaptationInput,padding);
+    if(diagRun){dump(side,"sp0_base",std::span<const float>(&result.pyramid.base_mean,1));for(size_t bi=0;bi<result.pyramid.bands.size();++bi)dump(side,(std::string("sp0_b")+std::to_string(bi)).c_str(),result.pyramid.bands[bi].values);}log<<side<<" ready\n"<<std::flush;return result;
   };
  auto reference=prepare(options.at("--ref"),"reference"),test=prepare(options.at("--input"),"test");
  auto result=evaluate_quality_single(reference,test,w,h,ppd,backend,comparison,mutual,comparisonResize);

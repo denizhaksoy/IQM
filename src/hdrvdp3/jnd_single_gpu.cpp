@@ -28,7 +28,7 @@ GpuFloatBuffer rgb_to_jnd_response_single_gpu_device_diag(const IQM::VulkanInsta
   std::vector<float> lutLog(2048),lutCone(2048),lutRod(2048); for(size_t i=0;i<2048;++i){ lutLog[i]=float(lut.log_luminance[i]); lutCone[i]=float(lut.cone[i]); lutRod[i]=float(lut.rod[i]); }
   float low=float(std::pow(10.,lut.log_luminance.front())); float high=float(std::pow(10.,lut.log_luminance.back()));
   auto makeBuf=[&](size_t bytes,vk::BufferUsageFlags u,vk::MemoryPropertyFlags m){ auto b=IQM::Bin::VulkanResource::createBuffer(*instance.device(),*instance.physicalDevice(),bytes,u,m); b.first.bindMemory(b.second,0); return b; };
-  auto upload=[&](const std::vector<float>& v){ auto b=makeBuf(v.size()*4,vk::BufferUsageFlagBits::eStorageBuffer|vk::BufferUsageFlagBits::eTransferDst,vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent); void* p=b.second.mapMemory(0,v.size()*4); std::memcpy(p,v.data(),v.size()*4); b.second.unmapMemory(); return b; };
+  auto upload=[&](const std::vector<float>& v){ auto b=makeBuf(v.size()*4,vk::BufferUsageFlagBits::eStorageBuffer|vk::BufferUsageFlagBits::eTransferDst|vk::BufferUsageFlagBits::eTransferSrc,vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent); void* p=b.second.mapMemory(0,v.size()*4); std::memcpy(p,v.data(),v.size()*4); b.second.unmapMemory(); return b; };
   auto bLog=upload(lutLog), bCone=upload(lutCone), bRod=upload(lutRod);
   auto bOutCh=makeBuf(3*n*4,vk::BufferUsageFlagBits::eStorageBuffer|vk::BufferUsageFlagBits::eTransferSrc,vk::MemoryPropertyFlagBits::eDeviceLocal);
   auto bOutResp=makeBuf(n*4,vk::BufferUsageFlagBits::eStorageBuffer|vk::BufferUsageFlagBits::eTransferSrc|vk::BufferUsageFlagBits::eTransferDst,vk::MemoryPropertyFlagBits::eDeviceLocal);

@@ -1,0 +1,16 @@
+#version 450
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)buffer Tensor{uint v[];}tensor;
+layout(set=0,binding=1,std430)buffer Status{uint nonreal;}status;
+layout(push_constant)uniform P{uint count;uint mode;}p;
+shared uint groupNonreal;
+void main(){
+ uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;
+ if(p.mode==0u){
+  if(gl_LocalInvocationID.x==0u)groupNonreal=0u;
+  barrier();
+  if(i<p.count&&(tensor.v[2*i+1]&0x7fffffffu)!=0u)atomicOr(groupNonreal,1u);
+  barrier();
+  if(gl_LocalInvocationID.x==0u&&groupNonreal!=0u)atomicOr(status.nonreal,1u);
+ }else if(i<p.count&&status.nonreal==0u)tensor.v[2*i+1]=0u;
+}

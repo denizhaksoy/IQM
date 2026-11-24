@@ -29,6 +29,11 @@ add_library(IQM-HDRVDP3 STATIC
     optical_single.cpp
     sp0_single.cpp
     sp0_single_gpu.cpp
+    jnd_single_gpu.cpp
+    adaptation_input_single_gpu_device.cpp
+    local_adapt_single_gpu.cpp
+    optical_mtf_gpu.cpp
+    pq_display_single_gpu.cpp
     sp0_resident_gpu.cpp
     mutual_mask_resident_gpu.cpp
     general_quality_single.cpp
@@ -75,4 +80,4 @@ else()
     set_source_files_properties(evaluation.cpp luminance.cpp spectral.cpp spectral_loader.cpp sp0_model.cpp pathway_runtime.cpp pathway_quality.cpp pathway_masking.cpp pathway_comparison.cpp pathway_pool.cpp pathway_spyr.cpp mixed_filter.cpp jnd.cpp jnd_single.cpp csf.cpp resize.cpp quality.cpp map_gpu.cpp PROPERTIES COMPILE_OPTIONS "-ffp-contract=off")
     target_compile_options(IQM-HDRVDP3 PRIVATE -Wall -Wextra)
 endif()
-target_link_libraries(IQM-HDRVDP3 PUBLIC Vulkan::Vulkan IQM::LibBase)
+target_link_libraries(IQM-HDRVDP3 PUBLIC Vulkan::Vulkan IQM::LibBase glslang SPIRV)

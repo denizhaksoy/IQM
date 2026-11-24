@@ -1,0 +1,124 @@
+#version 450
+// SPDX-License-Identifier: GPL-2.0-or-later
+// FFTW 3.3.10 native inverse codelets; copyright2003,2007-14 Frigo/MIT. Source/COPYING retained.
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{vec2 v[];}src;
+layout(set=0,binding=2,std430)writeonly buffer Output{vec2 v[];}dst;
+layout(push_constant)uniform P{uint batches;uint a;uint b;uint c;}p;
+vec2 VFMS(vec2 a,vec2 b,vec2 c){return fma(a,b,-c);}
+vec2 VFMA(vec2 a,vec2 b,vec2 c){return fma(a,b,c);}
+vec2 VFMAI(vec2 b,vec2 c){precise vec2 r=vec2(c.x-b.y,c.y+b.x);return r;}
+vec2 VFNMSI(vec2 b,vec2 c){precise vec2 r=vec2(c.x+b.y,c.y-b.x);return r;}
+vec2 VZMUL(vec2 a,vec2 b){precise vec2 t=a.y*b.yx;return vec2(fma(a.x,b.x,-t.x),fma(a.x,b.y,t.y));}
+vec2 VADD(vec2 a,vec2 b){precise vec2 r=a+b;return r;}vec2 VSUB(vec2 a,vec2 b){precise vec2 r=a-b;return r;}vec2 VMUL(vec2 a,vec2 b){precise vec2 r=a*b;return r;}float negateBits(float a){return uintBitsToFloat(floatBitsToUint(a)^0x80000000u);}vec2 VBYI(vec2 a){return vec2(negateBits(a.y),a.x);}vec2 VFNMS(vec2 a,vec2 b,vec2 c){return fma(-a,b,c);}vec2 VZMULJ(vec2 a,vec2 b){precise vec2 t=a.y*b.yx;return vec2(fma(a.x,b.x,t.x),fma(a.x,b.y,-t.y));}
+
+void twiddle(inout vec2 x[12],in vec2 W[11]){const float KP866025403=+0.866025403784438646763723170752936183471402627;
+const float KP500000000=+0.500000000000000000000000000000000000000000000;
+precise vec2 TrArg,TvArg;
+
+	       precise vec2 T1, Tt, T6, T7, TB, Tq, TC, TD, T9, Tu, Te, Tf, Tx, Tl, Ty;
+	       precise vec2 Tz;
+	       {
+		    precise vec2 T5, T3, T4, T2;
+		    T1 = x[0];
+		    T4 = x[8];
+		    T5 = VZMUL(W[7],T4);
+		    T2 = x[4];
+		    T3 = VZMUL(W[3],T2);
+		    Tt = VSUB(T3, T5);
+		    T6 = VADD(T3, T5);
+		    T7 = VFNMS(vec2(KP500000000), T6, T1);
+	       }
+	       {
+		    precise vec2 Tn, Tp, Tm, TA, To;
+		    Tm = x[1];
+		    Tn = VZMUL(W[0],Tm);
+		    TA = x[9];
+		    TB = VZMUL(W[8],TA);
+		    To = x[5];
+		    Tp = VZMUL(W[4],To);
+		    Tq = VSUB(Tn, Tp);
+		    TC = VADD(Tn, Tp);
+		    TD = VFNMS(vec2(KP500000000), TC, TB);
+	       }
+	       {
+		    precise vec2 Td, Tb, T8, Tc, Ta;
+		    T8 = x[6];
+		    T9 = VZMUL(W[5],T8);
+		    Tc = x[2];
+		    Td = VZMUL(W[1],Tc);
+		    Ta = x[10];
+		    Tb = VZMUL(W[9],Ta);
+		    Tu = VSUB(Tb, Td);
+		    Te = VADD(Tb, Td);
+		    Tf = VFNMS(vec2(KP500000000), Te, T9);
+	       }
+	       {
+		    precise vec2 Ti, Tk, Th, Tw, Tj;
+		    Th = x[7];
+		    Ti = VZMUL(W[6],Th);
+		    Tw = x[3];
+		    Tx = VZMUL(W[2],Tw);
+		    Tj = x[11];
+		    Tk = VZMUL(W[10],Tj);
+		    Tl = VSUB(Ti, Tk);
+		    Ty = VADD(Ti, Tk);
+		    Tz = VFNMS(vec2(KP500000000), Ty, Tx);
+	       }
+	       {
+		    precise vec2 Ts, TG, TF, TH;
+		    {
+			 precise vec2 Tg, Tr, Tv, TE;
+			 Tg = VSUB(T7, Tf);
+			 TrArg = VSUB(Tl,Tq); Tr = VMUL(vec2(KP866025403),TrArg);
+			 Ts = VFNMS(vec2(KP866025403),TrArg,Tg);
+			 TG = VFMA(vec2(KP866025403),TrArg,Tg);
+			 TvArg = VSUB(Tt,Tu); Tv = VMUL(vec2(KP866025403),TvArg);
+			 TE = VSUB(Tz, TD);
+			 TF = VBYI(VFMA(vec2(KP866025403),TvArg,TE));
+			 TH = VBYI(VFNMS(vec2(KP866025403),TvArg,TE));
+		    }
+		    x[11]=VSUB(Ts, TF);
+		    x[5]=VADD(TG, TH);
+		    x[1]=VADD(Ts, TF);
+		    x[7]=VSUB(TG, TH);
+	       }
+	       {
+		    precise vec2 TS, TW, TV, TX;
+		    {
+			 precise vec2 TQ, TR, TT, TU;
+			 TQ = VADD(T1, T6);
+			 TR = VADD(T9, Te);
+			 TS = VSUB(TQ, TR);
+			 TW = VADD(TQ, TR);
+			 TT = VADD(Tx, Ty);
+			 TU = VADD(TB, TC);
+			 TV = VBYI(VSUB(TT, TU));
+			 TX = VADD(TT, TU);
+		    }
+		    x[3]=VSUB(TS, TV);
+		    x[0]=VADD(TW, TX);
+		    x[9]=VADD(TS, TV);
+		    x[6]=VSUB(TW, TX);
+	       }
+	       {
+		    precise vec2 TK, TO, TN, TP;
+		    {
+			 precise vec2 TI, TJ, TL, TM;
+			 TI = VADD(Tl, Tq);
+			 TJ = VADD(Tt, Tu);
+			 TK = VBYI(VMUL(vec2(KP866025403), VSUB(TI, TJ)));
+			 TO = VBYI(VMUL(vec2(KP866025403), VADD(TJ, TI)));
+			 TL = VADD(T7, Tf);
+			 TM = VADD(Tz, TD);
+			 TN = VSUB(TL, TM);
+			 TP = VADD(TL, TM);
+		    }
+		    x[2]=VADD(TK, TN);
+		    x[8]=VSUB(TP, TO);
+		    x[10]=VSUB(TN, TK);
+		    x[4]=VADD(TO, TP);
+	       }
+	  }
+const vec2 table[198]=vec2[198](vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0x3f7fe446u),uintBitsToFloat(0x3cee4313u)),vec2(uintBitsToFloat(0x3f7f9120u),uintBitsToFloat(0x3d6e2946u)),vec2(uintBitsToFloat(0x3f7f069eu),uintBitsToFloat(0x3db27eb6u)),vec2(uintBitsToFloat(0x3f7e44deu),uintBitsToFloat(0x3dedc21fu)),vec2(uintBitsToFloat(0x3f7d4c0cu),uintBitsToFloat(0x3e146904u)),vec2(uintBitsToFloat(0x3f7c1c5cu),uintBitsToFloat(0x3e31d0d4u)),vec2(uintBitsToFloat(0x3f7ab611u),uintBitsToFloat(0x3e4f1220u)),vec2(uintBitsToFloat(0x3f791978u),uintBitsToFloat(0x3e6c2691u)),vec2(uintBitsToFloat(0x3f7746eau),uintBitsToFloat(0x3e8483eeu)),vec2(uintBitsToFloat(0x3f753ecdu),uintBitsToFloat(0x3e92d7e0u)),vec2(uintBitsToFloat(0x3f730191u),uintBitsToFloat(0x3ea10c03u)),vec2(uintBitsToFloat(0x3f7f9120u),uintBitsToFloat(0x3d6e2946u)),vec2(uintBitsToFloat(0x3f7e44deu),uintBitsToFloat(0x3dedc21fu)),vec2(uintBitsToFloat(0x3f7c1c5cu),uintBitsToFloat(0x3e31d0d4u)),vec2(uintBitsToFloat(0x3f791978u),uintBitsToFloat(0x3e6c2691u)),vec2(uintBitsToFloat(0x3f753ecdu),uintBitsToFloat(0x3e92d7e0u)),vec2(uintBitsToFloat(0x3f708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0x3f6b1036u),uintBitsToFloat(0x3ecacaf8u)),vec2(uintBitsToFloat(0x3f64c51cu),uintBitsToFloat(0x3ee5c902u)),vec2(uintBitsToFloat(0x3f5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0x3f55e287u),uintBitsToFloat(0x3f0cac9fu)),vec2(uintBitsToFloat(0x3f4d57f2u),uintBitsToFloat(0x3f18df63u)),vec2(uintBitsToFloat(0x3f7f069eu),uintBitsToFloat(0x3db27eb6u)),vec2(uintBitsToFloat(0x3f7c1c5cu),uintBitsToFloat(0x3e31d0d4u)),vec2(uintBitsToFloat(0x3f7746eau),uintBitsToFloat(0x3e8483eeu)),vec2(uintBitsToFloat(0x3f708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0x3f6803cau),uintBitsToFloat(0x3ed8616cu)),vec2(uintBitsToFloat(0x3f5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0x3f51b3f3u),uintBitsToFloat(0x3f12d5e8u)),vec2(uintBitsToFloat(0x3f441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0x3f3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0x3f248dbbu),uintBitsToFloat(0x3f441b7du)),vec2(uintBitsToFloat(0x3f12d5e8u),uintBitsToFloat(0x3f51b3f3u)),vec2(uintBitsToFloat(0x3f7e44deu),uintBitsToFloat(0x3dedc21fu)),vec2(uintBitsToFloat(0x3f791978u),uintBitsToFloat(0x3e6c2691u)),vec2(uintBitsToFloat(0x3f708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0x3f64c51cu),uintBitsToFloat(0x3ee5c902u)),vec2(uintBitsToFloat(0x3f55e287u),uintBitsToFloat(0x3f0cac9fu)),vec2(uintBitsToFloat(0x3f441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0x3f2fad88u),uintBitsToFloat(0x3f3a3529u)),vec2(uintBitsToFloat(0x3f18df63u),uintBitsToFloat(0x3f4d57f2u)),vec2(uintBitsToFloat(0x3f000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0x3ecacaf8u),uintBitsToFloat(0x3f6b1036u)),vec2(uintBitsToFloat(0x3e92d7e0u),uintBitsToFloat(0x3f753ecdu)),vec2(uintBitsToFloat(0x3f7d4c0cu),uintBitsToFloat(0x3e146904u)),vec2(uintBitsToFloat(0x3f753ecdu),uintBitsToFloat(0x3e92d7e0u)),vec2(uintBitsToFloat(0x3f6803cau),uintBitsToFloat(0x3ed8616cu)),vec2(uintBitsToFloat(0x3f55e287u),uintBitsToFloat(0x3f0cac9fu)),vec2(uintBitsToFloat(0x3f3f3d09u),uintBitsToFloat(0x3f2a3010u)),vec2(uintBitsToFloat(0x3f248dbbu),uintBitsToFloat(0x3f441b7du)),vec2(uintBitsToFloat(0x3f0664ddu),uintBitsToFloat(0x3f59e2c8u)),vec2(uintBitsToFloat(0x3ecacaf8u),uintBitsToFloat(0x3f6b1036u)),vec2(uintBitsToFloat(0x3e8483eeu),uintBitsToFloat(0x3f7746eau)),vec2(uintBitsToFloat(0x3dedc21fu),uintBitsToFloat(0x3f7e44deu)),vec2(uintBitsToFloat(0xbcee4313u),uintBitsToFloat(0x3f7fe446u)),vec2(uintBitsToFloat(0x3f7c1c5cu),uintBitsToFloat(0x3e31d0d4u)),vec2(uintBitsToFloat(0x3f708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0x3f5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0x3f441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0x3f248dbbu),uintBitsToFloat(0x3f441b7du)),vec2(uintBitsToFloat(0x3f000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0x3eaf1d44u),uintBitsToFloat(0x3f708fb2u)),vec2(uintBitsToFloat(0x3e31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0x0u),uintBitsToFloat(0x3f800000u)),vec2(uintBitsToFloat(0xbe31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbeaf1d44u),uintBitsToFloat(0x3f708fb2u)),vec2(uintBitsToFloat(0x3f7ab611u),uintBitsToFloat(0x3e4f1220u)),vec2(uintBitsToFloat(0x3f6b1036u),uintBitsToFloat(0x3ecacaf8u)),vec2(uintBitsToFloat(0x3f51b3f3u),uintBitsToFloat(0x3f12d5e8u)),vec2(uintBitsToFloat(0x3f2fad88u),uintBitsToFloat(0x3f3a3529u)),vec2(uintBitsToFloat(0x3f0664ddu),uintBitsToFloat(0x3f59e2c8u)),vec2(uintBitsToFloat(0x3eaf1d44u),uintBitsToFloat(0x3f708fb2u)),vec2(uintBitsToFloat(0x3e146904u),uintBitsToFloat(0x3f7d4c0cu)),vec2(uintBitsToFloat(0xbd6e2946u),uintBitsToFloat(0x3f7f9120u)),vec2(uintBitsToFloat(0xbe8483eeu),uintBitsToFloat(0x3f7746eau)),vec2(uintBitsToFloat(0xbee5c902u),uintBitsToFloat(0x3f64c51cu)),vec2(uintBitsToFloat(0xbf1ec7c1u),uintBitsToFloat(0x3f48cf77u)),vec2(uintBitsToFloat(0x3f791978u),uintBitsToFloat(0x3e6c2691u)),vec2(uintBitsToFloat(0x3f64c51cu),uintBitsToFloat(0x3ee5c902u)),vec2(uintBitsToFloat(0x3f441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0x3f18df63u),uintBitsToFloat(0x3f4d57f2u)),vec2(uintBitsToFloat(0x3ecacaf8u),uintBitsToFloat(0x3f6b1036u)),vec2(uintBitsToFloat(0x3e31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbd6e2946u),uintBitsToFloat(0x3f7f9120u)),vec2(uintBitsToFloat(0xbe92d7e0u),uintBitsToFloat(0x3f753ecdu)),vec2(uintBitsToFloat(0xbf000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0xbf2fad88u),uintBitsToFloat(0x3f3a3529u)),vec2(uintBitsToFloat(0xbf55e287u),uintBitsToFloat(0x3f0cac9fu)),vec2(uintBitsToFloat(0x3f7746eau),uintBitsToFloat(0x3e8483eeu)),vec2(uintBitsToFloat(0x3f5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0x3f3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0x3f000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0x3e8483eeu),uintBitsToFloat(0x3f7746eau)),vec2(uintBitsToFloat(0x0u),uintBitsToFloat(0x3f800000u)),vec2(uintBitsToFloat(0xbe8483eeu),uintBitsToFloat(0x3f7746eau)),vec2(uintBitsToFloat(0xbf000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0xbf3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0xbf5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0xbf7746eau),uintBitsToFloat(0x3e8483eeu)),vec2(uintBitsToFloat(0x3f753ecdu),uintBitsToFloat(0x3e92d7e0u)),vec2(uintBitsToFloat(0x3f55e287u),uintBitsToFloat(0x3f0cac9fu)),vec2(uintBitsToFloat(0x3f248dbbu),uintBitsToFloat(0x3f441b7du)),vec2(uintBitsToFloat(0x3ecacaf8u),uintBitsToFloat(0x3f6b1036u)),vec2(uintBitsToFloat(0x3dedc21fu),uintBitsToFloat(0x3f7e44deu)),vec2(uintBitsToFloat(0xbe31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbee5c902u),uintBitsToFloat(0x3f64c51cu)),vec2(uintBitsToFloat(0xbf2fad88u),uintBitsToFloat(0x3f3a3529u)),vec2(uintBitsToFloat(0xbf5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0xbf791978u),uintBitsToFloat(0x3e6c2691u)),vec2(uintBitsToFloat(0xbf7f9120u),uintBitsToFloat(0xbd6e2946u)),vec2(uintBitsToFloat(0x3f730191u),uintBitsToFloat(0x3ea10c03u)),vec2(uintBitsToFloat(0x3f4d57f2u),uintBitsToFloat(0x3f18df63u)),vec2(uintBitsToFloat(0x3f12d5e8u),uintBitsToFloat(0x3f51b3f3u)),vec2(uintBitsToFloat(0x3e92d7e0u),uintBitsToFloat(0x3f753ecdu)),vec2(uintBitsToFloat(0xbcee4313u),uintBitsToFloat(0x3f7fe446u)),vec2(uintBitsToFloat(0xbeaf1d44u),uintBitsToFloat(0x3f708fb2u)),vec2(uintBitsToFloat(0xbf1ec7c1u),uintBitsToFloat(0x3f48cf77u)),vec2(uintBitsToFloat(0xbf55e287u),uintBitsToFloat(0x3f0cac9fu)),vec2(uintBitsToFloat(0xbf7746eau),uintBitsToFloat(0x3e8483eeu)),vec2(uintBitsToFloat(0xbf7f9120u),uintBitsToFloat(0xbd6e2946u)),vec2(uintBitsToFloat(0xbf6de9b8u),uintBitsToFloat(0xbebd0897u)),vec2(uintBitsToFloat(0x3f708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0x3f441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0x3f000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0x3e31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbe31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbf000000u),uintBitsToFloat(0x3f5db3d7u)),vec2(uintBitsToFloat(0xbf441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0xbf708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0xbf800000u),uintBitsToFloat(0x0u)),vec2(uintBitsToFloat(0xbf708fb2u),uintBitsToFloat(0xbeaf1d44u)),vec2(uintBitsToFloat(0xbf441b7du),uintBitsToFloat(0xbf248dbbu)),vec2(uintBitsToFloat(0x3f6de9b8u),uintBitsToFloat(0x3ebd0897u)),vec2(uintBitsToFloat(0x3f3a3529u),uintBitsToFloat(0x3f2fad88u)),vec2(uintBitsToFloat(0x3ed8616cu),uintBitsToFloat(0x3f6803cau)),vec2(uintBitsToFloat(0x3d6e2946u),uintBitsToFloat(0x3f7f9120u)),vec2(uintBitsToFloat(0xbea10c03u),uintBitsToFloat(0x3f730191u)),vec2(uintBitsToFloat(0xbf248dbbu),uintBitsToFloat(0x3f441b7du)),vec2(uintBitsToFloat(0xbf6154e1u),uintBitsToFloat(0x3ef2fed2u)),vec2(uintBitsToFloat(0xbf7e44deu),uintBitsToFloat(0x3dedc21fu)),vec2(uintBitsToFloat(0xbf7746eau),uintBitsToFloat(0xbe8483eeu)),vec2(uintBitsToFloat(0xbf4d57f2u),uintBitsToFloat(0xbf18df63u)),vec2(uintBitsToFloat(0xbf0664ddu),uintBitsToFloat(0xbf59e2c8u)),vec2(uintBitsToFloat(0x3f6b1036u),uintBitsToFloat(0x3ecacaf8u)),vec2(uintBitsToFloat(0x3f2fad88u),uintBitsToFloat(0x3f3a3529u)),vec2(uintBitsToFloat(0x3eaf1d44u),uintBitsToFloat(0x3f708fb2u)),vec2(uintBitsToFloat(0xbd6e2946u),uintBitsToFloat(0x3f7f9120u)),vec2(uintBitsToFloat(0xbee5c902u),uintBitsToFloat(0x3f64c51cu)),vec2(uintBitsToFloat(0xbf441b7du),uintBitsToFloat(0x3f248dbbu)),vec2(uintBitsToFloat(0xbf753ecdu),uintBitsToFloat(0x3e92d7e0u)),vec2(uintBitsToFloat(0xbf7e44deu),uintBitsToFloat(0xbdedc21fu)),vec2(uintBitsToFloat(0xbf5db3d7u),uintBitsToFloat(0xbf000000u)),vec2(uintBitsToFloat(0xbf18df63u),uintBitsToFloat(0xbf4d57f2u)),vec2(uintBitsToFloat(0xbe6c2691u),uintBitsToFloat(0xbf791978u)),vec2(uintBitsToFloat(0x3f6803cau),uintBitsToFloat(0x3ed8616cu)),vec2(uintBitsToFloat(0x3f248dbbu),uintBitsToFloat(0x3f441b7du)),vec2(uintBitsToFloat(0x3e8483eeu),uintBitsToFloat(0x3f7746eau)),vec2(uintBitsToFloat(0xbe31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbf12d5e8u),uintBitsToFloat(0x3f51b3f3u)),vec2(uintBitsToFloat(0xbf5db3d7u),uintBitsToFloat(0x3f000000u)),vec2(uintBitsToFloat(0xbf7f069eu),uintBitsToFloat(0x3db27eb6u)),vec2(uintBitsToFloat(0xbf708fb2u),uintBitsToFloat(0xbeaf1d44u)),vec2(uintBitsToFloat(0xbf3504f3u),uintBitsToFloat(0xbf3504f3u)),vec2(uintBitsToFloat(0xbeaf1d44u),uintBitsToFloat(0xbf708fb2u)),vec2(uintBitsToFloat(0x3db27eb6u),uintBitsToFloat(0xbf7f069eu)),vec2(uintBitsToFloat(0x3f64c51cu),uintBitsToFloat(0x3ee5c902u)),vec2(uintBitsToFloat(0x3f18df63u),uintBitsToFloat(0x3f4d57f2u)),vec2(uintBitsToFloat(0x3e31d0d4u),uintBitsToFloat(0x3f7c1c5cu)),vec2(uintBitsToFloat(0xbe92d7e0u),uintBitsToFloat(0x3f753ecdu)),vec2(uintBitsToFloat(0xbf2fad88u),uintBitsToFloat(0x3f3a3529u)),vec2(uintBitsToFloat(0xbf708fb2u),uintBitsToFloat(0x3eaf1d44u)),vec2(uintBitsToFloat(0xbf7e44deu),uintBitsToFloat(0xbdedc21fu)),vec2(uintBitsToFloat(0xbf55e287u),uintBitsToFloat(0xbf0cac9fu)),vec2(uintBitsToFloat(0xbf000000u),uintBitsToFloat(0xbf5db3d7u)),vec2(uintBitsToFloat(0xbd6e2946u),uintBitsToFloat(0xbf7f9120u)),vec2(uintBitsToFloat(0x3ecacaf8u),uintBitsToFloat(0xbf6b1036u)),vec2(uintBitsToFloat(0x3f6154e1u),uintBitsToFloat(0x3ef2fed2u)),vec2(uintBitsToFloat(0x3f0cac9fu),uintBitsToFloat(0x3f55e287u)),vec2(uintBitsToFloat(0x3db27eb6u),uintBitsToFloat(0x3f7f069eu)),vec2(uintBitsToFloat(0xbecacaf8u),uintBitsToFloat(0x3f6b1036u)),vec2(uintBitsToFloat(0xbf48cf77u),uintBitsToFloat(0x3f1ec7c1u)),vec2(uintBitsToFloat(0xbf7c1c5cu),uintBitsToFloat(0x3e31d0d4u)),vec2(uintBitsToFloat(0xbf730191u),uintBitsToFloat(0xbea10c03u)),vec2(uintBitsToFloat(0xbf2fad88u),uintBitsToFloat(0xbf3a3529u)),vec2(uintBitsToFloat(0xbe8483eeu),uintBitsToFloat(0xbf7746eau)),vec2(uintBitsToFloat(0x3e6c2691u),uintBitsToFloat(0xbf791978u)),vec2(uintBitsToFloat(0x3f2a3010u),uintBitsToFloat(0xbf3f3d09u)));
+void main(){uint batch=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(batch>=p.batches)return;for(uint k=0;k<18;k++){vec2 x[12],W[11];for(uint j=0;j<12;j++)x[j]=src.v[batch*216+j*18+k];for(uint j=0;j<11;j++)W[j]=table[k*11+j];twiddle(x,W);for(uint j=0;j<12;j++)dst.v[batch*216+j*18+k]=x[j];}}

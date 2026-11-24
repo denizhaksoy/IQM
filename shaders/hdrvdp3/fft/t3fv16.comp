@@ -1,0 +1,189 @@
+#version 450
+// SPDX-License-Identifier: GPL-2.0-or-later
+// FFTW 3.3.10 t3fv_16; copyright2003,2007-14 Frigo/MIT. Source/COPYING retained.
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{vec2 v[];}src;
+layout(set=0,binding=2,std430)writeonly buffer Output{vec2 v[];}dst;
+layout(push_constant)uniform P{uint batches;uint a;uint b;uint c;}p;
+vec2 VFMS(vec2 a,vec2 b,vec2 c){return fma(a,b,-c);}
+vec2 VFMA(vec2 a,vec2 b,vec2 c){return fma(a,b,c);}
+vec2 VFMAI(vec2 b,vec2 c){precise vec2 r=vec2(c.x-b.y,c.y+b.x);return r;}
+vec2 VFNMSI(vec2 b,vec2 c){precise vec2 r=vec2(c.x+b.y,c.y-b.x);return r;}
+vec2 VZMUL(vec2 a,vec2 b){precise vec2 t=a.y*b.yx;return vec2(fma(a.x,b.x,-t.x),fma(a.x,b.y,t.y));}
+vec2 VADD(vec2 a,vec2 b){precise vec2 r=a+b;return r;}vec2 VSUB(vec2 a,vec2 b){precise vec2 r=a-b;return r;}vec2 VMUL(vec2 a,vec2 b){precise vec2 r=a*b;return r;}vec2 VBYI(vec2 a){return vec2(-a.y,a.x);}vec2 VFNMS(vec2 a,vec2 b,vec2 c){return fma(-a,b,c);}vec2 VZMULJ(vec2 a,vec2 b){precise vec2 t=a.y*b.yx;return vec2(fma(a.x,b.x,t.x),fma(a.x,b.y,-t.y));}
+void twiddle(inout vec2 x[16],in vec2 W[4]){const float KP923879532=+0.923879532511286756128183189396788286822416626;
+const float KP382683432=+0.382683432365089771728459984030398866761344562;
+const float KP707106781=+0.707106781186547524400844362104849039284835938;
+precise vec2 TLarg,TZarg,T1oarg,T1targ;
+
+	       precise vec2 T4, T5, T6, To, T1, Ty, T7, T8, TO, TV, Te, Tp, TB, TH, Ts;
+	       T4 = W[0];
+	       T5 = W[1];
+	       T6 = VZMULJ(T4, T5);
+	       To = VZMUL(T4, T5);
+	       T1 = W[3];
+	       Ty = VZMULJ(T4, T1);
+	       T7 = W[2];
+	       T8 = VZMULJ(T6, T7);
+	       TO = VZMUL(T5, T7);
+	       TV = VZMULJ(T4, T7);
+	       Te = VZMUL(T6, T7);
+	       Tp = VZMULJ(To, T7);
+	       TB = VZMULJ(T5, T7);
+	       TH = VZMUL(T4, T7);
+	       Ts = VZMUL(To, T7);
+	       {
+		    precise vec2 TY, T1f, TR, T1g, T1q, T1r, TL, TZ, T1l, T1m, T1n, Ti, T12, T1i, T1j;
+		    precise vec2 T1k, Tw, T11, TU, TX, TW;
+		    TU = x[0];
+		    TW = x[8];
+		    TX = VZMULJ(TV, TW);
+		    TY = VSUB(TU, TX);
+		    T1f = VADD(TU, TX);
+		    {
+			 precise vec2 TN, TQ, TM, TP;
+			 TM = x[4];
+			 TN = VZMULJ(To, TM);
+			 TP = x[12];
+			 TQ = VZMULJ(TO, TP);
+			 TR = VSUB(TN, TQ);
+			 T1g = VADD(TN, TQ);
+		    }
+		    {
+			 precise vec2 TA, TJ, TD, TG, TE, TK;
+			 {
+			      precise vec2 Tz, TI, TC, TF;
+			      Tz = x[14];
+			      TA = VZMULJ(Ty, Tz);
+			      TI = x[10];
+			      TJ = VZMULJ(TH, TI);
+			      TC = x[6];
+			      TD = VZMULJ(TB, TC);
+			      TF = x[2];
+			      TG = VZMULJ(T6, TF);
+			 }
+			 T1q = VADD(TA, TD);
+			 T1r = VADD(TG, TJ);
+			 TE = VSUB(TA, TD);
+			 TK = VSUB(TG, TJ);
+			 TLarg = VSUB(TE, TK); TL = VMUL(vec2(KP707106781), TLarg);
+			 TZarg = VADD(TK, TE); TZ = VMUL(vec2(KP707106781), TZarg);
+		    }
+		    {
+			 precise vec2 T3, Tg, Ta, Td, Tb, Th;
+			 {
+			      precise vec2 T2, Tf, T9, Tc;
+			      T2 = x[15];
+			      T3 = VZMULJ(T1, T2);
+			      Tf = x[11];
+			      Tg = VZMULJ(Te, Tf);
+			      T9 = x[7];
+			      Ta = VZMULJ(T8, T9);
+			      Tc = x[3];
+			      Td = VZMULJ(T5, Tc);
+			 }
+			 T1l = VADD(T3, Ta);
+			 T1m = VADD(Td, Tg);
+			 T1n = VSUB(T1l, T1m);
+			 Tb = VSUB(T3, Ta);
+			 Th = VSUB(Td, Tg);
+			 Ti = VFNMS(vec2(KP923879532), Th, VMUL(vec2(KP382683432), Tb));
+			 T12 = VFMA(vec2(KP923879532), Tb, VMUL(vec2(KP382683432), Th));
+		    }
+		    {
+			 precise vec2 Tk, Tu, Tm, Tr, Tn, Tv;
+			 {
+			      precise vec2 Tj, Tt, Tl, Tq;
+			      Tj = x[1];
+			      Tk = VZMULJ(T4, Tj);
+			      Tt = x[13];
+			      Tu = VZMULJ(Ts, Tt);
+			      Tl = x[9];
+			      Tm = VZMULJ(T7, Tl);
+			      Tq = x[5];
+			      Tr = VZMULJ(Tp, Tq);
+			 }
+			 T1i = VADD(Tk, Tm);
+			 T1j = VADD(Tr, Tu);
+			 T1k = VSUB(T1i, T1j);
+			 Tn = VSUB(Tk, Tm);
+			 Tv = VSUB(Tr, Tu);
+			 Tw = VFMA(vec2(KP382683432), Tn, VMUL(vec2(KP923879532), Tv));
+			 T11 = VFNMS(vec2(KP382683432), Tv, VMUL(vec2(KP923879532), Tn));
+		    }
+		    {
+			 precise vec2 T1p, T1v, T1u, T1w;
+			 {
+			      precise vec2 T1h, T1o, T1s, T1t;
+			      T1h = VSUB(T1f, T1g);
+			      T1oarg = VADD(T1k, T1n); T1o = VMUL(vec2(KP707106781), T1oarg);
+			      T1p = VFMA(vec2(KP707106781), T1oarg, T1h);
+			      T1v = VFNMS(vec2(KP707106781), T1oarg, T1h);
+			      T1s = VSUB(T1q, T1r);
+			      T1targ = VSUB(T1n, T1k); T1t = VMUL(vec2(KP707106781), T1targ);
+			      T1u = VBYI(VFMA(vec2(KP707106781), T1targ, T1s));
+			      T1w = VBYI(VFMS(vec2(KP707106781), T1targ, T1s));
+			 }
+			 x[14]=VSUB(T1p, T1u);
+			 x[6]=VADD(T1v, T1w);
+			 x[2]=VADD(T1p, T1u);
+			 x[10]=VSUB(T1v, T1w);
+		    }
+		    {
+			 precise vec2 T1z, T1D, T1C, T1E;
+			 {
+			      precise vec2 T1x, T1y, T1A, T1B;
+			      T1x = VADD(T1f, T1g);
+			      T1y = VADD(T1r, T1q);
+			      T1z = VADD(T1x, T1y);
+			      T1D = VSUB(T1x, T1y);
+			      T1A = VADD(T1i, T1j);
+			      T1B = VADD(T1l, T1m);
+			      T1C = VADD(T1A, T1B);
+			      T1E = VBYI(VSUB(T1B, T1A));
+			 }
+			 x[8]=VSUB(T1z, T1C);
+			 x[4]=VADD(T1D, T1E);
+			 x[0]=VADD(T1z, T1C);
+			 x[12]=VSUB(T1D, T1E);
+		    }
+		    {
+			 precise vec2 TT, T15, T14, T16;
+			 {
+			      precise vec2 Tx, TS, T10, T13;
+			      Tx = VSUB(Ti, Tw);
+			      TS = VFMS(vec2(KP707106781), TLarg, TR);
+			      TT = VBYI(VSUB(Tx, TS));
+			      T15 = VBYI(VADD(TS, Tx));
+			      T10 = VFMA(vec2(KP707106781), TZarg, TY);
+			      T13 = VADD(T11, T12);
+			      T14 = VSUB(T10, T13);
+			      T16 = VADD(T10, T13);
+			 }
+			 x[7]=VADD(TT, T14);
+			 x[15]=VSUB(T16, T15);
+			 x[9]=VSUB(T14, TT);
+			 x[1]=VADD(T15, T16);
+		    }
+		    {
+			 precise vec2 T19, T1d, T1c, T1e;
+			 {
+			      precise vec2 T17, T18, T1a, T1b;
+			      T17 = VFNMS(vec2(KP707106781), TZarg, TY);
+			      T18 = VADD(Tw, Ti);
+			      T19 = VADD(T17, T18);
+			      T1d = VSUB(T17, T18);
+			      T1a = VFMA(vec2(KP707106781), TLarg, TR);
+			      T1b = VSUB(T12, T11);
+			      T1c = VBYI(VADD(T1a, T1b));
+			      T1e = VBYI(VSUB(T1b, T1a));
+			 }
+			 x[13]=VSUB(T19, T1c);
+			 x[5]=VADD(T1d, T1e);
+			 x[3]=VADD(T19, T1c);
+			 x[11]=VSUB(T1d, T1e);
+		    }
+	       }
+	  }
+const vec2 table[96]=vec2[96](vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f800000u),uintBitsToFloat(0x00000000u)),vec2(uintBitsToFloat(0x3f7ff73au),uintBitsToFloat(0x3c86090au)),vec2(uintBitsToFloat(0x3f7fb10fu),uintBitsToFloat(0x3d48fb30u)),vec2(uintBitsToFloat(0x3f7d3aacu),uintBitsToFloat(0x3e164083u)),vec2(uintBitsToFloat(0x3f7853f8u),uintBitsToFloat(0x3e78cfccu)),vec2(uintBitsToFloat(0x3f7fdce9u),uintBitsToFloat(0x3d060472u)),vec2(uintBitsToFloat(0x3f7ec46du),uintBitsToFloat(0x3dc8bd36u)),vec2(uintBitsToFloat(0x3f74fa0bu),uintBitsToFloat(0x3e94a031u)),vec2(uintBitsToFloat(0x3f61c598u),uintBitsToFloat(0x3ef15aeau)),vec2(uintBitsToFloat(0x3f7fb10fu),uintBitsToFloat(0x3d48fb30u)),vec2(uintBitsToFloat(0x3f7d3aacu),uintBitsToFloat(0x3e164083u)),vec2(uintBitsToFloat(0x3f676bd8u),uintBitsToFloat(0x3edae880u)),vec2(uintBitsToFloat(0x3f3daef9u),uintBitsToFloat(0x3f2beb4au)),vec2(uintBitsToFloat(0x3f7f73afu),uintBitsToFloat(0x3d85f213u)),vec2(uintBitsToFloat(0x3f7b14beu),uintBitsToFloat(0x3e47c5c2u)),vec2(uintBitsToFloat(0x3f54db31u),uintBitsToFloat(0x3f0e39dau)),vec2(uintBitsToFloat(0x3f0e39dau),uintBitsToFloat(0x3f54db31u)),vec2(uintBitsToFloat(0x3f7f24ccu),uintBitsToFloat(0x3da75d61u)),vec2(uintBitsToFloat(0x3f7853f8u),uintBitsToFloat(0x3e78cfccu)),vec2(uintBitsToFloat(0x3f3daef9u),uintBitsToFloat(0x3f2beb4au)),vec2(uintBitsToFloat(0x3eac7cd4u),uintBitsToFloat(0x3f710908u)),vec2(uintBitsToFloat(0x3f7ec46du),uintBitsToFloat(0x3dc8bd36u)),vec2(uintBitsToFloat(0x3f74fa0bu),uintBitsToFloat(0x3e94a031u)),vec2(uintBitsToFloat(0x3f226799u),uintBitsToFloat(0x3f45e403u)),vec2(uintBitsToFloat(0x3dc8bd36u),uintBitsToFloat(0x3f7ec46du)),vec2(uintBitsToFloat(0x3f7e5298u),uintBitsToFloat(0x3dea0f49u)),vec2(uintBitsToFloat(0x3f710908u),uintBitsToFloat(0x3eac7cd4u)),vec2(uintBitsToFloat(0x3f039c3du),uintBitsToFloat(0x3f5b941au)),vec2(uintBitsToFloat(0xbe164083u),uintBitsToFloat(0x3f7d3aacu)),vec2(uintBitsToFloat(0x3f7dcf55u),uintBitsToFloat(0x3e05a8a8u)),vec2(uintBitsToFloat(0x3f6c835eu),uintBitsToFloat(0x3ec3ef15u)),vec2(uintBitsToFloat(0x3ec3ef15u),uintBitsToFloat(0x3f6c835eu)),vec2(uintBitsToFloat(0xbec3ef15u),uintBitsToFloat(0x3f6c835eu)),vec2(uintBitsToFloat(0x3f7d3aacu),uintBitsToFloat(0x3e164083u)),vec2(uintBitsToFloat(0x3f676bd8u),uintBitsToFloat(0x3edae880u)),vec2(uintBitsToFloat(0x3e78cfccu),uintBitsToFloat(0x3f7853f8u)),vec2(uintBitsToFloat(0xbf187fc0u),uintBitsToFloat(0x3f4d9f02u)),vec2(uintBitsToFloat(0x3f7c94a8u),uintBitsToFloat(0x3e26ce12u)),vec2(uintBitsToFloat(0x3f61c598u),uintBitsToFloat(0x3ef15aeau)),vec2(uintBitsToFloat(0x3dc8bd36u),uintBitsToFloat(0x3f7ec46du)),vec2(uintBitsToFloat(0xbf45e403u),uintBitsToFloat(0x3f226799u)),vec2(uintBitsToFloat(0x3f7bdd55u),uintBitsToFloat(0x3e375032u)),vec2(uintBitsToFloat(0x3f5b941au),uintBitsToFloat(0x3f039c3du)),vec2(uintBitsToFloat(0xbd48fb30u),uintBitsToFloat(0x3f7fb10fu)),vec2(uintBitsToFloat(0xbf676bd8u),uintBitsToFloat(0x3edae880u)),vec2(uintBitsToFloat(0x3f7b14beu),uintBitsToFloat(0x3e47c5c2u)),vec2(uintBitsToFloat(0x3f54db31u),uintBitsToFloat(0x3f0e39dau)),vec2(uintBitsToFloat(0xbe47c5c2u),uintBitsToFloat(0x3f7b14beu)),vec2(uintBitsToFloat(0xbf7b14beu),uintBitsToFloat(0x3e47c5c2u)),vec2(uintBitsToFloat(0x3f7a3af3u),uintBitsToFloat(0x3e582da0u)),vec2(uintBitsToFloat(0x3f4d9f02u),uintBitsToFloat(0x3f187fc0u)),vec2(uintBitsToFloat(0xbeac7cd4u),uintBitsToFloat(0x3f710908u)),vec2(uintBitsToFloat(0xbf7fb10fu),uintBitsToFloat(0xbd48fb30u)),vec2(uintBitsToFloat(0x3f795000u),uintBitsToFloat(0x3e6886aeu)),vec2(uintBitsToFloat(0x3f45e403u),uintBitsToFloat(0x3f226799u)),vec2(uintBitsToFloat(0xbef15aeau),uintBitsToFloat(0x3f61c598u)),vec2(uintBitsToFloat(0xbf74fa0bu),uintBitsToFloat(0xbe94a031u)),vec2(uintBitsToFloat(0x3f7853f8u),uintBitsToFloat(0x3e78cfccu)),vec2(uintBitsToFloat(0x3f3daef9u),uintBitsToFloat(0x3f2beb4au)),vec2(uintBitsToFloat(0xbf187fc0u),uintBitsToFloat(0x3f4d9f02u)),vec2(uintBitsToFloat(0xbf5b941au),uintBitsToFloat(0xbf039c3du)),vec2(uintBitsToFloat(0x3f7746eau),uintBitsToFloat(0x3e8483eeu)),vec2(uintBitsToFloat(0x3f3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0xbf3504f3u),uintBitsToFloat(0x3f3504f3u)),vec2(uintBitsToFloat(0xbf3504f3u),uintBitsToFloat(0xbf3504f3u)),vec2(uintBitsToFloat(0x3f7628eau),uintBitsToFloat(0x3e8c96e1u)),vec2(uintBitsToFloat(0x3f2beb4au),uintBitsToFloat(0x3f3daef9u)),vec2(uintBitsToFloat(0xbf4d9f02u),uintBitsToFloat(0x3f187fc0u)),vec2(uintBitsToFloat(0xbf039c3du),uintBitsToFloat(0xbf5b941au)),vec2(uintBitsToFloat(0x3f74fa0bu),uintBitsToFloat(0x3e94a031u)),vec2(uintBitsToFloat(0x3f226799u),uintBitsToFloat(0x3f45e403u)),vec2(uintBitsToFloat(0xbf61c598u),uintBitsToFloat(0x3ef15aeau)),vec2(uintBitsToFloat(0xbe94a031u),uintBitsToFloat(0xbf74fa0bu)),vec2(uintBitsToFloat(0x3f73ba61u),uintBitsToFloat(0x3e9c9f52u)),vec2(uintBitsToFloat(0x3f187fc0u),uintBitsToFloat(0x3f4d9f02u)),vec2(uintBitsToFloat(0xbf710908u),uintBitsToFloat(0x3eac7cd4u)),vec2(uintBitsToFloat(0xbd48fb30u),uintBitsToFloat(0xbf7fb10fu)),vec2(uintBitsToFloat(0x3f726a03u),uintBitsToFloat(0x3ea493b7u)),vec2(uintBitsToFloat(0x3f0e39dau),uintBitsToFloat(0x3f54db31u)),vec2(uintBitsToFloat(0xbf7b14beu),uintBitsToFloat(0x3e47c5c2u)),vec2(uintBitsToFloat(0x3e47c5c2u),uintBitsToFloat(0xbf7b14beu)),vec2(uintBitsToFloat(0x3f710908u),uintBitsToFloat(0x3eac7cd4u)),vec2(uintBitsToFloat(0x3f039c3du),uintBitsToFloat(0x3f5b941au)),vec2(uintBitsToFloat(0xbf7fb10fu),uintBitsToFloat(0x3d48fb30u)),vec2(uintBitsToFloat(0x3edae880u),uintBitsToFloat(0xbf676bd8u)),vec2(uintBitsToFloat(0x3f6f9788u),uintBitsToFloat(0x3eb45a1eu)),vec2(uintBitsToFloat(0x3ef15aeau),uintBitsToFloat(0x3f61c598u)),vec2(uintBitsToFloat(0xbf7ec46du),uintBitsToFloat(0xbdc8bd36u)),vec2(uintBitsToFloat(0x3f226799u),uintBitsToFloat(0xbf45e403u)),vec2(uintBitsToFloat(0x3f6e159cu),uintBitsToFloat(0x3ebc2b0du)),vec2(uintBitsToFloat(0x3edae880u),uintBitsToFloat(0x3f676bd8u)),vec2(uintBitsToFloat(0xbf7853f8u),uintBitsToFloat(0xbe78cfccu)),vec2(uintBitsToFloat(0x3f4d9f02u),uintBitsToFloat(0xbf187fc0u)));
+void main(){uint batch=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(batch>=p.batches)return;for(uint k=0;k<24;k++){vec2 x[16],W[4];for(uint j=0;j<16;j++)x[j]=src.v[batch*384+j*24+k];for(uint j=0;j<4;j++)W[j]=table[k*4+j];twiddle(x,W);for(uint j=0;j<16;j++)dst.v[batch*384+j*24+k]=x[j];}}

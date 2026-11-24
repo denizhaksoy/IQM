@@ -1,4 +1,4 @@
-﻿#include <IQM/hdrvdp3/sp0_resident_gpu.h>
+#include <IQM/hdrvdp3/sp0_resident_gpu.h>
 #include <IQM/base/vulkan_runtime.h>
 #include <vulkan_res.h>
 #include <algorithm>
@@ -83,7 +83,7 @@ struct ResidentSP0Pyramid::Impl {
         }
         // final lowCur is base band pre-norm; copy to base band region with norm levels+1? base band index = levels+1
         // sp0_single: bands.push_back(std::move(low)); then normalize all by 2^b. so base gets 2^(levels+1)
-        // our correlate applies norm; so do a "copy with norm" by using kernel 1 identity? easier: correlate with 1x1 identity filter is overkill. Instead add a copy/norm step. Simpler: make a small shader or just do correlate as identity. 
+        // our correlate applies norm; so do a "copy with norm" by using kernel 1 identity? easier: correlate with 1x1 identity filter is overkill. Instead add a copy/norm step. Simpler: make a small shader or just do correlate as identity.
         // Better: include norm in last low correlate: yes, last correlate should have normExp=levels+1.
         // Fix: adjust last lo correlate normExp
         // find last corr job with lo filter to cur size - easier to build carefully.

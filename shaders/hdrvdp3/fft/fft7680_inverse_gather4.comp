@@ -1,0 +1,42 @@
+#version 450
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Derived FFTW3.3.10 n1_4, copyright2003,2007-14 Matteo Frigo/MIT.
+// Source/notices/COPYING retained; test-only translation.
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{vec2 v[];}src;
+layout(set=0,binding=2,std430)writeonly buffer Output{vec2 v[];}dst;
+layout(push_constant)uniform P{uint batches;uint inverse;uint b;uint c;}p;
+void complex4(in float ri[4],in float ii[4],out float ro[4],out float io[4]){
+	       precise float T3, Tb, T9, Tf, T6, Ta, Te, Tg;
+	       {
+		    precise float T1, T2, T7, T8;
+		    T1 = ri[0];
+		    T2 = ri[2];
+		    T3 = T1 + T2;
+		    Tb = T1 - T2;
+		    T7 = ii[0];
+		    T8 = ii[2];
+		    T9 = T7 - T8;
+		    Tf = T7 + T8;
+	       }
+	       {
+		    precise float T4, T5, Tc, Td;
+		    T4 = ri[1];
+		    T5 = ri[3];
+		    T6 = T4 + T5;
+		    Ta = T4 - T5;
+		    Tc = ii[1];
+		    Td = ii[3];
+		    Te = Tc - Td;
+		    Tg = Tc + Td;
+	       }
+	       ro[2] = T3 - T6;
+	       io[2] = Tf - Tg;
+	       ro[0] = T3 + T6;
+	       io[0] = Tf + Tg;
+	       io[1] = T9 - Ta;
+	       ro[1] = Tb + Te;
+	       io[3] = Ta + T9;
+	       ro[3] = Tb - Te;
+	  }
+void main(){uint group=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(group>=p.batches)return;uint batch=group/1920,localIndex=group%1920,j20=localIndex/96,j16=(localIndex%96)/6,j6=localIndex%6;float ri[4],ii[4],ro[4],io[4];for(uint j=0;j<4;j++){vec2 z=src.v[batch*7680+j20+20*j16+320*j6+1920*j];ri[j]=z.y;ii[j]=z.x;}complex4(ri,ii,ro,io);for(uint j=0;j<4;j++)dst.v[group*4+j]=vec2(io[j],ro[j]);}

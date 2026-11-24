@@ -30,7 +30,18 @@ int run_hdrvdp3_live_quality_cli(const Args& args){
         bool hasCmp=false; for(const auto&v:values) if(v=="--comparison-shader") hasCmp=true; std::cerr<<"[DBG] has_comparison_shader="<<(hasCmp?"1":"0")<<"\n";
     }
     if(const char* stage=getenv("IQM_HDRVDP3_FULL_GPU_STAGE1"); stage && std::string(stage)=="1"){
-        if(std::filesystem::is_regular_file(runtime/"pq_display.spv")){ values.emplace_back("--pq-display-shader"); values.push_back((runtime/"pq_display.spv").string()); }
+        const char* pqFp64Env = getenv("IQM_HDRVDP3_PQ_FP64");
+        const bool pqFp64 = pqFp64Env && std::string(pqFp64Env) == "1";
+
+        const auto pqShader = runtime /
+            (pqFp64 ? "pq_display_fp64.spv" : "pq_display.spv");
+
+        if (!std::filesystem::is_regular_file(pqShader))
+            throw std::invalid_argument(
+                "Missing PQ display shader: " + pqShader.string());
+
+        values.emplace_back("--pq-display-shader");
+        values.push_back(pqShader.string());
         if(std::filesystem::is_regular_file(runtime/"jnd.spv")){ values.emplace_back("--jnd-shader"); values.push_back((runtime/"jnd.spv").string()); }
         if(std::filesystem::is_regular_file(runtime/"sp0_corrdn.spv")){ values.emplace_back("--sp0-corrdn-shader"); values.push_back((runtime/"sp0_corrdn.spv").string()); }
         if(std::filesystem::is_regular_file(runtime/"sp0_base_mean.spv")){ values.emplace_back("--sp0-base-mean-shader"); values.push_back((runtime/"sp0_base_mean.spv").string()); }

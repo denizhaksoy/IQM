@@ -1,3 +1,4 @@
+#include <functional>
 #include <IQM/hdrvdp3/general_quality_single.h>
 #include <IQM/hdrvdp3/linear_color_single.h>
 #include <IQM/hdrvdp3/optical_single.h>
@@ -7,9 +8,9 @@
 #include <limits>
 #include <stdexcept>
 namespace IQM::HDRVDP3 {
-QualitySideSingle prepare_quality_side_single(std::span<const float> linear,
+QualitySideSingle prepare_quality_side_single_diagnostic(std::span<const float> linear,
     unsigned w,unsigned h,double ppd,const XYZDisplaySamples& xyz,
-    const RGBSpectralSamples& spectral,const FFTBackendSingle& fft,const SingleMatrixBackend* matrices,const SingleAdaptationInputBackend* adaptationInput,const SinglePaddingBackend* padding) {
+    const RGBSpectralSamples& spectral,const FFTBackendSingle& fft,const SingleMatrixBackend* matrices,const SingleAdaptationInputBackend* adaptationInput,const SinglePaddingBackend* padding, const std::function<void(const char*,std::span<const float>)>& trace) {
     if(w<16||h<16||w>unsigned(std::numeric_limits<int>::max()/2)||h>unsigned(std::numeric_limits<int>::max()/2)||
        size_t(w)>std::vector<float>().max_size()/size_t(h)/16||linear.size()!=3*size_t(w)*h||
        !std::isfinite(ppd)||ppd<26||ppd>256||!fft.convolve)
@@ -25,7 +26,9 @@ QualitySideSingle prepare_quality_side_single(std::span<const float> linear,
         if(result.native_rgb.size()!=linear.size())throw std::runtime_error("Native matrix provider shape mismatch");
         for(float v:result.native_rgb)if(!std::isfinite(v)||v<1e-6f)throw std::runtime_error("Native matrix provider output invalid");
     }else result.native_rgb=prepare_linear_color_single(linear,xyz,LinearColorEncoding::BT2020);
+    if(trace) trace("native",result.native_rgb);
     auto optical=filter_optical_rgb_single(result.native_rgb,w,h,ppd,fft,padding);
+    if(trace) trace("optical",optical);
     RGBOpticalResponseSingle lmsr;
     if(matrices){
         const auto model=calibrate_rgb_spectral_age(spectral,24.);std::vector<float> coefficients;
@@ -39,12 +42,20 @@ QualitySideSingle prepare_quality_side_single(std::span<const float> linear,
             for(float v:lmsr.adaptation_input)if(!std::isfinite(v)||v<2e-8f||v>2e10f)throw std::runtime_error("Adaptation input provider domain");
         }else {lmsr.adaptation_input.resize(n);for(size_t i=0;i<n;++i)lmsr.adaptation_input[i]=lmsr.clamped[i]+lmsr.clamped[n+i];}
     }else lmsr=project_optical_rgb_single(optical,spectral,24.);
+    if(trace){trace("lmsr",lmsr.clamped);trace("lm",lmsr.adaptation_input);}
     optical.clear();optical.shrink_to_fit();
     result.adaptation=local_adaptation_single(lmsr.adaptation_input,w,h,ppd,fft,padding);
+    if(trace) trace("adapt",result.adaptation);
     auto jnd=rgb_to_jnd_response_single(create_jnd_lut(),lmsr.clamped,result.adaptation,w,h,double(size_t(w)*h)/(ppd*ppd),24.);
+    if(trace) trace("jnd",jnd.response);
     lmsr={};jnd.channels.clear();jnd.channels.shrink_to_fit();
     result.pyramid=build_sp0_pyramid_single(jnd.response,w,h,ppd);
     return result;
+}
+QualitySideSingle prepare_quality_side_single(std::span<const float> linear,
+    unsigned w,unsigned h,double ppd,const XYZDisplaySamples& xyz,
+    const RGBSpectralSamples& spectral,const FFTBackendSingle& fft,const SingleMatrixBackend* matrices,const SingleAdaptationInputBackend* adaptationInput,const SinglePaddingBackend* padding) {
+    return prepare_quality_side_single_diagnostic(linear,w,h,ppd,xyz,spectral,fft,matrices,adaptationInput,padding,{});
 }
 GeneralQualityResultSingle evaluate_general_quality_single(
     std::span<const float> reference,std::span<const float> test,unsigned w,unsigned h,double ppd,

@@ -1,0 +1,15 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uvec2 v[];} src;
+layout(set=0,binding=2,std430) writeonly buffer Output {uvec2 v[];} dst;
+layout(push_constant) uniform P {
+ uint count;uint points;uint srcBase;uint srcSample;
+ uint srcBatch;uint dstBase;uint dstSample;uint dstBatch;
+} p;
+void main(){
+ uint i=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;
+ if(i>=p.count)return;
+ uint batch=i/p.points,element=i%p.points;
+ dst.v[p.dstBase+batch*p.dstBatch+element*p.dstSample]=
+ src.v[p.srcBase+batch*p.srcBatch+element*p.srcSample];
+}

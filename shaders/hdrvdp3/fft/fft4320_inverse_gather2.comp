@@ -1,0 +1,8 @@
+#version 450
+// SPDX-License-Identifier: GPL-2.0-or-later
+// FFTW3.3.10 n1_2 and native CT20/12/9/2 layout. COPYING retained.
+layout(local_size_x=64)in;
+layout(set=0,binding=0,std430)readonly buffer Input{vec2 v[];}src;
+layout(set=0,binding=2,std430)writeonly buffer Output{vec2 v[];}dst;
+layout(push_constant)uniform P{uint count;uint a;uint b;uint c;}p;
+void main(){uint g=(gl_WorkGroupID.y*gl_NumWorkGroups.x+gl_WorkGroupID.x)*64+gl_LocalInvocationID.x;if(g>=p.count)return;uint batch=g/2160u,k=g%2160u,j20=k/108u,j12=(k/9u)%12u,j9=k%9u,i=batch*4320u+j20+20u*j12+240u*j9,o=batch*4320u+j20*216u+j12*18u+j9*2u;precise vec2 a=src.v[i],b=src.v[i+2160u];precise vec2 sum=a+b,difference=a-b;dst.v[o]=sum;dst.v[o+1]=difference;}
